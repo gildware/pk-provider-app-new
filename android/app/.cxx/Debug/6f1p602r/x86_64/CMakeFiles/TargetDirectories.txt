@@ -1,0 +1,2 @@
+/Users/mobarak/Documents/6amTech/gitHub/Demandium/Demandium-Provider-App/android/app/.cxx/Debug/6f1p602r/x86_64/CMakeFiles/edit_cache.dir
+/Users/mobarak/Documents/6amTech/gitHub/Demandium/Demandium-Provider-App/android/app/.cxx/Debug/6f1p602r/x86_64/CMakeFiles/rebuild_cache.dir
