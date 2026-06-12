@@ -4,7 +4,7 @@ description: A new Flutter project.
 
 publish_to: 'none' #
 
-version: 1.0.0+1
+version: 2.7.2+272
 
 environment:
   sdk: ^3.10.0
@@ -53,6 +53,7 @@ dependencies:
   flutter_switch: ^0.3.2
   just_the_tooltip: ^0.0.12
   flutter_inappwebview: ^6.1.5
+  razorpay_flutter: ^1.4.0
   universal_html: ^2.3.0
   scroll_to_index: ^3.0.1
   photo_view: ^0.15.0
@@ -73,6 +74,16 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  change_package_name: ^1.1.1
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "provider.png"
+  adaptive_icon_background: "#000000"
+  adaptive_icon_foreground: "provider.png"
+  remove_alpha_ios: true
 
 flutter:
   uses-material-design: true

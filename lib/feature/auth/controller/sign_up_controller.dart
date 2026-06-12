@@ -586,7 +586,7 @@ class SignUpController extends GetxController {
     super.onInit();
     getZoneList();
     resetAllValue(shouldUpdate: false);
-    countryDialCode = CountryCode.fromCountryCode(Get.find<SplashController>().configModel.content!.countryCode!).dialCode!;
+    countryDialCode = ConfigHelper.defaultCountryDialCode;
     applyVerifiedPhoneFromRoute();
     applyRegistrationSessionFromRoute();
     applyDraftIfPresent();

@@ -22,7 +22,7 @@ class _ForgetPassScreenState extends State<ForgetPassScreen> {
   @override
   void initState() {
     super.initState();
-    countryDialCode = CountryCode.fromCountryCode(Get.find<SplashController>().configModel.content!.countryCode!).dialCode?? "+880";
+    countryDialCode = ConfigHelper.defaultCountryDialCode;
 
     var config = Get.find<SplashController>().configModel.content;
     if(config?.forgetPasswordVerificationMethod?.phone == 1 && config?.forgetPasswordVerificationMethod?.email == 1){

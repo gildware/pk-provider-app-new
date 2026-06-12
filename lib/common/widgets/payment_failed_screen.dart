@@ -78,7 +78,10 @@ class _PaymentFailedScreenState extends State<PaymentFailedScreen> {
 
                         TextButton(
                           onPressed: () {
-                            Get.to(() => PaymentScreen(url: widget.url, fromPage: widget.fromPage));
+                            DigitalPaymentLauncher.start(
+                              paymentUrl: widget.url,
+                              fromPage: widget.fromPage,
+                            );
                           },
                           child: Text(
                             'try_again'.tr,

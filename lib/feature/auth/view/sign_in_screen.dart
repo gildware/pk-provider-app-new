@@ -89,6 +89,9 @@ class SignInScreenState extends State<SignInScreen> {
                   final manualLogin = _manualLoginFlag(config);
                   final isOtpOnly = manualLogin == 0 && otpLogin == 1;
                   final showCredentialFields = manualLogin == 1 || otpLogin == 1;
+                  final isPhoneInput = authController.selectedLoginMedium == LoginMedium.otp
+                      || isOtpOnly
+                      || authController.isNumberLogin;
 
                   if (!_loginModeSynced && config?.loginSetup?.loginOption != null) {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -109,7 +112,8 @@ class SignInScreenState extends State<SignInScreen> {
                         if (showCredentialFields)
                           CustomTextField(
                             onCountryChanged: (countryCode) => authController.countryDialCode = countryCode.dialCode!,
-                            countryDialCode: authController.isNumberLogin || isOtpOnly ? authController.countryDialCode : null,
+                            countryDialCode: isPhoneInput ? authController.countryDialCode : null,
+                            isCountryPickerEnabled: false,
                             title: 'email_or_phone'.tr,
                             hintText: authController.selectedLoginMedium == LoginMedium.otp || isOtpOnly
                                 ? 'please_enter_phone_number'.tr
@@ -117,7 +121,7 @@ class SignInScreenState extends State<SignInScreen> {
                             controller: _emailController,
                             focusNode: _emailFocus,
                             nextFocus: authController.selectedLoginMedium == LoginMedium.manual && manualLogin == 1 ? _passwordFocus : null,
-                            inputType: TextInputType.emailAddress,
+                            inputType: isPhoneInput ? TextInputType.phone : TextInputType.emailAddress,
                             onChanged: (String text) {
                               if (authController.selectedLoginMedium != LoginMedium.otp) {
                                 final numberRegExp = RegExp(r'^[+]?[0-9]+$');

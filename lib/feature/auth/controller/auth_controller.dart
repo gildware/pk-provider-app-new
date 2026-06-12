@@ -418,6 +418,6 @@ class AuthController extends GetxController implements GetxService {
   }
 
   void initCountryCode({String? countryCode}){
-    countryDialCode = countryCode ?? CountryCode.fromCountryCode(Get.find<SplashController>().configModel.content?.countryCode ?? "BD").dialCode ?? "+880";
+    countryDialCode = countryCode ?? ConfigHelper.defaultCountryDialCode;
   }
 }

@@ -15,10 +15,16 @@ class ApiClient extends GetxService {
   String? token;
   late Map<String, String> _mainHeaders;
 
+  static void _log(String message) {
+    if (kDebugMode) {
+      debugPrint(message);
+    }
+  }
+
   ApiClient({required this.appBaseUrl, required this.sharedPreferences}) {
-    debugPrint('API Base URL: $appBaseUrl');
+    _log('API Base URL: $appBaseUrl');
     token = sharedPreferences.getString(AppConstants.token);
-    debugPrint('Token: $token');
+    _log('Token: $token');
     try {
 
     }catch(e) {
@@ -42,8 +48,7 @@ class ApiClient extends GetxService {
 
   Future<Response> getData(String uri, {Map<String, dynamic>? query, Map<String, String>? headers}) async {
     try {
-      debugPrint('====> API Call: $uri');
-      //debugPrint('====> API Call: $uri\nHeader: $_mainHeaders');
+      _log('====> API Call: $uri');
       http.Response response = await http.get(
         Uri.parse(appBaseUrl!+uri),
         headers: headers ?? _mainHeaders,
@@ -56,9 +61,8 @@ class ApiClient extends GetxService {
 
   Future<Response> postData(String? uri, dynamic body, {Map<String, String>? headers}) async {
     try {
-      debugPrint('====> API Call: $uri');
-      //debugPrint('====> API Call: $uri\nHeader: $_mainHeaders');
-      debugPrint('====> API Body: $body');
+      _log('====> API Call: $uri');
+      _log('====> API Body: $body');
       http.Response response = await http.post(
         Uri.parse(appBaseUrl!+uri!),
         body: jsonEncode(body),
@@ -108,14 +112,14 @@ class ApiClient extends GetxService {
       MultipartBody? logo,
       {Map<String, String>? headers,List<PlatformFile>? otherFile}) async {
     try {
-      debugPrint('====> API Call: $uri');
-      debugPrint('====> API Body: $body');
+      _log('====> API Call: $uri');
+      _log('====> API Body: $body');
       if (logo != null) {
-        debugPrint('====> Multipart logo: ${logo.file.path}');
+        _log('====> Multipart logo: ${logo.file.path}');
       }
       if (multipartBody != null) {
         for (final part in multipartBody) {
-          debugPrint('====> Multipart ${part.key}: ${part.file.path}');
+          _log('====> Multipart ${part.key}: ${part.file.path}');
         }
       }
       http.MultipartRequest request = http.MultipartRequest('POST', Uri.parse(appBaseUrl!+uri!));
@@ -165,17 +169,15 @@ class ApiClient extends GetxService {
 
       return handleResponse(response, uri);
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint('====> Multipart upload failed: $e');
-      }
+      _log('====> Multipart upload failed: $e');
       return Response(statusCode: 1, statusText: noInternetMessage);
     }
   }
 
   Future<Response> putData(String? uri, dynamic body, {Map<String, String>? headers}) async {
     try {
-      debugPrint('====> API Call: $uri\nHeader: $_mainHeaders');
-      debugPrint('====> API Body: $body');
+      _log('====> API Call: $uri\nHeader: $_mainHeaders');
+      _log('====> API Body: $body');
       http.Response response = await http.put(
         Uri.parse(appBaseUrl!+uri!),
         body: jsonEncode(body),
@@ -189,7 +191,7 @@ class ApiClient extends GetxService {
 
   Future<Response> deleteData(String? uri, {Map<String, String>? headers}) async {
     try {
-      debugPrint('====> API Call: $uri\nHeader: $_mainHeaders');
+      _log('====> API Call: $uri\nHeader: $_mainHeaders');
       http.Response response = await http.delete(
         Uri.parse(appBaseUrl!+uri!),
         headers: headers ?? _mainHeaders,
@@ -224,8 +226,7 @@ class ApiClient extends GetxService {
     }else if(response0.statusCode != 200 && response0.body == null) {
       response0 = Response(statusCode: 0, statusText: noInternetMessage);
     }
-    debugPrint('====> API Response: [${response0.statusCode}] $uri');
-    //debugPrint('====> API Response: [${response0.statusCode}] $uri\n${response0.body}');
+    _log('====> API Response: [${response0.statusCode}] $uri');
     return response0;
   }
 }

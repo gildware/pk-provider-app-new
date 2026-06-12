@@ -6,8 +6,7 @@ class PostRepo{
   PostRepo({required this.apiClient});
 
   Future<Response> getCustomerPostList(int offset,String status) async {
-    return await apiClient.getData("${AppConstants.getCustomerPostList}?status=$status&offset=$offset&limit=${Get.find<SplashController>()
-        .configModel.content!.paginationLimit}");
+    return await apiClient.getData("${AppConstants.getCustomerPostList}?status=$status&offset=$offset&limit=${ConfigHelper.paginationLimit}");
   }
 
   Future<Response> bidCustomPost(Map<String,String> body)  async {

@@ -29,7 +29,7 @@ class CommissionBottomSheet extends StatelessWidget {
           title: "commission_percentage",
           amount: " ${commissionStatus == 1 ?
           userProfileController.providerModel!.content!.providerInfo!.commissionPercentage :
-          Get.find<SplashController>().configModel.content!.defaultCommission}",
+          ConfigHelper.defaultCommission}",
         ),
         const SizedBox(height: Dimensions.paddingSizeSmall),
 

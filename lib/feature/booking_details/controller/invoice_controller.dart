@@ -10,6 +10,7 @@ import 'package:demandium_provider/feature/booking_details/model/bookings_detail
 import 'package:demandium_provider/feature/booking_details/model/invoice.dart';
 import 'package:demandium_provider/feature/booking_details/model/supplier.dart';
 import 'package:demandium_provider/feature/splash/controller/splash_controller.dart';
+import 'package:demandium_provider/helper/config_helper.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/widgets.dart';
@@ -29,7 +30,10 @@ class PdfInvoiceApi {
     ImageProvider? imageProvider;
 
     try {
-      imageProvider = await downloadImage(Get.find<SplashController>().configModel.content!.logoFullPath ?? "");
+      final logoPath = ConfigHelper.logoFullPath;
+      if (logoPath.isNotEmpty) {
+        imageProvider = await downloadImage(logoPath);
+      }
     }catch (e){
       if (kDebugMode) {
         print(e.toString());

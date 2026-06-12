@@ -7,7 +7,7 @@ class AppConstants {
   static const String appUser = 'Provider';
   static const String appVersion = '3.8'; /// Flutter SDK: 3.41.5
   /// Local Laravel backend (`php artisan serve` at http://127.0.0.1:8000)
-  static const String baseUrl = 'http://127.0.0.1:8000';
+  static const String baseUrl = 'https://dev.panunkaergar.com';
   static const bool avoidMaintenanceMode = false;
   static const String configUri = '/api/v1/provider/config';
   static const String registerUri = '/api/v1/provider/auth/registration';

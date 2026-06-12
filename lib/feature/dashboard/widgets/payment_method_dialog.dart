@@ -97,7 +97,11 @@ class PaymentMethodDialog extends StatelessWidget {
 
                     Get.back();
 
-                    Get.to(()=> PaymentScreen(url:url, fromPage: "dashboard",));
+                    DigitalPaymentLauncher.start(
+                      paymentUrl: url,
+                      fromPage: 'dashboard',
+                      gateway: paymentMethod.gateway,
+                    );
 
                   }
 

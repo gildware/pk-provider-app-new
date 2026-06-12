@@ -453,13 +453,13 @@ class UserProfileController extends GetxController implements GetxService{
 
         countryDialCode = ValidationHelper.getValidCountryCode(_providerModel?.content?.providerInfo?.companyPhone ?? "" ) != ""
             ? ValidationHelper.getValidCountryCode(_providerModel?.content?.providerInfo?.companyPhone ?? "")
-            : CountryCode.fromCountryCode(Get.find<SplashController>().configModel.content!.countryCode!).dialCode ?? "+880";
+            : ConfigHelper.defaultCountryDialCode;
 
-        companyPhoneController!.text = ValidationHelper.getValidPhone(_providerModel?.content?.providerInfo?.companyPhone ?? "") != "" ? ValidationHelper.getValidPhone(_providerModel?.content?.providerInfo?.companyPhone??"" ) : _providerModel?.content?.providerInfo?.companyPhone ?? "";
+        companyPhoneController!.text = ValidationHelper.getDisplayPhone(_providerModel?.content?.providerInfo?.companyPhone ?? "");
 
         companyEmailController!.text = _providerModel?.content?.providerInfo?.companyEmail??"";
         personalNameController!.text = _providerModel?.content?.providerInfo?.contactPersonName??"";
-        personalPhoneController!.text = ValidationHelper.getValidPhone(_providerModel?.content?.providerInfo?.contactPersonPhone ?? "") != "" ? ValidationHelper.getValidPhone(_providerModel?.content?.providerInfo?.contactPersonPhone ?? "" ) : PhoneNumber.parse(_providerModel?.content?.providerInfo?.contactPersonPhone ?? '').toString();
+        personalPhoneController!.text = ValidationHelper.getDisplayPhone(_providerModel?.content?.providerInfo?.contactPersonPhone ?? "");
         personalEmailController!.text = _providerModel?.content?.providerInfo?.contactPersonEmail ?? '';
         emailController!.text = _providerModel?.content?.providerInfo?.owner?.email??"";
         _syncSavedContactPhoneFromProvider();

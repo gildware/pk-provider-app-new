@@ -1,4 +1,4 @@
-package com.sixamtech.demandium.provider
+package com.panunkaergar.providers
 
 import io.flutter.embedding.android.FlutterActivity
 

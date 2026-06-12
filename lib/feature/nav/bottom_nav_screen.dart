@@ -29,7 +29,7 @@ class BottomNavScreen extends StatefulWidget {
       }
       Get.find<UserProfileController>().trialWidgetShow(route: "");
     });
-    Get.find<AuthController>().updateToken();
+    await Get.find<AuthController>().updateToken();
     Get.find<PaymentInfoController>().getPaymentMethods(isUpdate: false, isReload: false);
 
   }

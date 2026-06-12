@@ -93,7 +93,7 @@ class ServicemanSetupController extends GetxController  with GetSingleTickerProv
     });
     controller = TabController(vsync: this, length: servicemanDetailsTabs.length,initialIndex: 0);
     selectedIndex = -1;
-    countryDialCode = CountryCode.fromCountryCode(Get.find<SplashController>().configModel.content!.countryCode!).dialCode??"+880";
+    countryDialCode = ConfigHelper.defaultCountryDialCode;
   }
 
 
@@ -248,10 +248,10 @@ class ServicemanSetupController extends GetxController  with GetSingleTickerProv
   Future<void> getSingleServicemanData({int? index,String? fromPage}) async {
     if(fromPage=='editPage'){
 
-      countryDialCode = ValidationHelper.getValidCountryCode(servicemanList?[index!].phone ?? "") != "" ? ValidationHelper.getValidCountryCode(servicemanList?[index!].phone ?? "") : CountryCode.fromCountryCode(Get.find<SplashController>().configModel.content!.countryCode!).dialCode??"+880";
+      countryDialCode = ValidationHelper.getValidCountryCode(servicemanList?[index!].phone ?? "") != "" ? ValidationHelper.getValidCountryCode(servicemanList?[index!].phone ?? "") : ConfigHelper.defaultCountryDialCode;
       firstNameController.text = servicemanList?[index!].firstName ?? "";
       lastNameController.text =  servicemanList?[index!].lastName ?? "";
-      phoneController.text = ValidationHelper.getValidPhone(servicemanList?[index!].phone ?? "") != "" ? ValidationHelper.getValidPhone(servicemanList?[index!].phone ?? "") : servicemanList?[index!].phone ?? "";
+      phoneController.text = ValidationHelper.getDisplayPhone(servicemanList?[index!].phone ?? "");
       identityNumberController.text = servicemanList?[index!].identificationNumber ?? "";
       selectedIdentityType = servicemanList?[index!].identificationType ?? "";
       emailController.text = servicemanList?[index!].email ?? "";
@@ -263,10 +263,10 @@ class ServicemanSetupController extends GetxController  with GetSingleTickerProv
       currentServicemanIndex = index;
 
     }else if(fromPage=='detailsPage'){
-      countryDialCode = ValidationHelper.getValidCountryCode(Get.find<ServicemanDetailsController>().servicemanModel?.user?.phone ?? "") != "" ? ValidationHelper.getValidCountryCode(Get.find<ServicemanDetailsController>().servicemanModel?.user?.phone ?? "") : CountryCode.fromCountryCode(Get.find<SplashController>().configModel.content!.countryCode!).dialCode??"+880";
+      countryDialCode = ValidationHelper.getValidCountryCode(Get.find<ServicemanDetailsController>().servicemanModel?.user?.phone ?? "") != "" ? ValidationHelper.getValidCountryCode(Get.find<ServicemanDetailsController>().servicemanModel?.user?.phone ?? "") : ConfigHelper.defaultCountryDialCode;
       firstNameController.text = Get.find<ServicemanDetailsController>().servicemanModel!.user!.firstName!;
       lastNameController.text =  Get.find<ServicemanDetailsController>().servicemanModel!.user!.lastName!;
-      phoneController.text = ValidationHelper.getValidPhone(Get.find<ServicemanDetailsController>().servicemanModel?.user?.phone ?? "") != "" ? ValidationHelper.getValidPhone(Get.find<ServicemanDetailsController>().servicemanModel?.user?.phone ?? "") : servicemanList?[index!].phone ?? "";
+      phoneController.text = ValidationHelper.getDisplayPhone(Get.find<ServicemanDetailsController>().servicemanModel?.user?.phone ?? "");
       identityNumberController.text = Get.find<ServicemanDetailsController>().servicemanModel!.user!.identificationNumber!;
       selectedIdentityType = Get.find<ServicemanDetailsController>().servicemanModel!.user!.identificationType!;
       emailController.text = Get.find<ServicemanDetailsController>().servicemanModel!.user!.email!;
@@ -291,7 +291,7 @@ class ServicemanSetupController extends GetxController  with GetSingleTickerProv
       confirmPasswordController.clear();
       updateIndex(-1);
       selectedIdentityType ='';
-      countryDialCode = CountryCode.fromCountryCode(Get.find<SplashController>().configModel.content!.countryCode!).dialCode??"+880";
+      countryDialCode = ConfigHelper.defaultCountryDialCode;
     }
   }
 

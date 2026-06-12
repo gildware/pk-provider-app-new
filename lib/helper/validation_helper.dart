@@ -2,6 +2,13 @@ import 'package:demandium_provider/util/core_export.dart';
 
 class ValidationHelper {
 
+  /// Returns a validated phone for display, or the raw value when parsing fails.
+  static String getDisplayPhone(String number, {bool withCountryCode = false}) {
+    final valid = getValidPhone(number, withCountryCode: withCountryCode);
+    if (valid.isNotEmpty) return valid;
+    return number.trim();
+  }
+
   static String getValidPhone(String number, {bool withCountryCode = false}) {
     bool isValid = false;
     String phone = "";

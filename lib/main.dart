@@ -1,4 +1,5 @@
 
+import 'package:demandium_provider/firebase_options.dart';
 import 'package:demandium_provider/util/core_export.dart';
 import 'package:get/get.dart';
 import 'feature/nav/widgets/cash_overflow_dialog.dart';
@@ -14,33 +15,27 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  try{
-     if(Platform.isAndroid) {
-      try {
-        await Firebase.initializeApp(
-          ///todo you need to configure that firebase Option with your own firebase to run your app
-          ///Go to android/app/google-services.json and find those key and added in below
-          options: const FirebaseOptions(
-            apiKey: "AIzaSyBYMyaGbvQhVf6YIfH1TEVT56Zs83QASxg", ///current_key here
-            appId: "1:889759666168:android:e0fa950568fe69a784d00d", ///mobilesdk_app_id here
-            messagingSenderId: "889759666168", ///project_number here
-            projectId: "demancms", ///project_id her
-          ),
-        );
-      }catch(e) {
-        await Firebase.initializeApp();
-
-      }
-    } else {
-      await Firebase.initializeApp();
-    }
-  }catch(e) {
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
     if (kDebugMode) {
-      print('Error initializing Flutter bindings: ${e.toString()}');
+      print('Error initializing Firebase: ${e.toString()}');
     }
   }
 
-  await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
+  if (GetPlatform.isMobile) {
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+  }
+
+  if (GetPlatform.isMobile) {
+    await FlutterDownloader.initialize();
+  }
 
 
 

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:demandium_provider/common/widgets/demo_reset_dialog_widget.dart';
+import 'package:demandium_provider/firebase_options.dart';
 import 'package:demandium_provider/util/core_export.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -72,6 +73,7 @@ class NotificationHelper {
           }
           else if(notificationBody.notificationType == 'logout'){
             Get.find<AuthController>().clearSharedData();
+            Get.find<UserProfileController>().clearUserProfileData();
             Get.offAllNamed(RouteHelper.getInitialRoute());
           }
 
@@ -141,6 +143,7 @@ class NotificationHelper {
       else if(message.data['type'] == 'logout'){
         NotificationHelper.showNotification(message, false,flutterLocalNotificationsPlugin);
         Get.find<AuthController>().clearSharedData();
+        Get.find<UserProfileController>().clearUserProfileData();
         Get.offAllNamed(RouteHelper.getInitialRoute());
         showCustomSnackBar(message.data['title'], duration: 4);
       }
@@ -215,6 +218,7 @@ class NotificationHelper {
           }
           else if(message.data['type'] == 'logout'){
             Get.find<AuthController>().clearSharedData();
+            Get.find<UserProfileController>().clearUserProfileData();
             Get.offAllNamed(RouteHelper.getInitialRoute());
           }
           else if(message.data['type'] == 'advertisement'){
@@ -342,6 +346,7 @@ class NotificationHelper {
 
 @pragma('vm:entry-point')
 Future<dynamic> myBackgroundMessageHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   if (kDebugMode) {
     print("onBackground: ${message.notification?.title}/${message.notification?.body}/${message.notification?.titleLocKey}");
   }

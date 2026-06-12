@@ -77,10 +77,11 @@ class SplashScreenState extends State<SplashScreen> {
             }
             else{
               if (Get.find<AuthController>().isLoggedIn()) {
-                Get.find<AuthController>().updateToken();
                 Get.find<UserProfileController>().getProviderInfo()
-                    .then((value) => Get.offNamed(RouteHelper.getInitialRoute())
-                );
+                    .then((value) async {
+                  await Get.find<AuthController>().updateToken();
+                  Get.offNamed(RouteHelper.getInitialRoute());
+                });
               } else {
                 if( Get.find<SplashController>().showInitialLanguageScreen()){
                   Get.toNamed(RouteHelper.getLanguageScreenRoute());

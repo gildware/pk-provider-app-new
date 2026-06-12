@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/feature/booking_details/controller/pdf_controller.dart';
 import 'package:demandium_provider/feature/splash/controller/splash_controller.dart';
+import 'package:demandium_provider/helper/config_helper.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/widgets.dart';
@@ -24,7 +25,10 @@ class SubscriptionInvoice {
     try {
       final ByteData image  =  await rootBundle.load(Images.placeholder);
       imageData = (image).buffer.asUint8List();
-      imageProvider = await downloadImage(Get.find<SplashController>().configModel.content!.logoFullPath ?? "");
+      final logoPath = ConfigHelper.logoFullPath;
+      if (logoPath.isNotEmpty) {
+        imageProvider = await downloadImage(logoPath);
+      }
     }catch (e){
       if (kDebugMode) {
         print(e.toString());

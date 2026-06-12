@@ -158,6 +158,29 @@ class AuthRepo {
     );
   }
 
+  String? _providerZoneId() {
+    if (!Get.isRegistered<UserProfileController>()) return null;
+    final zoneId = Get.find<UserProfileController>().myZoneId?.trim();
+    if (zoneId == null || zoneId.isEmpty) return null;
+    return zoneId;
+  }
+
+  void _subscribeProviderTopics() {
+    FirebaseMessaging.instance.subscribeToTopic(AppConstants.topic);
+    final zoneId = _providerZoneId();
+    if (zoneId != null) {
+      FirebaseMessaging.instance.subscribeToTopic('${AppConstants.topic}-$zoneId');
+    }
+  }
+
+  void _unsubscribeProviderTopics() {
+    FirebaseMessaging.instance.unsubscribeFromTopic(AppConstants.topic);
+    final zoneId = _providerZoneId();
+    if (zoneId != null) {
+      FirebaseMessaging.instance.unsubscribeFromTopic('${AppConstants.topic}-$zoneId');
+    }
+  }
+
   Future<Response?> updateToken() async {
 
     String? deviceToken;
@@ -174,8 +197,9 @@ class AuthRepo {
       deviceToken = await _saveDeviceToken();
     }
 
-    FirebaseMessaging.instance.subscribeToTopic(AppConstants.topic);
-    FirebaseMessaging.instance.subscribeToTopic('${AppConstants.topic}-${Get.find<UserProfileController>().myZoneId}');
+    if (!GetPlatform.isWeb) {
+      _subscribeProviderTopics();
+    }
     return await apiClient.postData(AppConstants.tokenUrl, {"_method": "put", "fcm_token": deviceToken});
   }
 
@@ -200,7 +224,10 @@ class AuthRepo {
 
   Future<void> unsubscribeToken() async {
     if(GetPlatform.isAndroid) {
-      FirebaseMessaging.instance.unsubscribeFromTopic('${AppConstants.topic}-${Get.find<UserProfileController>().myZoneId}');
+      final zoneId = _providerZoneId();
+      if (zoneId != null) {
+        FirebaseMessaging.instance.unsubscribeFromTopic('${AppConstants.topic}-$zoneId');
+      }
       apiClient.postData(AppConstants.tokenUrl, {"_method": "put", "fcm_token": "@"});
     }
   }
@@ -222,8 +249,7 @@ class AuthRepo {
 
   bool clearSharedData() {
     if(GetPlatform.isAndroid) {
-      FirebaseMessaging.instance.unsubscribeFromTopic(AppConstants.topic);
-      FirebaseMessaging.instance.unsubscribeFromTopic('${AppConstants.topic}-${Get.find<UserProfileController>().myZoneId}');
+      _unsubscribeProviderTopics();
       apiClient.postData(AppConstants.tokenUrl, {"_method": "put", "fcm_token": "@"});
     }
     sharedPreferences.remove(AppConstants.token);

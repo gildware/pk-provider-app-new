@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:demandium_provider/feature/service_details/model/service_details_model.dart';
 import 'package:demandium_provider/feature/splash/controller/splash_controller.dart';
+import 'package:demandium_provider/helper/config_helper.dart';
 
 
  class PriceConverter {
@@ -22,7 +23,7 @@ import 'package:demandium_provider/feature/splash/controller/splash_controller.d
     }
     bool isRightSide = Get.find<SplashController>().configModel.content?.currencySymbolPosition == 'right';
     return isShowLongPrice == true ?'${isRightSide ? '' : currencySymbol}'
-        '${(price!).toStringAsFixed(int.parse(Get.find<SplashController>().configModel.content!.currencyDecimalPoint!))
+        '${(price!).toStringAsFixed(ConfigHelper.currencyDecimalPoint)
         .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} '
         '${isRightSide ? currencySymbol : ''}' : '${isRightSide ? '' : currencySymbol}'
         '${longToShortPrice(price!)
