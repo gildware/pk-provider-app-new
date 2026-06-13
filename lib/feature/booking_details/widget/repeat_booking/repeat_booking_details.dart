@@ -72,7 +72,11 @@ class RepeatBookingDetailsWidget extends StatelessWidget {
                         onPressed: () async {
                           showCustomDialog(child: const CustomLoader());
                           String languageCode = Get.find<LocalizationController>().locale.languageCode;
-                          String uri = "${AppConstants.baseUrl}${AppConstants.fullRepeatBookingInvoiceUrl}${bookingDetails.id}/$languageCode";
+                          final uri = await BookingInvoiceHelper.providerInvoiceUrl(
+                            bookingId: bookingDetails.id ?? '',
+                            lang: languageCode,
+                            variant: 'repeat',
+                          );
                           if (kDebugMode) {
                             print("Uri : $uri");
                           }

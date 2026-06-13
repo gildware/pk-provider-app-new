@@ -38,6 +38,7 @@ class _UpdateCustomerAddressState extends State<UpdateCustomerAddress> {
   final GlobalKey<FormState> addressFormKey = GlobalKey<FormState>();
   final Completer<GoogleMapController> _controller = Completer();
   CameraPosition? _cameraPosition;
+  bool _isMapReady = false;
 
 
   @override
@@ -118,6 +119,7 @@ class _UpdateCustomerAddressState extends State<UpdateCustomerAddress> {
                                 ),
                                 zoomControlsEnabled: false,
                                 onCameraIdle: () {
+                                  if (!_isMapReady || _cameraPosition == null) return;
                                   try{
                                     locationController.updatePosition(_cameraPosition!);
                                   }catch(error){
@@ -128,8 +130,12 @@ class _UpdateCustomerAddressState extends State<UpdateCustomerAddress> {
                                 },
                                 onCameraMove: ((position) => _cameraPosition = position),
                                 onMapCreated: (GoogleMapController controller) {
-                                  locationController.setMapController(controller);
-                                  _controller.complete(controller);
+                                  _isMapReady = false;
+                                  WidgetsBinding.instance.addPostFrameCallback((_) async {
+                                    await locationController.setMapController(controller);
+                                    _controller.complete(controller);
+                                    _isMapReady = true;
+                                  });
                                 },
                                 myLocationButtonEnabled: false,
 
@@ -357,7 +363,10 @@ class _UpdateCustomerAddressState extends State<UpdateCustomerAddress> {
     _houseController.text = widget.address.house ?? '';
     _floorController.text = widget.address.floor ?? '';
 
-    Get.find<LocationController>().updateAddressLabel(addressLabel: widget.address.addressLabel??"");
+    Get.find<LocationController>().updateAddressLabel(
+      addressLabel: widget.address.addressLabel ?? "",
+      shouldUpdate: false,
+    );
     Get.find<LocationController>().setPlaceMark(addressModel : widget.address);
     Get.find<LocationController>().setUpdateAddress(widget.address);
 

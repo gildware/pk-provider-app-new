@@ -1,3 +1,4 @@
+import 'package:demandium_provider/helper/app_startup.dart';
 import 'package:demandium_provider/helper/version.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
@@ -14,7 +15,6 @@ class SplashScreenState extends State<SplashScreen> {
   final GlobalKey<ScaffoldState> _globalKey = GlobalKey();
 
   StreamSubscription<List<ConnectivityResult>>? _onConnectivityChanged;
-  double opacity = 0.5;
 
   @override
   void initState() {
@@ -39,9 +39,10 @@ class SplashScreenState extends State<SplashScreen> {
       }
       firstTime = false;
     });
-    Get.find<SplashController>().initSharedData();
-
-    _route();
+    Get.find<SplashController>().initSharedData().then((_) async {
+      await Get.find<AuthRepo>().preloadRememberMeCredentials();
+      _route();
+    });
 
   }
 
@@ -52,48 +53,35 @@ class SplashScreenState extends State<SplashScreen> {
     _onConnectivityChanged?.cancel();
   }
   void _route() {
+    Get.find<SplashController>().getConfigData().then((isSuccess) async {
+      if (!isSuccess) {
+        return;
+      }
 
-    Future.delayed(const Duration(milliseconds: 500),(){
-      setState(() {
-        opacity = 1;
-      });
-    });
+      await AppStartup.ensureDeferredReady();
+      if (!mounted) return;
 
-    Get.find<SplashController>().getConfigData().then((isSuccess) {
-      if(isSuccess) {
-        Timer(const Duration(seconds: 1), () async {
+      final notificationBody = widget.body ?? AppStartup.initialNotificationBody;
 
-          if(_checkAvailableUpdate()) {
-            Get.offNamed(RouteHelper.getUpdateRoute(true));
-          }
-          else if(_checkMaintenanceModeActive() && !AppConstants.avoidMaintenanceMode){
-            Get.offAllNamed(RouteHelper.getMaintenanceRoute());
-            Get.find<AuthController>().unsubscribeToken();
-          }
-          else {
-            PriceConverter.getCurrency();
-            if(widget.body != null) {
-              _notificationRoute();
-            }
-            else{
-              if (Get.find<AuthController>().isLoggedIn()) {
-                Get.find<UserProfileController>().getProviderInfo()
-                    .then((value) async {
-                  await Get.find<AuthController>().updateToken();
-                  Get.offNamed(RouteHelper.getInitialRoute());
-                });
-              } else {
-                if( Get.find<SplashController>().showInitialLanguageScreen()){
-                  Get.toNamed(RouteHelper.getLanguageScreenRoute());
-                }else{
-                  Get.offNamed(RouteHelper.getSignInRoute("LogIn"));
-                }
-              }
-            }
-            }
-        });
-      }else{
-
+      if (_checkAvailableUpdate()) {
+        Get.offNamed(RouteHelper.getUpdateRoute(true));
+      } else if (_checkMaintenanceModeActive() && !AppConstants.avoidMaintenanceMode) {
+        Get.offAllNamed(RouteHelper.getMaintenanceRoute());
+        Get.find<AuthController>().unsubscribeToken();
+      } else {
+        PriceConverter.getCurrency();
+        if (notificationBody != null) {
+          _notificationRoute(notificationBody);
+        } else if (Get.find<AuthController>().isLoggedIn()) {
+          await Get.find<UserProfileController>().getProviderInfo();
+          await Get.find<AuthController>().updateToken();
+          if (!mounted) return;
+          Get.offNamed(RouteHelper.getInitialRoute());
+        } else if (Get.find<SplashController>().showInitialLanguageScreen()) {
+          Get.toNamed(RouteHelper.getLanguageScreenRoute());
+        } else {
+          Get.offNamed(RouteHelper.getSignInRoute('LogIn'));
+        }
       }
     });
   }
@@ -103,11 +91,8 @@ class SplashScreenState extends State<SplashScreen> {
       backgroundColor: Theme.of(context).colorScheme.surface,
       key: _globalKey,
       body: GetBuilder<SplashController>(builder: (splashController) {
-        return AnimatedOpacity(
-          opacity: opacity,
-          duration: const Duration(milliseconds: 500),
-          child: Center(
-              child: splashController.hasConnection ? Column(
+        return Center(
+            child: splashController.hasConnection ? Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   MobileAppIconHelper.loginLogo(width: Dimensions.logoWidth),
@@ -123,7 +108,6 @@ class SplashScreenState extends State<SplashScreen> {
               )
               : NoInternetScreen(child: SplashScreen(body: widget.body)
              )
-          ),
         );
       }),
     );
@@ -144,10 +128,10 @@ class SplashScreenState extends State<SplashScreen> {
     return (configModel.content?.maintenanceMode?.maintenanceStatus == 1 && configModel.content?.maintenanceMode?.selectedMaintenanceSystem?.providerApp == 1);
   }
 
-  void _notificationRoute(){
+  void _notificationRoute(NotificationBody notificationBody){
 
     Get.find<UserProfileController>().getProviderInfo().then((value) {
-      String notificationType = widget.body?.notificationType??"";
+      String notificationType = notificationBody.notificationType??"";
 
       switch(notificationType) {
 
@@ -156,13 +140,13 @@ class SplashScreenState extends State<SplashScreen> {
         } break;
 
         case "booking": {
-          if( widget.body!.bookingId != null && widget.body!.bookingId != ""){
-            if(widget.body!.bookingType == "repeat" && widget.body!.repeatBookingType == "single"){
-              Get.toNamed(RouteHelper.getBookingDetailsRoute( subBookingId : widget.body!.bookingId, fromPage : "fromNotification"));
-            }else if(widget.body!.bookingType == "repeat" && widget.body!.repeatBookingType != "single"){
-              Get.toNamed(RouteHelper.getRepeatBookingDetailsRoute( bookingId : widget.body!.bookingId, fromPage : "fromNotification"));
+          if( notificationBody.bookingId != null && notificationBody.bookingId != ""){
+            if(notificationBody.bookingType == "repeat" && notificationBody.repeatBookingType == "single"){
+              Get.toNamed(RouteHelper.getBookingDetailsRoute( subBookingId : notificationBody.bookingId, fromPage : "fromNotification"));
+            }else if(notificationBody.bookingType == "repeat" && notificationBody.repeatBookingType != "single"){
+              Get.toNamed(RouteHelper.getRepeatBookingDetailsRoute( bookingId : notificationBody.bookingId, fromPage : "fromNotification"));
             }else{
-              Get.toNamed(RouteHelper.getBookingDetailsRoute( bookingId : widget.body!.bookingId, fromPage : "fromNotification"));
+              Get.toNamed(RouteHelper.getBookingDetailsRoute( bookingId : notificationBody.bookingId, fromPage : "fromNotification"));
             }
           }else{
             Get.offNamed(RouteHelper.getInitialRoute());
@@ -170,7 +154,7 @@ class SplashScreenState extends State<SplashScreen> {
         } break;
 
         case "bidding": {
-          if( widget.body!.postId!=null && widget.body!.postId!=""){
+          if( notificationBody.postId!=null && notificationBody.postId!=""){
             Get.offAll(()=>const CustomerRequestListScreen());
           }else{
             Get.offNamed(RouteHelper.getInitialRoute());
@@ -200,7 +184,7 @@ class SplashScreenState extends State<SplashScreen> {
           Get.offAllNamed(RouteHelper.getInitialRoute());
         } break;
         case "advertisement": {
-          Get.toNamed(RouteHelper.getAdvertisementDetailsScreen(advertisementId: widget.body?.advertisementId, fromNotification: "fromNotification"));
+          Get.toNamed(RouteHelper.getAdvertisementDetailsScreen(advertisementId: notificationBody.advertisementId, fromNotification: "fromNotification"));
         } break;
 
         default: {

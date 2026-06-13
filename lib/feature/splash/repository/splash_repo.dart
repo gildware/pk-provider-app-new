@@ -1,28 +1,40 @@
-import 'package:get/get.dart';
+import 'package:demandium_provider/common/enums/enums.dart';
+import 'package:demandium_provider/common/model/api_response_model.dart';
+import 'package:demandium_provider/common/repo/provider_cache_repo.dart';
+import 'package:demandium_provider/util/app_constants.dart';
 import 'package:demandium_provider/util/core_export.dart';
+import 'package:get/get_connect/http/src/response/response.dart';
 
 class SplashRepo {
-  ApiClient apiClient;
+  final ProviderCacheRepo cacheRepo;
   final SharedPreferences sharedPreferences;
+  final ApiClient apiClient;
 
-  SplashRepo({required this.sharedPreferences, required this.apiClient});
+  SplashRepo({
+    required this.sharedPreferences,
+    required this.apiClient,
+    required this.cacheRepo,
+  });
 
-  Future<Response> getConfigData() async {
-    Response response = await apiClient.getData(AppConstants.configUri);
-    return response;
+  Future<ApiResponseModel<Response>> getConfigData({required DataSourceEnum source}) {
+    return cacheRepo.fetchData(AppConstants.configUri, source: source);
   }
 
-  Future<bool> initSharedData() {
+  Future<bool> initSharedData() async {
     if (!sharedPreferences.containsKey(AppConstants.theme)) {
       sharedPreferences.setBool(AppConstants.theme, false);
     }
     if (!sharedPreferences.containsKey(AppConstants.countryCode)) {
       sharedPreferences.setString(
-          AppConstants.countryCode, AppConstants.languages[0].countryCode!);
+        AppConstants.countryCode,
+        AppConstants.languages[0].countryCode!,
+      );
     }
     if (!sharedPreferences.containsKey(AppConstants.languageCode)) {
       sharedPreferences.setString(
-          AppConstants.languageCode, AppConstants.languages[0].languageCode!);
+        AppConstants.languageCode,
+        AppConstants.languages[0].languageCode!,
+      );
     }
     if (!sharedPreferences.containsKey(AppConstants.notification)) {
       sharedPreferences.setBool(AppConstants.notification, true);
@@ -34,20 +46,18 @@ class SplashRepo {
       sharedPreferences.setBool(AppConstants.initialLanguage, true);
     }
 
-    return Future.value(true);
+    return true;
+  }
+
+  bool showInitialLanguageScreen() {
+    return sharedPreferences.getBool(AppConstants.initialLanguage) ?? false;
   }
 
   void disableShowInitialLanguageScreen() {
     sharedPreferences.setBool(AppConstants.initialLanguage, false);
   }
 
-  bool showInitialLanguageScreen() {
-    return (sharedPreferences.getBool(AppConstants.initialLanguage) ?? false) && (AppConstants.languages.length > 1);
-  }
-
   Future<Response> updateLanguage() async {
-    Response response = await apiClient.postData(
-        AppConstants.changeLanguage, {});
-    return response;
+    return apiClient.postData(AppConstants.changeLanguage, {});
   }
 }

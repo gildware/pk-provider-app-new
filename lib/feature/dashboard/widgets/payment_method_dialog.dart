@@ -68,7 +68,7 @@ class PaymentMethodDialog extends StatelessWidget {
               CustomButton(
                 radius: Dimensions.radiusDefault,
                 btnTxt: "select".tr,
-                onPressed: () {
+                onPressed: () async {
                   if(paymentMethodList.isEmpty){
                     showCustomSnackBar("no_payment_method_available".tr);
                   }
@@ -92,7 +92,9 @@ class PaymentMethodDialog extends StatelessWidget {
 
                     String url = '';
 
-                    url = '${AppConstants.baseUrl}/payment?payment_method=${paymentMethod.gateway}&provider_id=$providerID&access_token=${base64Url.encode(utf8.encode(providerID))}'
+                    final accessToken = await PaymentAccessTokenHelper.forProvider();
+
+                    url = '${AppConstants.baseUrl}/payment?payment_method=${paymentMethod.gateway}&provider_id=$providerID&access_token=$accessToken'
                         '&callback=$callbackUrl&amount=$amount&payment_platform=$platform&is_pay_to_admin=true';
 
                     Get.back();

@@ -5,6 +5,8 @@ import 'package:demandium_provider/util/core_export.dart';
 class AuthRepo {
   final ApiClient apiClient;
   final SharedPreferences sharedPreferences;
+  String _cachedPassword = '';
+
   AuthRepo({required this.apiClient, required this.sharedPreferences});
 
   Future<Response?> registration({
@@ -236,15 +238,16 @@ class AuthRepo {
   Future<bool?> saveUserToken(String token) async {
     apiClient.token = token;
     apiClient.updateHeader(token, sharedPreferences.getString(AppConstants.languageCode));
-    return await sharedPreferences.setString(AppConstants.token, token);
+    await SecureTokenStorage.writeToken(token);
+    return true;
   }
 
   String getUserToken() {
-    return sharedPreferences.getString(AppConstants.token) ?? "";
+    return SecureTokenStorage.cachedToken();
   }
 
   bool isLoggedIn() {
-    return sharedPreferences.containsKey(AppConstants.token);
+    return SecureTokenStorage.cachedToken().isNotEmpty;
   }
 
   bool clearSharedData() {
@@ -252,16 +255,36 @@ class AuthRepo {
       _unsubscribeProviderTopics();
       apiClient.postData(AppConstants.tokenUrl, {"_method": "put", "fcm_token": "@"});
     }
+    SecureTokenStorage.evictToken();
     sharedPreferences.remove(AppConstants.token);
     sharedPreferences.remove(AppConstants.userAddress);
     apiClient.token = null;
     apiClient.updateHeader(null, null);
     return true;
   }
+  Future<void> preloadRememberMeCredentials() async {
+    await _migrateLegacyPassword();
+    _cachedPassword = await SecureCredentialStorage.readPassword();
+  }
+
+  Future<void> _migrateLegacyPassword() async {
+    final legacy = sharedPreferences.getString(AppConstants.userPassword);
+    if (legacy != null && legacy.isNotEmpty) {
+      await SecureCredentialStorage.writePassword(legacy);
+      await sharedPreferences.remove(AppConstants.userPassword);
+    }
+  }
+
   Future<void> saveUserNumberAndPassword(String number, String password) async {
     try {
-      await sharedPreferences.setString(AppConstants.userPassword, password);
       await sharedPreferences.setString(AppConstants.userNumber, number);
+      if (password.isNotEmpty) {
+        await SecureCredentialStorage.writePassword(password);
+        _cachedPassword = password;
+      } else {
+        await SecureCredentialStorage.deletePassword();
+        _cachedPassword = '';
+      }
     } catch (e) {
       rethrow;
     }
@@ -276,7 +299,8 @@ class AuthRepo {
   }
 
   Future<bool> clearUserNumberAndPassword() async {
-    await sharedPreferences.remove(AppConstants.userPassword);
+    await SecureCredentialStorage.deletePassword();
+    _cachedPassword = '';
     return await sharedPreferences.remove(AppConstants.userNumber);
   }
 
@@ -317,7 +341,7 @@ class AuthRepo {
   }
 
   String getUserPassword() {
-    return sharedPreferences.getString(AppConstants.userPassword) ?? "";
+    return _cachedPassword;
   }
 
   void setRememberMeValue(bool rememberMeValue) {

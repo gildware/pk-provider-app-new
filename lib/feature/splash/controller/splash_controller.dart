@@ -1,3 +1,4 @@
+import 'package:demandium_provider/helper/data_sync_helper.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
 
@@ -25,50 +26,59 @@ class SplashController extends GetxController implements GetxService {
 
   Future<bool> getConfigData() async {
     _hasConnection = true;
-    Response response = await splashRepo.getConfigData();
-    bool isSuccess = false;
-    if(response.statusCode == 200) {
-      _configModel = ConfigModel.fromJson(response.body);
-      if(_configModel.content?.maintenanceMode?.maintenanceStatus == 1 && _configModel.content?.maintenanceMode?.selectedMaintenanceSystem?.providerApp == 1 && !AppConstants.avoidMaintenanceMode){
-        if(!Get.currentRoute.contains(RouteHelper.maintenanceRoute)){
-          Get.offAllNamed(RouteHelper.getMaintenanceRoute());
-          Get.find<AuthController>().unsubscribeToken();
-        }
-      } else if((Get.currentRoute.contains(RouteHelper.maintenanceRoute) &&  (_configModel.content?.maintenanceMode?.maintenanceStatus == 0 || _configModel.content?.maintenanceMode?.selectedMaintenanceSystem?.providerApp == 0))){
-        Get.offAllNamed(RouteHelper.getInitialRoute());
+    var isSuccess = false;
+
+    await DataSyncHelper.fetchAndSyncData(
+      fetchFromLocal: () => splashRepo.getConfigData(source: DataSourceEnum.local),
+      fetchFromClient: () => splashRepo.getConfigData(source: DataSourceEnum.client),
+      onResponse: (body, source) {
+        _configModel = ConfigModel.fromJson(body);
+        isSuccess = _handleConfigSideEffects();
+        update();
+      },
+      suppressErrorWhenLocalSucceeded: true,
+    );
+
+    return isSuccess;
+  }
+
+  bool _handleConfigSideEffects() {
+    var isSuccess = true;
+    if (_configModel.content?.maintenanceMode?.maintenanceStatus == 1 &&
+        _configModel.content?.maintenanceMode?.selectedMaintenanceSystem?.providerApp == 1 &&
+        !AppConstants.avoidMaintenanceMode) {
+      if (!Get.currentRoute.contains(RouteHelper.maintenanceRoute)) {
+        Get.offAllNamed(RouteHelper.getMaintenanceRoute());
+        Get.find<AuthController>().unsubscribeToken();
       }
-      else if(_configModel.content?.maintenanceMode?.maintenanceStatus == 0){
-        if(_configModel.content?.maintenanceMode?.selectedMaintenanceSystem?.providerApp == 1){
-          if(_configModel.content?.maintenanceMode?.maintenanceTypeAndDuration?.maintenanceDuration == 'customize'){
+    } else if ((Get.currentRoute.contains(RouteHelper.maintenanceRoute) &&
+        (_configModel.content?.maintenanceMode?.maintenanceStatus == 0 ||
+            _configModel.content?.maintenanceMode?.selectedMaintenanceSystem?.providerApp == 0))) {
+      Get.offAllNamed(RouteHelper.getInitialRoute());
+    } else if (_configModel.content?.maintenanceMode?.maintenanceStatus == 0) {
+      if (_configModel.content?.maintenanceMode?.selectedMaintenanceSystem?.providerApp == 1) {
+        if (_configModel.content?.maintenanceMode?.maintenanceTypeAndDuration?.maintenanceDuration ==
+            'customize') {
+          final startDate = ConfigHelper.maintenanceStartDate;
+          if (startDate != null && startDate.isNotEmpty) {
+            final now = DateTime.now();
+            final specifiedDateTime = DateTime.parse(startDate);
+            final difference = specifiedDateTime.difference(now);
 
-            final startDate = ConfigHelper.maintenanceStartDate;
-            if (startDate != null && startDate.isNotEmpty) {
-              DateTime now = DateTime.now();
-              DateTime specifiedDateTime = DateTime.parse(startDate);
-              Duration difference = specifiedDateTime.difference(now);
-
-              if(difference.inMinutes > 0 && (difference.inMinutes < 60 || difference.inMinutes == 60)){
-                _startTimer(specifiedDateTime);
-              }
+            if (difference.inMinutes > 0 &&
+                (difference.inMinutes < 60 || difference.inMinutes == 60)) {
+              _startTimer(specifiedDateTime);
             }
           }
         }
       }
-      isSuccess = true;
-    }else {
-      ApiChecker.checkApi(response);
-      if(response.statusText == ApiClient.noInternetMessage) {
-        _hasConnection = false;
-      }
-      isSuccess = false;
     }
-    update();
     return isSuccess;
   }
 
-  void _startTimer (DateTime startTime){
-    Timer.periodic(const Duration(seconds: 30), (Timer timer){
-      DateTime now = DateTime.now();
+  void _startTimer(DateTime startTime) {
+    Timer.periodic(const Duration(seconds: 30), (Timer timer) {
+      final now = DateTime.now();
       if (now.isAfter(startTime) || now.isAtSameMomentAs(startTime)) {
         timer.cancel();
         Get.offAllNamed(RouteHelper.getMaintenanceRoute());
@@ -77,8 +87,7 @@ class SplashController extends GetxController implements GetxService {
     });
   }
 
-
-  void updateCustomBookingRedDotButtonStatus({required bool status, bool shouldUpdate = true }){
+  void updateCustomBookingRedDotButtonStatus({required bool status, bool shouldUpdate = true}) {
     _showRedDotIconForCustomBooking = status;
 
     Future.delayed(const Duration(milliseconds: 200), (){

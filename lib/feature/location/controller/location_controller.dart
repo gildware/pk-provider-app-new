@@ -12,6 +12,13 @@ class LocationController extends GetxController  implements GetxService{
   final LocationRepo locationRepo;
   LocationController({required this.locationRepo});
 
+  void refreshUi({bool notify = true}) {
+    if (!notify) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!isClosed) update();
+    });
+  }
+
   Position _position = Position(longitude: 0, latitude: 0, timestamp: DateTime.now(), accuracy: 1, altitude: 1, heading: 1, speed: 1, speedAccuracy: 1, altitudeAccuracy: 0, headingAccuracy: 0);
   Position _pickPosition = Position(longitude: 0, latitude: 0, timestamp: DateTime.now(), accuracy: 1, altitude: 1, heading: 1, speed: 1, speedAccuracy: 1, altitudeAccuracy: 0, headingAccuracy: 0);
   bool _loading = false;
@@ -54,7 +61,7 @@ class LocationController extends GetxController  implements GetxService{
   Future<void> getCurrentLocation(bool fromAddress, {GoogleMapController? mapController, LatLng? defaultLatLng, bool notify = true}) async {
     if (notify) {
       _loading = true;
-      update();
+      refreshUi();
     }
     Position myPosition;
     try {
@@ -114,7 +121,7 @@ class LocationController extends GetxController  implements GetxService{
     } finally {
       _loading = false;
       if (notify) {
-        update();
+        refreshUi();
       }
     }
   }
@@ -123,7 +130,7 @@ class LocationController extends GetxController  implements GetxService{
 
   void updatePosition(CameraPosition position) async {
     _loading = true;
-    update();
+    refreshUi();
     try {
       _pickPosition = Position(
         latitude: position.target.latitude,
@@ -148,14 +155,14 @@ class LocationController extends GetxController  implements GetxService{
       }
     } finally {
       _loading = false;
-      update();
+      refreshUi();
     }
   }
 
 
   Future<ServiceAddress> setLocation(String placeID, String address, GoogleMapController? mapController) async {
     _loading = true;
-    update();
+    refreshUi();
 
     LatLng latLng = const LatLng(0, 0);
 
@@ -204,7 +211,7 @@ class LocationController extends GetxController  implements GetxService{
       mapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(target: latLng, zoom: 17)));
     }
     _loading = false;
-    update();
+    refreshUi();
 
     return addressModel;
   }
@@ -213,7 +220,7 @@ class LocationController extends GetxController  implements GetxService{
 
   Future<void> setMapController(GoogleMapController mapController) async {
     _mapController = mapController;
-    update();
+    refreshUi();
   }
 
   Future<ServiceAddress> getAddressFromGeocode(LatLng latLng) async {
@@ -277,7 +284,7 @@ class LocationController extends GetxController  implements GetxService{
 
   void disableButton() {
     _buttonDisabled = true;
-    update();
+    refreshUi();
   }
 
   void setPlaceMark({ServiceAddress? addressModel,String? address, String? house, String? floor,String? city,String? country,String? zipCode,String? street,}) {
@@ -327,7 +334,7 @@ class LocationController extends GetxController  implements GetxService{
       headingAccuracy: 0,
     );
     _loading = false;
-    update();
+    refreshUi();
 
     if (mapController != null) {
       await mapController.animateCamera(
@@ -340,7 +347,7 @@ class LocationController extends GetxController  implements GetxService{
 
   Future<void> _resolvePickAddressFromLatLng(LatLng latLng) async {
     _loading = true;
-    update();
+    refreshUi();
     try {
       final address = await getAddressFromGeocode(latLng);
       _pickAddress = address;
@@ -353,7 +360,7 @@ class LocationController extends GetxController  implements GetxService{
       }
     } finally {
       _loading = false;
-      update();
+      refreshUi();
     }
   }
 
@@ -366,27 +373,25 @@ class LocationController extends GetxController  implements GetxService{
       _pickPosition = Position(longitude: 0, latitude: 0, timestamp: DateTime.now(), accuracy: 1, altitude: 1, heading: 1, speed: 1, speedAccuracy: 1, altitudeAccuracy: 0, headingAccuracy: 0);
     }
     if(shouldUpdate){
-      update();
+      refreshUi();
     }
   }
 
-  void updateAddressLabel({required String addressLabel,String addressLabelString = ''}){
+  void updateAddressLabel({required String addressLabel, String addressLabelString = '', bool shouldUpdate = true}){
 
     if(addressLabel.contains("home")){
       _selectedAddressLabel = "address_home";
     }else{
       _selectedAddressLabel = addressLabel;
     }
-    update();
+    refreshUi(notify: shouldUpdate);
   }
 
   void setCountryCode({required String countryCode, bool shouldUpdate = false}){
     if(countryCode != ""){
       countryDialCode = countryCode;
     }
-    if(shouldUpdate){
-      update();
-    }
+    refreshUi(notify: shouldUpdate);
   }
 
 }

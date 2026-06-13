@@ -21,6 +21,7 @@ class _PickMapScreenState extends State<PickMapScreen> {
   GoogleMapController? _mapController;
   CameraPosition? _cameraPosition;
   late LatLng _initialPosition;
+  bool _isMapReady = false;
 
   @override
   void initState() {
@@ -58,10 +59,13 @@ class _PickMapScreenState extends State<PickMapScreen> {
                           minMaxZoomPreference: const MinMaxZoomPreference(0, 20),
                           onMapCreated: (GoogleMapController mapController) {
                             _mapController = mapController;
-                            Get.find<LocationController>().initializePickMapPosition(
-                              _initialPosition,
-                              mapController: mapController,
-                            );
+                            WidgetsBinding.instance.addPostFrameCallback((_) async {
+                              await Get.find<LocationController>().initializePickMapPosition(
+                                _initialPosition,
+                                mapController: mapController,
+                              );
+                              _isMapReady = true;
+                            });
                           },
                           zoomControlsEnabled: false,
                           myLocationButtonEnabled: false,
@@ -70,16 +74,16 @@ class _PickMapScreenState extends State<PickMapScreen> {
                             _cameraPosition = cameraPosition;
                           },
                           onCameraMoveStarted: () {
+                            if (!_isMapReady) return;
                             locationController.disableButton();
                           },
                           onCameraIdle: () {
-                            if (_cameraPosition != null) {
-                              try {
-                                Get.find<LocationController>().updatePosition(_cameraPosition!);
-                              } catch (e) {
-                                if (kDebugMode) {
-                                  print(e);
-                                }
+                            if (!_isMapReady || _cameraPosition == null) return;
+                            try {
+                              Get.find<LocationController>().updatePosition(_cameraPosition!);
+                            } catch (e) {
+                              if (kDebugMode) {
+                                print(e);
                               }
                             }
                           },

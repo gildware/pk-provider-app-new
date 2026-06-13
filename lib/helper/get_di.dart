@@ -9,6 +9,8 @@ import 'package:demandium_provider/feature/tutorial/controller/tutorial_controll
 import 'package:demandium_provider/feature/tutorial/repo/tutorial_repo.dart';
 import 'package:demandium_provider/feature/booking_requests/controller/calendar_controller.dart';
 import 'package:demandium_provider/feature/booking_requests/controller/calender_order_filter_controller.dart';
+import 'package:demandium_provider/common/repo/provider_cache_repo.dart';
+import 'package:demandium_provider/feature/dashboard/repo/dashboard_bundle_repo.dart';
 import 'package:demandium_provider/util/core_export.dart';
 import 'package:get/get.dart';
 
@@ -18,6 +20,7 @@ Future<Map<String, Map<String, String>>> init() async{
   /// Core
   final sharedPreferences = await SharedPreferences.getInstance();
   Get.lazyPut(() => sharedPreferences);
+  await SecureTokenStorage.preload(sharedPreferences);
   Get.lazyPut(() => ApiClient(appBaseUrl: AppConstants.baseUrl, sharedPreferences: Get.find()));
 
 
@@ -26,7 +29,9 @@ Future<Map<String, Map<String, String>>> init() async{
   Get.lazyPut(() => ConversationRepo(apiClient: Get.find()));
   Get.lazyPut(() => SuggestServiceRepo(apiClient: Get.find()));
   Get.lazyPut(() => ReviewRepo(apiClient: Get.find()));
-  Get.lazyPut(() => SplashRepo(sharedPreferences: Get.find(), apiClient: Get.find()));
+  Get.lazyPut(() => ProviderCacheRepo(apiClient: Get.find(), sharedPreferences: Get.find()));
+  Get.lazyPut(() => DashboardBundleRepo(apiClient: Get.find(), sharedPreferences: Get.find()));
+  Get.lazyPut(() => SplashRepo(sharedPreferences: Get.find(), apiClient: Get.find(), cacheRepo: Get.find()));
   Get.lazyPut(() => NotificationRepo(apiClient: Get.find(), sharedPreferences: Get.find()));
   Get.lazyPut(() => AuthRepo(apiClient: Get.find(), sharedPreferences: Get.find()));
   Get.lazyPut(() => LocationRepo(apiClient: Get.find(),sharedPreferences: Get.find()));

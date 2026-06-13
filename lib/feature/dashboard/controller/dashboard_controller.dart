@@ -151,6 +151,53 @@ class  DashboardController extends GetxController with GetSingleTickerProviderSt
     }
   }
 
+  void applyHomeBundleDashboard(List<dynamic> sections) {
+    for (final section in sections) {
+      if (section is! Map) continue;
+      final map = Map<String, dynamic>.from(section);
+
+      if (map.containsKey('top_cards')) {
+        dashboardTopCards = DashboardTopCards.fromJson(map['top_cards']);
+      } else if (map.containsKey('recent_bookings')) {
+        dashboardRecentActivityList = [];
+        final resentList = map['recent_bookings'] as List<dynamic>? ?? [];
+        for (final element in resentList) {
+          dashboardRecentActivityList.add(
+            DashboardRecentActivityModel.fromJson(element),
+          );
+        }
+      } else if (map.containsKey('subscriptions')) {
+        dashboardSubscriptionList = [];
+        final subscriptionList = map['subscriptions'] as List<dynamic>? ?? [];
+        for (final element in subscriptionList) {
+          dashboardSubscriptionList.add(SubscriptionModelData.fromJson(element));
+        }
+      } else if (map.containsKey('customized_post')) {
+        dashboardCustomizedPostList = [];
+        final customizedPost = map['customized_post'] as List<dynamic>? ?? [];
+        for (final element in customizedPost) {
+          dashboardCustomizedPostList.add(PostData.fromJson(element));
+        }
+      } else if (map.containsKey('additional_info_count')) {
+        additionalInfoCount = AdditionalInfoCount.fromJson(map['additional_info_count']);
+      }
+    }
+
+    dashboardServicemanList = [];
+
+    if (dashboardRecentActivityList.isEmpty && dashboardCustomizedPostList.isNotEmpty) {
+      tabController?.index = 1;
+      _showNormalBooking = false;
+    }
+
+    update();
+  }
+
+  void applyHomeBundleEarning(Map<String, dynamic> earning) {
+    _earningDataModel = EarningDataModel.fromJson(earning);
+    update();
+  }
+
 }
 
 

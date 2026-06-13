@@ -1,3 +1,9 @@
+enum DataSourceEnum { client, local }
+
+enum LocalCachesTypeEnum { all, none }
+
+enum ApiMethodType { get, post }
+
 enum SendOtpType {forgetPassword, firebase, verification}
 enum LoginMedium { manual, otp }
 enum SignUpPageStep {step1, step2, step3}

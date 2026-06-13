@@ -22,9 +22,10 @@ class ApiClient extends GetxService {
   }
 
   ApiClient({required this.appBaseUrl, required this.sharedPreferences}) {
-    _log('API Base URL: $appBaseUrl');
-    token = sharedPreferences.getString(AppConstants.token);
-    _log('Token: $token');
+    if (kDebugMode) {
+      _log('API Base URL: $appBaseUrl');
+    }
+    token = SecureTokenStorage.cachedToken().isEmpty ? null : SecureTokenStorage.cachedToken();
     try {
 
     }catch(e) {

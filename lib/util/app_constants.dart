@@ -1,4 +1,5 @@
 import 'package:demandium_provider/common/model/language_model.dart';
+import 'package:demandium_provider/common/enums/enums.dart';
 import 'package:demandium_provider/util/images.dart';
 
 class AppConstants {
@@ -6,10 +7,17 @@ class AppConstants {
   static const String appName = 'Panun Kaergar';
   static const String appUser = 'Provider';
   static const String appVersion = '3.8'; /// Flutter SDK: 3.41.5
-  /// Local Laravel backend (`php artisan serve` at http://127.0.0.1:8000)
-  static const String baseUrl = 'https://dev.panunkaergar.com';
+  /// Override at build time: `--dart-define=BASE_URL=https://panunkaergar.com`
+  static const String baseUrl = String.fromEnvironment(
+    'BASE_URL',
+    defaultValue: 'https://dev.panunkaergar.com',
+  );
+  /// Release-only SHA-256 cert fingerprint (hex). Set via `--dart-define=SSL_PIN_SHA256=...`
+  static const String sslPinSha256 = String.fromEnvironment('SSL_PIN_SHA256', defaultValue: '');
   static const bool avoidMaintenanceMode = false;
+  static const LocalCachesTypeEnum cachesType = LocalCachesTypeEnum.all;
   static const String configUri = '/api/v1/provider/config';
+  static const String dashboardBundleUri = '/api/v1/provider/dashboard-bundle';
   static const String registerUri = '/api/v1/provider/auth/registration';
   static const String registrationSaveStepUri = '/api/v1/provider/auth/registration/save-step';
   static const String registrationDraftUri = '/api/v1/provider/auth/registration/draft';

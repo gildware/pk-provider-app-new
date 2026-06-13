@@ -35,7 +35,10 @@ class LocalizationController extends GetxController implements GetxService {
     }
     saveLanguage(locale);
 
-    apiClient.updateHeader(sharedPreferences.getString(AppConstants.token), locale.languageCode);
+    apiClient.updateHeader(
+      SecureTokenStorage.cachedToken().isEmpty ? null : SecureTokenStorage.cachedToken(),
+      locale.languageCode,
+    );
     if(Get.find<AuthController>().isLoggedIn()){
       Get.find<BusinessSettingController>().getBookingSettingsDataFromServer();
     }

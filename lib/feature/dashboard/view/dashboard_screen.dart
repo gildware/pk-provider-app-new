@@ -3,6 +3,8 @@ import 'package:demandium_provider/feature/dashboard/widgets/dashboard_net_balan
 import 'package:demandium_provider/feature/dashboard/widgets/earning_statistics_widget.dart';
 import 'package:demandium_provider/feature/payments/controller/payments_controller.dart';
 import 'package:demandium_provider/feature/nav/widgets/subscription_trail_end_widget.dart';
+import 'package:demandium_provider/feature/dashboard/helper/dashboard_bundle_helper.dart';
+import 'package:demandium_provider/helper/error_logger.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
 
@@ -18,11 +20,39 @@ class _DashBoardScreenState extends State<DashBoardScreen>{
   @override
   void initState() {
     super.initState();
+    _loadDashboardData();
+  }
 
-    Get.find<DashboardController>().getEarningData();
-    Get.find<PaymentsController>().loadOverview();
-    Get.find<BusinessSettingController>().getBookingSettingsDataFromServer();
-    Get.find<BusinessSettingController>().getServiceAvailabilitySettingsFromServer();
+  Future<void> _loadDashboardData({bool reload = false}) async {
+    if (reload) {
+      DashboardBundleHelper.reset();
+    }
+
+    var bundleLoaded = false;
+    try {
+      bundleLoaded = await DashboardBundleHelper.loadAndApply(reload: reload);
+    } catch (error, stack) {
+      ErrorLogger.record(error, stack, reason: 'DashBoardScreen._loadDashboardData');
+    }
+
+    if (bundleLoaded) {
+      final businessSettings = Get.find<BusinessSettingController>();
+      await Future.wait([
+        Get.find<PaymentsController>().loadOverview(),
+        businessSettings.getBookingSettingsDataFromServer(),
+        businessSettings.getServiceAvailabilitySettingsFromServer(),
+      ]);
+      return;
+    }
+
+    final businessSettings = Get.find<BusinessSettingController>();
+    await Future.wait([
+      Get.find<DashboardController>().getEarningData(),
+      Get.find<PaymentsController>().loadOverview(),
+      businessSettings.getBookingSettingsDataFromServer(),
+      businessSettings.getServiceAvailabilitySettingsFromServer(),
+      Get.find<DashboardController>().getDashboardData(reload: reload),
+    ]);
   }
 
   @override
@@ -45,14 +75,11 @@ class _DashBoardScreenState extends State<DashBoardScreen>{
           color: Theme.of(context).primaryColorLight,
           backgroundColor: Theme.of(context).cardColor,
           onRefresh: () async {
-            await Get.find<DashboardController>().getDashboardData();
+            await _loadDashboardData(reload: true);
             Get.find<DashboardController>().changeRecentActivityView(status: true, shouldUpdate: true);
             Get.find<DashboardController>().changeTypeOfShowBookingStatus(status: true, shouldUpdate: true);
-
-            await Get.find<DashboardController>().getEarningData();
-            await Get.find<PaymentsController>().loadOverview();
             await Get.find<UserProfileController>().getProviderInfo(reload: true);
-            Get.find<NotificationController>().getNotifications(1,saveNotificationCount: false);
+            Get.find<NotificationController>().getNotifications(1, saveNotificationCount: false);
             Get.find<SplashController>().getConfigData();
           },
           child: SingleChildScrollView(

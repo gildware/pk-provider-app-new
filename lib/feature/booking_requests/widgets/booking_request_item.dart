@@ -239,7 +239,12 @@ class BookingRequestItem extends StatelessWidget {
                         ),);
                       }else if(option.title == "download_invoice" || option.title == "download_full_invoice"){
                         String languageCode = Get.find<LocalizationController>().locale.languageCode;
-                        String uri = "${AppConstants.baseUrl}${ booking.isRepeatBooking == 1 ? AppConstants.fullRepeatBookingInvoiceUrl : AppConstants.regularBookingInvoiceUrl}${booking.id}/$languageCode";
+                        final variant = booking.isRepeatBooking == 1 ? 'repeat' : 'regular';
+                        final uri = await BookingInvoiceHelper.providerInvoiceUrl(
+                          bookingId: booking.id ?? '',
+                          lang: languageCode,
+                          variant: variant,
+                        );
                         if (kDebugMode) {
                           print("Uri : $uri");
                         }
@@ -247,7 +252,11 @@ class BookingRequestItem extends StatelessWidget {
                       }
                       else if(option.title == "download_ongoing_invoice" || option.title == "download_upcoming_invoice"){
                         String languageCode = Get.find<LocalizationController>().locale.languageCode;
-                        String uri = "${AppConstants.baseUrl}${AppConstants.singleRepeatBookingInvoiceUrl}${ongoingRepeatBooking!.id}/$languageCode";
+                        final uri = await BookingInvoiceHelper.providerInvoiceUrl(
+                          bookingId: ongoingRepeatBooking!.id ?? '',
+                          lang: languageCode,
+                          variant: 'single',
+                        );
                         if (kDebugMode) {
                           print("Uri : $uri");
                         }

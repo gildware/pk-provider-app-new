@@ -111,9 +111,8 @@ class TransactionController extends GetxController implements GetxService{
   Future<void> getWithdrawMethods({bool isReload = false}) async{
     if(_withdrawModel == null || isReload) {
       Response response = await transactionRepo.getWithdrawMethods();
-      ResponseModelApi responseApi = ResponseModelApi.fromJson(response.body);
 
-      if(responseApi.responseCode == 'default_200' && responseApi.content != null) {
+      if(response.statusCode == 200 && response.body['response_code'] == 'default_200' && response.body['content'] != null) {
         _withdrawModel = WithdrawModel.fromJson(response.body);
 
         WithdrawalMethod? defaultWithdrawMethod;

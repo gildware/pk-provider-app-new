@@ -56,7 +56,9 @@ class DashboardRecentActivityModel {
 
   DashboardRecentActivityModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
-    readableId = json['readable_id'];
+    readableId = json['readable_id'] is int
+        ? json['readable_id'] as int?
+        : int.tryParse('${json['readable_id']}');
     customerId = json['customer_id'];
     providerId = json['provider_id'];
     zoneId = json['zone_id'];
