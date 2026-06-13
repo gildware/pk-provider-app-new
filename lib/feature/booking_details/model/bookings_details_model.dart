@@ -47,6 +47,8 @@ class BookingDetailsContent {
   String? servicemanId;
   String? categoryId;
   String? subcategoryId;
+  BookingCategoryInfo? category;
+  BookingCategoryInfo? subCategory;
   List<ItemService>? details;
   List<ScheduleHistories>? scheduleHistories;
   List<StatusHistories>? statusHistories;
@@ -120,6 +122,8 @@ class BookingDetailsContent {
     this.totalReferralDiscountAmount,
     this.categoryId,
     this.subcategoryId,
+    this.category,
+    this.subCategory,
     this.bookingOfflinePayment,
     this.offlinePaymentMethodName,
     this.time,
@@ -162,6 +166,12 @@ class BookingDetailsContent {
     servicemanId = json['serviceman_id'];
     categoryId = json['category_id'];
     subcategoryId = json['sub_category_id'];
+    category = json['category'] != null
+        ? BookingCategoryInfo.fromJson(json['category'])
+        : null;
+    subCategory = json['sub_category'] != null
+        ? BookingCategoryInfo.fromJson(json['sub_category'])
+        : null;
     if (json['detail'] != null) {
       details = <ItemService>[];
       json['detail'].forEach((v) {
@@ -1242,6 +1252,25 @@ class RepeatHistoryLog {
     data['tax_amount'] = taxAmount;
     data['total_cost'] = totalCost;
     data['repeat_details_id'] = repeatDetailsId;
+    return data;
+  }
+}
+
+class BookingCategoryInfo {
+  String? id;
+  String? name;
+
+  BookingCategoryInfo({this.id, this.name});
+
+  BookingCategoryInfo.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['name'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
     return data;
   }
 }

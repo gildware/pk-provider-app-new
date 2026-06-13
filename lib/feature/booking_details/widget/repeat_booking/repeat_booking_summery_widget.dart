@@ -1,3 +1,4 @@
+import 'package:demandium_provider/feature/booking_details/widget/booking_summary_category_info.dart';
 import 'package:demandium_provider/feature/booking_details/widget/repeat_booking/repeat_booking_edit_history_widget.dart';
 import 'package:demandium_provider/helper/booking_helper.dart';
 import 'package:demandium_provider/helper/extension_helper.dart';
@@ -73,6 +74,7 @@ class RepeatBookingSummeryWidget extends StatelessWidget{
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Column(children: [
+                BookingSummaryCategoryInfo(bookingDetails: bookingDetails),
                 ListView.builder(
                   itemCount: bookingDetails.details?.length,
                   physics: const NeverScrollableScrollPhysics(),
