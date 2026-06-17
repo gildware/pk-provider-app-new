@@ -1,5 +1,5 @@
-import 'package:demandium_provider/feature/booking_details/widget/booking_summary_category_info.dart';
 import 'package:demandium_provider/feature/booking_details/widget/repeat_booking/repeat_booking_edit_history_widget.dart';
+import 'package:demandium_provider/feature/booking_details/widget/regular_booking/booking_summary_breakdown.dart';
 import 'package:demandium_provider/helper/booking_helper.dart';
 import 'package:demandium_provider/helper/extension_helper.dart';
 import 'package:get/get.dart';
@@ -10,27 +10,100 @@ class RepeatBookingSummeryWidget extends StatelessWidget{
   final RepeatBooking ? nextBooking;
   const RepeatBookingSummeryWidget({super.key, required this.bookingDetails, this.nextBooking});
 
+  List<Widget> _extraServiceInfoItems(BuildContext context, List<ProviderExtraServiceLine>? lines) {
+    if (lines == null || lines.isEmpty) {
+      return [];
+    }
+    return lines
+        .where((line) => (line.total ?? line.amount ?? 0) > 0)
+        .map((line) {
+          final bool isSpare = line.isSparePart;
+          final Color tagColor = isSpare ? Colors.blue : Theme.of(context).primaryColor;
+          final double qty = BookingHelper.getExtraServiceLineQuantity(line);
+          final double unitPrice = (line.price != null && line.price! > 0)
+              ? line.price!
+              : (BookingHelper.getExtraServiceLineSubtotal(line) / qty);
+          return Padding(
+            padding: const EdgeInsets.only(top: Dimensions.paddingSizeSmall),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Expanded(
+                  child: Text(line.name ?? "",
+                    style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault,
+                        color: Theme.of(context).textTheme.bodyLarge!.color?.withValues(alpha: 0.9)),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: Dimensions.paddingSizeDefault),
+                BookingExtraServicePriceColumn(line: line),
+              ]),
+              const SizedBox(height: Dimensions.paddingSizeExtraSmall),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: tagColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                  ),
+                  child: Text((isSpare ? 'spare_part' : 'service').tr,
+                    style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: tagColor),
+                  ),
+                ),
+              ),
+              if (line.details != null && line.details!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: Dimensions.paddingSizeExtraSmall),
+                  child: Text(line.details!,
+                    style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall,
+                        color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7))),
+                ),
+              Padding(
+                padding: const EdgeInsets.only(top: Dimensions.paddingSizeExtraSmall),
+                child: Row(children: [
+                  Text("${"unit_price".tr} : ",
+                    style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall,
+                        color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7))),
+                  Text(PriceConverter.convertPrice(unitPrice, isShowLongPrice: true),
+                    style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall,
+                        color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7))),
+                  Container(
+                    height: 10, width: 0.5,
+                    color: Theme.of(context).hintColor,
+                    margin: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
+                  ),
+                  Text("${"qty".tr} : ${qty.toInt()}",
+                    style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall,
+                        color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7))),
+                ]),
+              ),
+              if ((line.discount ?? 0) > 0)
+                _ServiceItemText(title: "discount".tr, amount: line.discount!, prefix: '(-) '),
+            ]),
+          );
+        })
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context){
     return GetBuilder<BookingDetailsController>(builder:(bookingDetailsController){
 
       bool isEdited = bookingDetails.repeatEditHistory !=null && bookingDetails.repeatEditHistory!.isNotEmpty;
 
-      double totalDiscount =  ((bookingDetails.totalDiscountAmount ?? 0) + (bookingDetails.totalCampaignDiscountAmount ?? 0));
+      double initialSubTotal = BookingHelper.getDiscountedSubTotal(bookingDetails) * ((bookingDetails.totalCount ?? 1));
+      double totalDiscount = ((bookingDetails.totalDiscountAmount ?? 0) + (bookingDetails.totalCampaignDiscountAmount ?? 0));
       double totalCouponDiscount = bookingDetails.totalCouponDiscountAmount ?? 0;
-      double taxAmount =  bookingDetails.totalTaxAmount ?? 0;
       double referralDiscountAmount = bookingDetails.totalReferralDiscountAmount ?? 0;
       double extraFee = bookingDetails.extraFee ?? 0;
-      double totalBookingAmount = bookingDetails.totalBookingAmount ?? 0;
-
-      double initialSubTotal = BookingHelper.getSubTotalCost(bookingDetails) * ((bookingDetails.totalCount ?? 1));
-      double updatedSubTotal = (totalBookingAmount + totalDiscount + totalCouponDiscount + referralDiscountAmount) - (extraFee + taxAmount);
+      double taxAmount = bookingDetails.totalTaxAmount ?? 0;
+      double updatedSubTotal = (BookingHelper.resolveGrandTotal(bookingDetails) + totalDiscount + totalCouponDiscount + referralDiscountAmount) - (extraFee + taxAmount);
 
       double paidAmount = BookingHelper.getRepeatBookingPaidAmount(bookingDetails);
       double canceledAmount = BookingHelper.getRepeatBookingCanceledAmount(bookingDetails);
       int paidBookingCount = BookingHelper.getRepeatPaidBookingCount(bookingDetails);
       int canceledBookingCount = BookingHelper.getRepeatCanceledBookingCount(bookingDetails);
-      double dueAmount = (totalBookingAmount - paidAmount - canceledAmount);
+      double dueAmount = (BookingHelper.resolveGrandTotal(bookingDetails) - paidAmount - canceledAmount);
 
 
       return Column(
@@ -74,7 +147,6 @@ class RepeatBookingSummeryWidget extends StatelessWidget{
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Column(children: [
-                BookingSummaryCategoryInfo(bookingDetails: bookingDetails),
                 ListView.builder(
                   itemCount: bookingDetails.details?.length,
                   physics: const NeverScrollableScrollPhysics(),
@@ -87,6 +159,8 @@ class RepeatBookingSummeryWidget extends StatelessWidget{
                       index: index,
                     );},
                 ),
+
+                ..._extraServiceInfoItems(context, bookingDetails.extraServiceLines),
 
                 const Padding(
                   padding: EdgeInsets.symmetric( vertical: Dimensions.paddingSizeSmall),
@@ -110,74 +184,14 @@ class RepeatBookingSummeryWidget extends StatelessWidget{
                   ),
                 ),
 
-                const SizedBox(height: Dimensions.paddingSizeExtraSmall,),
-
-                _SubTotalItemWidget(
-                  title: "service_discount",
-                  amount: totalDiscount,
-                  additionalSign: "-",
-                  subTitle: "",
+                BookingSummaryBreakdown(
+                  bookingDetails: bookingDetails,
+                  showSubTotal: false,
                 ),
-
-                const SizedBox(height: Dimensions.paddingSizeExtraSmall),
-
-                _SubTotalItemWidget(
-                  title: "coupon_discount",
-                  amount: totalCouponDiscount,
-                  additionalSign: "-",
-                  subTitle: "",
+                BookingSummaryGrandTotal(
+                  bookingDetails: bookingDetails,
+                  showDueAmount: false,
                 ),
-
-                if(referralDiscountAmount > 0)
-                  const SizedBox(height: Dimensions.paddingSizeSmall),
-
-                if(referralDiscountAmount > 0)
-                _SubTotalItemWidget(
-                  title:  'referral_discount',
-                  amount: referralDiscountAmount,
-                  additionalSign: "-",
-                  subTitle: "",
-                ),
-
-                const SizedBox(height: Dimensions.paddingSizeExtraSmall,),
-
-                _SubTotalItemWidget(
-                  title:  "service_tax",
-                  amount: taxAmount,
-                  additionalSign: "+",
-                  subTitle: "",
-                ),
-
-
-
-
-                if(bookingDetails.extraFee != null && bookingDetails.extraFee! > 0)
-                Padding(
-                  padding: const EdgeInsets.only(top:  Dimensions.paddingSizeExtraSmall),
-                  child: _SubTotalItemWidget(
-                    title:  Get.find<SplashController>().configModel.content?.additionalChargeLabelName ?? "",
-                    amount:  extraFee,
-                    additionalSign: "+",
-                    subTitle: "",
-                  ),
-                ),
-
-                const SizedBox(height : Dimensions.paddingSizeSmall),
-                const Divider(height: 2, color: Colors.grey,),
-                const SizedBox( height:Dimensions.paddingSizeExtraSmall),
-
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  Text('grand_total'.tr,
-                    style: robotoBold.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Directionality(
-                    textDirection: TextDirection.ltr,
-                    child: Text(
-                      PriceConverter.convertPrice( totalBookingAmount,isShowLongPrice: true),
-                      style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).primaryColor),),
-                  ),
-                ],),
 
                 if(paidAmount > 0) const SizedBox(height: Dimensions.paddingSizeExtraSmall),
 
@@ -246,11 +260,7 @@ class _ServiceInfoItem extends StatelessWidget {
           ),
         ),
         const SizedBox(width: Dimensions.paddingSizeDefault,),
-        Text(PriceConverter.convertPrice(BookingHelper.getBookingServiceUnitConst(bookingService), isShowLongPrice:true,),
-          style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault,
-              color: Theme.of(context).textTheme.bodyLarge!.color?.withValues(alpha:0.9)
-          ),
-        ),
+        BookingServicePriceColumn(bookingService: bookingService),
       ],
       ),
       const SizedBox(height: Dimensions.paddingSizeExtraSmall-2,),
@@ -289,27 +299,12 @@ class _ServiceInfoItem extends StatelessWidget {
 
       _ServiceItemText(title: "unit_price".tr, amount :bookingService?.serviceCost ?? 0, ),
 
-
-
-
-      // const SizedBox(height: Dimensions.paddingSizeExtraSmall,),
-      // (bookingService?.discountAmount ?? 0) > 0 ? _ServiceItemText(title: "discount".tr,
-      //     amount: bookingService?.discountAmount ?? 0)
-      //     : const SizedBox(),
-      //
-      // (bookingService?.campaignDiscountAmount ?? 0) > 0
-      //     ? _ServiceItemText(title: "campaign".tr,
-      //     amount: bookingService?.campaignDiscountAmount ?? 0)
-      //     : const SizedBox(),
-      //
-      // (bookingService?.overallCouponDiscountAmount ?? 0) > 0
-      //     ? _ServiceItemText(title: "coupon".tr, amount: bookingService?.overallCouponDiscountAmount?? 0)
-      //     : const SizedBox(),
-      //
-      // bookingService?.service != null && (bookingService?.service?.tax??0) > 0
-      //     ? _ServiceItemText(
-      //     title: "tax".tr, amount: bookingService?.taxAmount?? 0,)
-      //     : const SizedBox(),
+      if ((bookingService?.discountAmount ?? 0) > 0)
+        _ServiceItemText(title: "discount".tr, amount: bookingService!.discountAmount!, prefix: '(-) '),
+      if ((bookingService?.campaignDiscountAmount ?? 0) > 0)
+        _ServiceItemText(title: "campaign".tr, amount: bookingService!.campaignDiscountAmount!, prefix: '(-) '),
+      if ((bookingService?.overallCouponDiscountAmount ?? 0) > 0)
+        _ServiceItemText(title: "coupon".tr, amount: bookingService!.overallCouponDiscountAmount!, prefix: '(-) '),
     ]);
   }
 }
@@ -319,7 +314,14 @@ class _SubTotalItemWidget extends StatelessWidget {
   final String subTitle;
   final double amount;
   final String additionalSign;
-  const _SubTotalItemWidget({required this.title, required this.amount, required this.additionalSign, required this.subTitle});
+  final bool translateTitle;
+  const _SubTotalItemWidget({
+    required this.title,
+    required this.amount,
+    required this.additionalSign,
+    required this.subTitle,
+    this.translateTitle = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -328,7 +330,7 @@ class _SubTotalItemWidget extends StatelessWidget {
       children: [
         Expanded(
           child: Row(children: [
-            Text(title.tr,style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault,
+            Text(translateTitle ? title.tr : title,style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault,
                 color: Theme.of(context).textTheme.bodyLarge!.color?.withValues(alpha:0.9)
             ),overflow: TextOverflow.ellipsis,),
             const SizedBox(width: Dimensions.paddingSizeExtraSmall,),
@@ -359,8 +361,13 @@ class _SubTotalItemWidget extends StatelessWidget {
 class _ServiceItemText extends StatelessWidget {
   final String title;
   final double amount;
+  final String prefix;
 
-  const _ServiceItemText({required this.title, required this.amount});
+  const _ServiceItemText({
+    required this.title,
+    required this.amount,
+    this.prefix = '',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -373,7 +380,7 @@ class _ServiceItemText extends StatelessWidget {
                 fontSize: Dimensions.fontSizeSmall,color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha:0.7)
             ),
           ),
-          Text(PriceConverter.convertPrice(amount,isShowLongPrice:true),
+          Text('$prefix${PriceConverter.convertPrice(amount,isShowLongPrice:true)}',
             style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall,color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha:0.7)),
           ),
         ],
