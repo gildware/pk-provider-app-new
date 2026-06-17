@@ -282,6 +282,7 @@ class _NetworkOrAssetImage extends StatelessWidget {
 
     return Image.network(
       url!,
+      key: ValueKey(url),
       width: width,
       height: height,
       fit: fit,
