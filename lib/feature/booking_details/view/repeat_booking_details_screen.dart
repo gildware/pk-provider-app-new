@@ -20,9 +20,15 @@ class _RepeatBookingDetailsScreenState extends State<RepeatBookingDetailsScreen>
   void initState() {
     Get.find<BookingDetailsController>().showHideExpandView(0, shouldUpdate: false);
     super.initState();
-    tabController = TabController(vsync: this, length: 2);
+    tabController = TabController(vsync: this, length: 5);
     Get.find<BookingDetailsController>().resetBookingDetailsValue(resetBookingDetails: true);
     Get.find<BookingDetailsController>().getBookingDetails(widget.bookingId);
+  }
+
+  String? _bookingIdSubtitle(BookingDetailsContent? bookingDetailsContent) {
+    final readableId = bookingDetailsContent?.readableId;
+    if (readableId == null || readableId.isEmpty) return null;
+    return '${'booking'.tr} #$readableId';
   }
 
   @override
@@ -33,10 +39,15 @@ class _RepeatBookingDetailsScreenState extends State<RepeatBookingDetailsScreen>
           Get.offAllNamed(RouteHelper.getInitialRoute());
         }
       },
-      child: Scaffold(
+      child: GetBuilder<BookingDetailsController>(
+        builder: (bookingDetailsController) {
+          final bookingDetailsContent = bookingDetailsController.bookingDetails?.content;
+
+          return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: CustomAppBar(
           title: 'booking_details'.tr,
+          subtitle: _bookingIdSubtitle(bookingDetailsContent),
           onBackPressed: (){
             if(widget.fromPage == 'fromNotification'){
               Get.offAllNamed(RouteHelper.getInitialRoute());
@@ -48,10 +59,7 @@ class _RepeatBookingDetailsScreenState extends State<RepeatBookingDetailsScreen>
 
         body: SafeArea(
           bottom: false,
-          child: GetBuilder<BookingDetailsController>(
-              builder: (bookingDetailsController) {
-
-                return ExpandableBottomSheet(
+          child: ExpandableBottomSheet(
 
                   expandableContent: !AppFeatureFlags.servicemanEnabled ||
                           bookingDetailsController.bottomSheetHeight == 0
@@ -79,27 +87,43 @@ class _RepeatBookingDetailsScreenState extends State<RepeatBookingDetailsScreen>
                           ),
                         ),
                         child: TabBar(
+                          isScrollable: true,
+                          tabAlignment: TabAlignment.start,
                           unselectedLabelColor:Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha:0.5),
                           indicatorColor: Theme.of(context).primaryColor,
                           controller: tabController,
                           labelColor: Theme.of(context).primaryColor,
                           labelStyle:  robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge),
-                          labelPadding: EdgeInsets.zero,
+                          labelPadding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
                           onTap: (int? index) {
                             switch (index) {
                               case 0:
                                 bookingDetailsController.updateServicePageCurrentState(BookingDetailsTabControllerState.bookingDetails);
                                 break;
                               case 1:
+                                bookingDetailsController.updateServicePageCurrentState(BookingDetailsTabControllerState.payments);
+                                bookingDetailsController.showHideExpandView(0);
+                                break;
+                              case 2:
                                 bookingDetailsController.updateServicePageCurrentState(BookingDetailsTabControllerState.status);
-                                bookingDetailsController
-                                    .showHideExpandView(0);
+                                bookingDetailsController.showHideExpandView(0);
+                                break;
+                              case 3:
+                                bookingDetailsController.updateServicePageCurrentState(BookingDetailsTabControllerState.history);
+                                bookingDetailsController.showHideExpandView(0);
+                                break;
+                              case 4:
+                                bookingDetailsController.updateServicePageCurrentState(BookingDetailsTabControllerState.revenue);
+                                bookingDetailsController.showHideExpandView(0);
                                 break;
                             }
                           },
                           tabs: [
-                            SizedBox(width: MediaQuery.of(context).size.width * 0.5,child: Tab(text: 'booking_details'.tr)),
-                            SizedBox(width: MediaQuery.of(context).size.width * 0.5, child: Tab(text: 'service_log'.tr)),
+                            Tab(text: 'booking_overview'.tr),
+                            Tab(text: 'payments'.tr),
+                            Tab(text: 'service_log'.tr),
+                            Tab(text: 'history'.tr),
+                            Tab(text: 'revenue'.tr),
                           ],
                         ),
                       ),
@@ -110,16 +134,19 @@ class _RepeatBookingDetailsScreenState extends State<RepeatBookingDetailsScreen>
                             bookingId: widget.bookingId,
                             tabController: tabController,
                             isSubBooking: true,
-                          ) ,
-                           RepeatBookingServiceLogWidget( bookingId: widget.bookingId,),
+                          ),
+                          BookingPaymentsTab(bookingId: widget.bookingId, isSubBooking: false),
+                          RepeatBookingServiceLogWidget(bookingId: widget.bookingId,),
+                          BookingEventHistoryWidget(bookingId: widget.bookingId, isSubBooking: false),
+                          BookingRevenueTab(bookingId: widget.bookingId, isSubBooking: false),
                         ]),
                       ),
                     ]),
                   ),
-                );
-              }
+                ),
           ),
-        ),
+        );
+        },
       ),
     );
   }

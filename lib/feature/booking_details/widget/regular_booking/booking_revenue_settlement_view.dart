@@ -35,20 +35,11 @@ class BookingRevenueSettlementView extends StatelessWidget {
               title: 'earning_report_received_by_provider'.tr,
               value: PriceConverter.convertPrice(revenue.amountReceivedByProvider ?? 0, isShowLongPrice: true),
             ),
-            if ((revenue.scaledLossWriteoffAmount ?? 0) > 0) ...[
+            if ((revenue.scaledLossWriteoffAmount ?? 0) > 0)
               BookingOverviewKvRow(
                 title: 'write_off_amount'.tr,
                 value: PriceConverter.convertPrice(revenue.scaledLossWriteoffAmount ?? 0, isShowLongPrice: true),
               ),
-              BookingOverviewKvRow(
-                title: 'write_off_company_amount'.tr,
-                value: PriceConverter.convertPrice(revenue.scaledLossWriteoffCompanyAmount ?? 0, isShowLongPrice: true),
-              ),
-              BookingOverviewKvRow(
-                title: 'write_off_provider_amount'.tr,
-                value: PriceConverter.convertPrice(revenue.scaledLossWriteoffProviderAmount ?? 0, isShowLongPrice: true),
-              ),
-            ],
             const SizedBox(height: Dimensions.paddingSizeSmall),
             _settlementAlert(context, revenue),
           ],

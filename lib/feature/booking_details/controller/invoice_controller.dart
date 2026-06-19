@@ -8,6 +8,7 @@ import 'package:demandium_provider/feature/booking_details/controller/pdf_contro
 import 'package:demandium_provider/feature/booking_details/controller/booking_details_controller.dart';
 import 'package:demandium_provider/feature/booking_details/model/bookings_details_model.dart';
 import 'package:demandium_provider/feature/booking_details/model/invoice.dart';
+import 'package:demandium_provider/helper/booking_helper.dart';
 import 'package:demandium_provider/feature/booking_details/model/supplier.dart';
 import 'package:demandium_provider/feature/splash/controller/splash_controller.dart';
 import 'package:demandium_provider/helper/config_helper.dart';
@@ -248,7 +249,7 @@ class PdfInvoiceApi {
 
     double paidAmount = 0;
 
-    double totalBookingAmount = bookingDetailsContent.totalBookingAmount ?? 0;
+    double grandTotal = BookingHelper.resolveGrandTotal(bookingDetailsContent);
     bool isPartialPayment = bookingDetailsContent.partialPayments !=null && bookingDetailsContent.partialPayments!.isNotEmpty;
 
     if(isPartialPayment) {
@@ -256,9 +257,9 @@ class PdfInvoiceApi {
         paidAmount = paidAmount + (element.paidAmount ?? 0);
       });
     }else{
-      paidAmount  = totalBookingAmount - (bookingDetailsContent.additionalCharge ?? 0);
+      paidAmount  = grandTotal - (bookingDetailsContent.additionalCharge ?? 0);
     }
-    double dueAmount = totalBookingAmount - paidAmount;
+    double dueAmount = BookingHelper.resolveBookingDueBalance(bookingDetailsContent);
 
     return Container(
       alignment: Alignment.centerRight,
@@ -311,7 +312,7 @@ class PdfInvoiceApi {
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
-                    value: double.tryParse(controller.bookingDetails!.content!.totalBookingAmount.toString())!.toStringAsFixed(2),
+                    value: grandTotal.toStringAsFixed(2),
                     unite: true,
                   ),
                   ListView.builder(itemBuilder: (context, index){
@@ -353,7 +354,7 @@ class PdfInvoiceApi {
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
-                    value: controller.bookingDetails!.content!.totalBookingAmount!.toStringAsFixed(2),
+                    value: grandTotal.toStringAsFixed(2),
                     unite: true,
                   ),
                   if(bookingDetailsContent.additionalCharge != null && bookingDetailsContent.additionalCharge! > 0 && bookingDetailsContent.paymentMethod != "cash_after_service")
@@ -364,7 +365,7 @@ class PdfInvoiceApi {
                           fontSize: 13,
                           fontWeight: FontWeight.normal,
                         ),
-                        value: ((bookingDetailsContent.totalBookingAmount ?? 0) -(bookingDetailsContent.additionalCharge ?? 0)).toStringAsFixed(2),
+                        value: (grandTotal -(bookingDetailsContent.additionalCharge ?? 0)).toStringAsFixed(2),
                         unite: true,
                       ),
                       bookingDetailsContent.additionalCharge! > 0 ?

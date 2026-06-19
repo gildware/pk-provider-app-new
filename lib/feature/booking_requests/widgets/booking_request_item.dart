@@ -119,11 +119,17 @@ class BookingRequestItem extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('total_amount'.tr,
-                      style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault,  color: Theme.of(context).secondaryHeaderColor),
+                    Text('grand_total'.tr,
+                      style: robotoRegular.copyWith(
+                        fontSize: Dimensions.fontSizeDefault,
+                        color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.6),
+                      ),
                     ),
-                    Text(PriceConverter.convertPrice(booking.totalBookingAmount ?? 0),
-                      style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).primaryColorLight),
+                    Text(PriceConverter.convertPrice(booking.displayGrandTotal),
+                      style: robotoMedium.copyWith(
+                        fontSize: Dimensions.fontSizeLarge,
+                        color: Theme.of(context).primaryColor,
+                      ),
                     ),
                   ],
                 ),
@@ -136,31 +142,13 @@ class BookingRequestItem extends StatelessWidget {
               Dimensions.paddingSizeDefault,
               0,
               Dimensions.paddingSizeDefault,
-              Dimensions.paddingSizeExtraSmall,
+              Dimensions.paddingSizeSmall,
             ),
             child: BookingStatusAndTagsRow(
               rawStatus: booking.bookingStatus,
               ui: booking.statusUi,
             ),
           ),
-
-          Container(
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1)
-            ),
-            margin: EdgeInsets.fromLTRB( Dimensions.paddingSizeDefault, 5, Dimensions.paddingSizeDefault, Dimensions.paddingSizeSmall),
-            padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeExtraSmall),
-            child: Row(spacing: Dimensions.paddingSizeExtraSmall, children: [
-              Icon(Icons.location_on_rounded, size: 17),
-              Text(
-                booking.serviceLocation == "provider" ?  "your_location".tr : "customer_location".tr ,
-                style: robotoMedium.copyWith(
-                    color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.8)
-                ),
-              )
-            ]),
-          )
         ],),
         Positioned.fill(child: CustomInkWell(
           onTap: (){

@@ -92,17 +92,15 @@ class TopCardSection extends StatelessWidget {
                             title: "total_service_men".tr,
                             iconData: Images.serviceMan,
                           ),
-                        Expanded(
-                          child: TopCardItem(
-                            height: 100,
-                            cardColor: Theme.of(context).primaryColor,
-                            amount: dashboardController.dashboardTopCards != null &&
-                                    dashboardController.dashboardTopCards!.totalBookingServed != null
-                                ? dashboardController.dashboardTopCards!.totalBookingServed.toString()
-                                : "0",
-                            title: "total_booking_served".tr,
-                            iconData: Images.serviceMan,
-                          ),
+                        TopCardItem(
+                          height: 100,
+                          cardColor: Theme.of(context).primaryColor,
+                          amount: dashboardController.dashboardTopCards != null &&
+                                  dashboardController.dashboardTopCards!.totalBookingServed != null
+                              ? dashboardController.dashboardTopCards!.totalBookingServed.toString()
+                              : "0",
+                          title: "total_booking_served".tr,
+                          iconData: Images.serviceMan,
                         ),
                       ],
                     ),

@@ -49,11 +49,7 @@ class AppStartup {
     }
 
     try {
-      await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
+      await _requestNotificationPermission();
     } catch (e, stack) {
       ErrorLogger.record(e, stack, reason: 'AppStartup.FCM permission');
     }
@@ -70,9 +66,26 @@ class AppStartup {
         initialNotificationBody = NotificationHelper.convertNotification(remoteMessage.data);
       }
       await NotificationHelper.initialize(notificationsPlugin);
-      FirebaseMessaging.onBackgroundMessage(myBackgroundMessageHandler);
     } catch (e, stack) {
       ErrorLogger.record(e, stack, reason: 'AppStartup.deferredNotifications');
     }
+  }
+
+  static Future<void> _requestNotificationPermission() async {
+    if (GetPlatform.isIOS) {
+      await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    } else if (GetPlatform.isAndroid) {
+      await Permission.notification.request();
+    }
+
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
   }
 }

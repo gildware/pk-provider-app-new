@@ -1,5 +1,6 @@
 
 import 'package:get/get.dart';
+import 'package:demandium_provider/helper/booking_list_filter_tabs.dart';
 import 'package:demandium_provider/util/core_export.dart';
 
 class BookingRequestScreen extends StatefulWidget {
@@ -17,7 +18,6 @@ class _BookingRequestScreenState extends State<BookingRequestScreen>{
     super.initState();
 
     Get.find<UserProfileController>().getProviderInfo(reload: true);
-    Get.find<BookingRequestController>().updateBookingRequestIndex(1);
     Get.find<BookingRequestController>().updateSelectedServiceType();
     Get.find<BookingRequestController>().getBookingRequestList('pending',1,reload: true, isFirst: true);
   }
@@ -28,32 +28,11 @@ class _BookingRequestScreenState extends State<BookingRequestScreen>{
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: MainAppBar(title: 'booking_requests'.tr,color: Theme.of(context).primaryColor,fromBookingRequest: true,),
       body: GetBuilder<UserProfileController>(builder: (userController){
-        return GetBuilder<BookingRequestController>(
-          builder:(bookingRequestController){
-            return Column(children: [
-              const ProviderPendingApprovalBanner(),
-              const BookingRequestMenuBar(),
-
-
-              Expanded(
-                child: TabBarView(
-                  controller: bookingRequestController.tabController,
-                  dragStartBehavior: DragStartBehavior.down,
-                  children: const [
-                    BookingRequestList(),
-                    BookingRequestList(),
-                    BookingRequestList(),
-                    BookingRequestList(),
-                    BookingRequestList(),
-                    BookingRequestList(),
-                    BookingRequestList(),
-                    BookingRequestList(),
-                  ],
-                ),
-              ),
-            ],);
-          },
-        );
+        return Column(children: [
+          const ProviderPendingApprovalBanner(),
+          const BookingRequestMenuBar(),
+          const Expanded(child: BookingRequestList()),
+        ],);
       }),
 
     );
@@ -143,41 +122,13 @@ class BookingRequestList extends StatefulWidget {
 }
 
 class _BookingRequestListState extends State<BookingRequestList> {
-  int value =  1;
-
-
-  @override
-  void initState() {
-    super.initState();
-
-    Get.find<BookingRequestController>().tabController?.addListener(() {
-
-      if(value==1){
-        Future.delayed(const Duration(milliseconds: 100), (){
-
-          Get.find<BookingRequestController>().menuScrollController?.scrollToIndex(
-            Get.find<BookingRequestController>().tabController!.index, preferPosition: AutoScrollPosition.middle,
-            duration: const Duration(milliseconds: 500),
-          );
-          Get.find<BookingRequestController>().menuScrollController?.highlight( Get.find<BookingRequestController>().tabController!.index);
-          Get.find<BookingRequestController>().updateBookingRequestIndex( Get.find<BookingRequestController>().tabController!.index);
-
-          Get.find<BookingRequestController>().getBookingRequestList(Get.find<BookingRequestController>().bookingRequestStatusList[Get.find<BookingRequestController>().tabController!.index], 1, reload: true);
-
-        });
-
-        value--;
-
-      }
-
-    });
-
-    }
   @override
   Widget build(BuildContext context) {
 
     return GetBuilder<UserProfileController>(builder: (userProfileController){
-      return GetBuilder<BookingRequestController>(builder: (bookingRequestController){
+      return GetBuilder<BookingRequestController>(
+        id: BookingRequestController.bookingListUpdateId,
+        builder: (bookingRequestController){
         return userProfileController.isPendingAdminVerification ?
         Center(
           child: SizedBox(
@@ -187,20 +138,23 @@ class _BookingRequestListState extends State<BookingRequestList> {
         ) : bookingRequestController.bookingRequestList == null ?
         const BookingRequestItemShimmer()
 
-        : bookingRequestController.currentIndex == 1  && userProfileController.providerModel?.content?.providerInfo?.serviceAvailability == 0 ?
+        : bookingRequestController.isTabLoading && bookingRequestController.bookingRequestList!.isEmpty ?
+        const BookingRequestItemShimmer()
+
+        : bookingRequestController.bookingStatus == 'pending'  && userProfileController.providerModel?.content?.providerInfo?.serviceAvailability == 0 ?
         Center(
           child: SizedBox(height: Get.height * 0.7,
             child:const TurnOnServiceAvailability(),
           ),
-        ) : bookingRequestController.currentIndex == 1  &&  userProfileController.providerModel?.content?.subscriptionInfo?.subscribedPackageDetails?.isCanceled == 1 ? Center(
+        ) : bookingRequestController.bookingStatus == 'pending'  &&  userProfileController.providerModel?.content?.subscriptionInfo?.subscribedPackageDetails?.isCanceled == 1 ? Center(
           child: SizedBox(height: Get.height * 0.7,
             child:const SubscriptionCanceledView(),
           ),
         ) : bookingRequestController.bookingRequestList!.isEmpty ? Center(
           child: SizedBox(height: Get.height * 0.7,
             child: NoDataScreen(
-                text: bookingRequestController.currentIndex == 0 ? "you_do_not_have_any_booking_request_yet".tr :
-                '${'you_have_not'.tr} ${bookingRequestController.bookingStatus.tr.toLowerCase()} ${"request_yet".tr}',
+                text: bookingRequestController.bookingStatus == 'all' ? "you_do_not_have_any_booking_request_yet".tr :
+                '${'you_have_not'.tr} ${bookingListFilterTabLabelKey(bookingRequestController.bookingStatus).tr.toLowerCase()} ${"request_yet".tr}',
                 type: NoDataType.request
             ),
           ),

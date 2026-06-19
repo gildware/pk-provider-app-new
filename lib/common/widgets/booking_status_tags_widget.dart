@@ -1,49 +1,18 @@
 import 'package:demandium_provider/common/model/booking_status_ui_model.dart';
-import 'package:demandium_provider/helper/extension_helper.dart';
+import 'package:demandium_provider/helper/booking_status_variant_colors.dart';
 import 'package:demandium_provider/util/core_export.dart';
 import 'package:get/get.dart';
-
-Color bookingStatusTagBackgroundColor(BuildContext context, String variant) {
-  final colors = context.customThemeColors;
-  return switch (variant) {
-    'success' => colors.success.withValues(alpha: 0.15),
-    'danger' => colors.error.withValues(alpha: 0.15),
-    'warning' || 'warning_dark' => colors.warning.withValues(alpha: 0.2),
-    'info' => colors.info.withValues(alpha: 0.15),
-    'primary' => Theme.of(context).primaryColor.withValues(alpha: 0.12),
-    'secondary' => Theme.of(context).hintColor.withValues(alpha: 0.2),
-    'light' => Theme.of(context).cardColor,
-    'dark' => Theme.of(context).textTheme.bodyLarge!.color!.withValues(alpha: 0.12),
-    _ => Theme.of(context).primaryColor.withValues(alpha: 0.1),
-  };
-}
-
-Color bookingStatusTagTextColor(BuildContext context, String variant) {
-  final colors = context.customThemeColors;
-  return switch (variant) {
-    'success' => colors.success,
-    'danger' => colors.error,
-    'warning' || 'warning_dark' => colors.warning,
-    'info' => colors.info,
-    'primary' => Theme.of(context).primaryColor,
-    'secondary' => Theme.of(context).hintColor,
-    'light' => Theme.of(context).textTheme.bodyLarge!.color!,
-    'dark' => Theme.of(context).textTheme.bodyLarge!.color!,
-    _ => Theme.of(context).primaryColor,
-  };
-}
 
 Color bookingStatusBadgeBackgroundColor(
   BuildContext context, {
   required String? rawStatus,
   required String? badgeVariant,
 }) {
-  if (badgeVariant != null && badgeVariant.isNotEmpty) {
-    return bookingStatusTagBackgroundColor(context, badgeVariant);
-  }
-  return context.customThemeColors.buttonBackgroundColorMap[rawStatus]
-          ?.withValues(alpha: 0.12) ??
-      Theme.of(context).primaryColor.withValues(alpha: 0.1);
+  final variant = BookingStatusVariantColors.resolveBadgeVariant(
+    badgeVariant: badgeVariant,
+    rawStatus: rawStatus,
+  );
+  return BookingStatusVariantColors.softBadgeBackground(variant);
 }
 
 Color bookingStatusBadgeTextColor(
@@ -51,11 +20,19 @@ Color bookingStatusBadgeTextColor(
   required String? rawStatus,
   required String? badgeVariant,
 }) {
-  if (badgeVariant != null && badgeVariant.isNotEmpty) {
-    return bookingStatusTagTextColor(context, badgeVariant);
-  }
-  return context.customThemeColors.buttonTextColorMap[rawStatus] ??
-      Theme.of(context).primaryColor;
+  final variant = BookingStatusVariantColors.resolveBadgeVariant(
+    badgeVariant: badgeVariant,
+    rawStatus: rawStatus,
+  );
+  return BookingStatusVariantColors.softBadgeForeground(variant);
+}
+
+Color bookingStatusTagBackgroundColor(BuildContext context, String variant) {
+  return BookingStatusVariantColors.solidTagBackground(variant);
+}
+
+Color bookingStatusTagTextColor(BuildContext context, String variant) {
+  return BookingStatusVariantColors.solidTagForeground(variant);
 }
 
 class BookingStatusBadge extends StatelessWidget {
@@ -98,6 +75,8 @@ class BookingStatusBadge extends StatelessWidget {
       ),
       child: Text(
         _labelKey.tr,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
         style: robotoMedium.copyWith(
           fontSize: Dimensions.fontSizeSmall,
           color: bookingStatusBadgeTextColor(
@@ -106,6 +85,69 @@ class BookingStatusBadge extends StatelessWidget {
             badgeVariant: badgeVariant,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class BookingStatusTagChip extends StatelessWidget {
+  final BookingStatusTag tag;
+
+  const BookingStatusTagChip({super.key, required this.tag});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasBorder = BookingStatusVariantColors.solidTagHasBorder(tag.variant);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: Dimensions.paddingSizeSmall,
+        vertical: Dimensions.paddingSizeExtraSmall,
+      ),
+      decoration: BoxDecoration(
+        color: bookingStatusTagBackgroundColor(context, tag.variant),
+        borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+        border: hasBorder
+            ? Border.all(color: BookingStatusVariantColors.borderLight)
+            : null,
+      ),
+      child: Text(
+        tag.label.tr,
+        style: robotoMedium.copyWith(
+          fontSize: Dimensions.fontSizeExtraSmall,
+          color: bookingStatusTagTextColor(context, tag.variant),
+        ),
+      ),
+    );
+  }
+}
+
+class BookingStatusTagsScrollRow extends StatelessWidget {
+  final List<BookingStatusTag> tags;
+  final double spacing;
+
+  const BookingStatusTagsScrollRow({
+    super.key,
+    required this.tags,
+    this.spacing = Dimensions.paddingSizeExtraSmall,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (tags.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var i = 0; i < tags.length; i++) ...[
+            if (i > 0) SizedBox(width: spacing),
+            BookingStatusTagChip(tag: tags[i]),
+          ],
+        ],
       ),
     );
   }
@@ -132,27 +174,9 @@ class BookingStatusTagsWrap extends StatelessWidget {
     return Wrap(
       spacing: spacing,
       runSpacing: runSpacing,
-      children: tags
-          .map(
-            (tag) => Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: Dimensions.paddingSizeSmall,
-                vertical: Dimensions.paddingSizeExtraSmall,
-              ),
-              decoration: BoxDecoration(
-                color: bookingStatusTagBackgroundColor(context, tag.variant),
-                borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-              ),
-              child: Text(
-                tag.label.tr,
-                style: robotoMedium.copyWith(
-                  fontSize: Dimensions.fontSizeExtraSmall,
-                  color: bookingStatusTagTextColor(context, tag.variant),
-                ),
-              ),
-            ),
-          )
-          .toList(),
+      alignment: WrapAlignment.end,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: tags.map((tag) => BookingStatusTagChip(tag: tag)).toList(),
     );
   }
 }
@@ -161,29 +185,54 @@ class BookingStatusAndTagsRow extends StatelessWidget {
   final String? rawStatus;
   final BookingStatusUiFields? ui;
   final MainAxisAlignment alignment;
+  final bool compact;
 
   const BookingStatusAndTagsRow({
     super.key,
     required this.rawStatus,
     this.ui,
     this.alignment = MainAxisAlignment.start,
+    this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final tags = ui?.tags ?? const <BookingStatusTag>[];
+
+    if (compact) {
+      return Wrap(
+        spacing: Dimensions.paddingSizeExtraSmall,
+        runSpacing: Dimensions.paddingSizeExtraSmall,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        alignment: alignment == MainAxisAlignment.end
+            ? WrapAlignment.end
+            : WrapAlignment.start,
+        children: [
+          BookingStatusBadge(
+            rawStatus: rawStatus,
+            displayKey: ui?.displayKey,
+            badgeVariant: ui?.badgeVariant,
+          ),
+          ...tags.map((tag) => BookingStatusTagChip(tag: tag)),
+        ],
+      );
+    }
+
     return Column(
-      crossAxisAlignment: alignment == MainAxisAlignment.end
-          ? CrossAxisAlignment.end
-          : CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
       children: [
         BookingStatusBadge(
           rawStatus: rawStatus,
           displayKey: ui?.displayKey,
           badgeVariant: ui?.badgeVariant,
         ),
-        if (ui != null && ui!.tags.isNotEmpty) ...[
+        if (tags.isNotEmpty) ...[
           const SizedBox(height: Dimensions.paddingSizeExtraSmall),
-          BookingStatusTagsWrap(tags: ui!.tags),
+          SizedBox(
+            width: double.infinity,
+            child: BookingStatusTagsWrap(tags: tags),
+          ),
         ],
       ],
     );

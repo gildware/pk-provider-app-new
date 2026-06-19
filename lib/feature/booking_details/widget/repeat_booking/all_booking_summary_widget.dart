@@ -1,3 +1,4 @@
+import 'package:demandium_provider/helper/booking_helper.dart';
 import 'package:demandium_provider/helper/extension_helper.dart';
 import 'package:demandium_provider/util/core_export.dart';
 import 'package:get/get.dart';
@@ -57,7 +58,7 @@ class AllBookingSummaryWidget extends StatelessWidget {
             title: "arrival_time",
             subtitle: DateConverter.convertDateTimeToTime(DateTime.tryParse(bookingDetails.startDate!) ?? DateTime.now()),
           ),
-          _ItemWidget(title: "total_amount", subtitle: PriceConverter.convertPrice( bookingDetails.totalBookingAmount ?? 0, )),
+          _ItemWidget(title: "total_amount", subtitle: PriceConverter.convertPrice(BookingHelper.resolveGrandTotal(bookingDetails))),
           _ItemWidget(title: "payment", subtitle: "${bookingDetails.paymentMethod}".tr),
           if(bookingDetails.bookingType == "weekly" )_ItemWidget(title: 'selected_days'.tr, subtitle: selectedWeekDays),
           _ItemWidget(

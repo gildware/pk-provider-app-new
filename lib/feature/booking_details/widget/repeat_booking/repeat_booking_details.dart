@@ -1,6 +1,4 @@
 import 'package:demandium_provider/feature/booking_details/widget/booking_service_location.dart';
-import 'package:demandium_provider/feature/booking_details/widget/regular_booking/booking_payment_details_view.dart';
-import 'package:demandium_provider/feature/booking_details/widget/regular_booking/booking_revenue_settlement_view.dart';
 import 'package:demandium_provider/feature/booking_details/widget/repeat_booking/all_booking_summary_widget.dart';
 import 'package:demandium_provider/feature/booking_details/widget/repeat_booking/next_upcoming_service_widget.dart';
 import 'package:demandium_provider/feature/booking_details/widget/repeat_booking/repeat_booking_info_view.dart';
@@ -96,10 +94,6 @@ class RepeatBookingDetailsWidget extends StatelessWidget {
                       isSubBooking: false,
                       bookingEditType: BookingEditType.repeat,
                     ),
-
-                    BookingPaymentDetailsView(bookingDetails: bookingDetails),
-
-                    BookingRevenueSettlementView(bookingDetails: bookingDetails),
 
                     const SizedBox(height: Dimensions.paddingSizeDefault),
 

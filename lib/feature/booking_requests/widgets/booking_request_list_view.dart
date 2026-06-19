@@ -6,6 +6,7 @@ class BookingRequestListview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<BookingRequestController>(
+      id: BookingRequestController.bookingListUpdateId,
       builder: (bookingRequestController) {
         return Column(
           children:[
@@ -17,7 +18,7 @@ class BookingRequestListview extends StatelessWidget {
                 backgroundColor: Theme.of(context).cardColor,
                 onRefresh: () async {
                   Get.find<BookingRequestController>().getBookingRequestList(Get.find<BookingRequestController>()
-                      .bookingRequestStatusList[Get.find<BookingRequestController>().currentIndex],1,
+                      .bookingStatus,1,
                   );
                 },
                 child: ListView.builder(
@@ -35,7 +36,9 @@ class BookingRequestListview extends StatelessWidget {
               ),
             ): const SizedBox.shrink(),
 
-            bookingRequestController.isLoading ? const Center(child: CircularProgressIndicator(),) : const SizedBox.shrink()
+            bookingRequestController.isLoading || bookingRequestController.isTabLoading
+                ? const Center(child: CircularProgressIndicator())
+                : const SizedBox.shrink()
           ],
         );
       },

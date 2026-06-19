@@ -20,6 +20,10 @@ Future<void> main() async {
 
   final languages = await AppStartup.prepareForRunApp();
 
+  if (GetPlatform.isMobile) {
+    FirebaseMessaging.onBackgroundMessage(myBackgroundMessageHandler);
+  }
+
   runApp(MyApp(languages: languages));
   AppStartup.scheduleDeferredInit(flutterLocalNotificationsPlugin);
 }

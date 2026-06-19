@@ -1,8 +1,6 @@
+import 'package:demandium_provider/helper/booking_helper.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
-
-
-
 class ChangeStatusDropdownButton extends StatelessWidget {
   final BookingDetailsContent bookingDetails;
   final String bookingId;
@@ -20,6 +18,9 @@ class ChangeStatusDropdownButton extends StatelessWidget {
       List<String> statusList = [];
       for (var element in bookingDetailsController.statusTypeList) {
         statusList.add(element);
+      }
+      if (!BookingHelper.canCompleteBooking(bookingDetails)) {
+        statusList.remove('completed');
       }
       if(isSubBooking && bookingDetails.isPaid ==1 && statusList.contains("canceled")){
         statusList.remove("canceled");
@@ -102,7 +103,7 @@ class ChangeStatusDropdownButton extends StatelessWidget {
               ),
             ),
 
-          ]) : dropdownStatus == "completed" && bookingDetailsController.showPhotoEvidenceField && Get.find<SplashController>().configModel.content?.bookingOtpVerification == 1?
+          ]) : dropdownStatus == "completed" && BookingHelper.canCompleteBooking(bookingDetails) && bookingDetailsController.showPhotoEvidenceField && Get.find<SplashController>().configModel.content?.bookingOtpVerification == 1?
           CustomButton(btnTxt: "request_for_otp".tr, onPressed: () {
             bookingDetailsController.sendBookingOTPNotification(bookingId, shouldUpdate: false);
             showCustomBottomSheet(child: OtpVerificationBottomSheet(bookingId: bookingId, isSubBooking: isSubBooking ));

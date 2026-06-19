@@ -10,7 +10,7 @@ class AppConstants {
   /// Override at build time: `--dart-define=BASE_URL=https://panunkaergar.com`
   static const String baseUrl = String.fromEnvironment(
     'BASE_URL',
-    defaultValue: 'https://dev.panunkaergar.com',
+    defaultValue: 'http://127.0.0.1:8000',
   );
   /// Release-only SHA-256 cert fingerprint (hex). Set via `--dart-define=SSL_PIN_SHA256=...`
   static const String sslPinSha256 = String.fromEnvironment('SSL_PIN_SHA256', defaultValue: '');
@@ -54,6 +54,7 @@ class AppConstants {
   static const String cancelSubBookingUrl = '/api/v1/provider/booking/single-repeat-cancel/';
   static const String changeBookingStatus = '/api/v1/provider/booking/status-update';
   static const String changeSubBookingStatus = '/api/v1/provider/booking/single-repeat-status-update';
+  static const String recordBookingPaymentUrl = '/api/v1/provider/booking/record-payment';
   static const String bookingOTPNotificationUri = '/api/v1/provider/booking/opt/notification-send';
   static const String bankDetailsUrl = '/api/v1/provider/get-bank-details';
   static const String updateBankDetailsUrl = '/api/v1/provider/update-bank-details';

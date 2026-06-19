@@ -10,7 +10,7 @@ enum SignUpPageStep {step1, step2, step3}
 enum ProviderType {individual, company}
 enum BusinessPlanType {commissionBase, subscriptionBase}
 enum SubscriptionPaymentType {freeTrail, digital}
-enum BookingDetailsTabControllerState {bookingDetails,status}
+enum BookingDetailsTabControllerState {bookingDetails, payments, revenue, status, history}
 enum ServicemanTabControllerState {generalInfo,accountIno}
 enum FileType{png,jpg,jpeg,csv,txt,xlx,xls,pdf}
 enum ToasterMessageType {success, error, info}

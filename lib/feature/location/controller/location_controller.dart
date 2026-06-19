@@ -13,10 +13,8 @@ class LocationController extends GetxController  implements GetxService{
   LocationController({required this.locationRepo});
 
   void refreshUi({bool notify = true}) {
-    if (!notify) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!isClosed) update();
-    });
+    if (!notify || isClosed) return;
+    update();
   }
 
   Position _position = Position(longitude: 0, latitude: 0, timestamp: DateTime.now(), accuracy: 1, altitude: 1, heading: 1, speed: 1, speedAccuracy: 1, altitudeAccuracy: 0, headingAccuracy: 0);
@@ -31,6 +29,7 @@ class LocationController extends GetxController  implements GetxService{
 
   GoogleMapController? _mapController;
   List<PredictionModel> _predictionList = [];
+  int _positionUpdateSequence = 0;
 
   bool get buttonDisabled => _buttonDisabled;
   List<PredictionModel> get predictionList => _predictionList;
@@ -128,11 +127,12 @@ class LocationController extends GetxController  implements GetxService{
 
 
 
-  void updatePosition(CameraPosition position) async {
+  Future<void> updatePosition(CameraPosition position, {bool fromAddress = false}) async {
+    final int sequence = ++_positionUpdateSequence;
     _loading = true;
-    refreshUi();
+    update();
     try {
-      _pickPosition = Position(
+      final updatedPosition = Position(
         latitude: position.target.latitude,
         longitude: position.target.longitude,
         timestamp: DateTime.now(),
@@ -144,18 +144,34 @@ class LocationController extends GetxController  implements GetxService{
         altitudeAccuracy: 0,
         headingAccuracy: 0,
       );
+      if (fromAddress) {
+        _position = updatedPosition;
+      } else {
+        _pickPosition = updatedPosition;
+      }
+
       final address = await getAddressFromGeocode(LatLng(position.target.latitude, position.target.longitude));
-      _pickAddress = address;
-      if (Get.isRegistered<SignUpController>()) {
-        Get.find<SignUpController>().setAddressControllerText(address.address ?? '');
+      if (sequence != _positionUpdateSequence) return;
+
+      if (fromAddress) {
+        _address = address;
+      } else {
+        _pickAddress = address;
+        if (Get.isRegistered<SignUpController>()) {
+          Get.find<SignUpController>().setAddressControllerText(address.address ?? '');
+        }
       }
     } catch (e) {
       if (kDebugMode) {
-        print(e);
+        print('updatePosition error: $e');
       }
     } finally {
-      _loading = false;
-      refreshUi();
+      if (sequence == _positionUpdateSequence) {
+        _loading = false;
+        if (!isClosed) {
+          update();
+        }
+      }
     }
   }
 

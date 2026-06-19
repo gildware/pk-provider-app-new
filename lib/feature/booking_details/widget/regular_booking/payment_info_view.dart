@@ -1,3 +1,4 @@
+import 'package:demandium_provider/helper/booking_helper.dart';
 import 'package:demandium_provider/helper/extension_helper.dart';
 import 'package:demandium_provider/util/core_export.dart';
 import 'package:get/get.dart';
@@ -9,6 +10,10 @@ class PaymentInfoView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isWriteoffSettled = BookingHelper.isWriteoffSettledBooking(bookingDetails);
+    final dueBalance = _resolveDueBalance(bookingDetails);
+    final settlementAmount = BookingHelper.getWriteoffSettlementAmount(bookingDetails);
+
     return  GetBuilder<BookingDetailsController>(builder: (bookingDetailsController){
       return Container(
         decoration: BoxDecoration(
@@ -48,6 +53,47 @@ class PaymentInfoView extends StatelessWidget {
                 ),),
               ],),
             ),
+            Padding(
+              padding: const EdgeInsets.only(
+                top: Dimensions.paddingSizeSmall,
+                left: Dimensions.paddingSizeDefault,
+                right: Dimensions.paddingSizeDefault,
+              ),
+              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text('due_balance'.tr, style: robotoRegular.copyWith(
+                    fontSize: Dimensions.fontSizeDefault + 1,
+                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha:0.6))),
+                Text(
+                  PriceConverter.convertPrice(dueBalance, isShowLongPrice: true),
+                  style: robotoMedium.copyWith(
+                    fontSize: Dimensions.fontSizeDefault + 1,
+                    color: dueBalance > 0.009
+                        ? Theme.of(context).colorScheme.error
+                        : Colors.green.shade700,
+                  ),
+                ),
+              ],),
+            ),
+            if (isWriteoffSettled)
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: Dimensions.paddingSizeSmall,
+                  left: Dimensions.paddingSizeDefault,
+                  right: Dimensions.paddingSizeDefault,
+                ),
+                child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  Text('settlement_amount'.tr, style: robotoRegular.copyWith(
+                      fontSize: Dimensions.fontSizeDefault + 1,
+                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha:0.6))),
+                  Text(
+                    PriceConverter.convertPrice(settlementAmount, isShowLongPrice: true),
+                    style: robotoMedium.copyWith(
+                      fontSize: Dimensions.fontSizeDefault + 1,
+                      color: Colors.green.shade700,
+                    ),
+                  ),
+                ],),
+              ),
              CustomBookingDetailsExpansionTile(
                isShowExpandIcon: ( bookingDetails.paymentMethod == 'cash_after_service'
                || bookingDetails.paymentMethod == 'offline_payment' && bookingDetails.bookingOfflinePayment == null ) ? false : true,
@@ -136,6 +182,10 @@ class PaymentInfoView extends StatelessWidget {
         ),
       );
     });
+  }
+
+  double _resolveDueBalance(BookingDetailsContent bookingDetails) {
+    return BookingHelper.resolveBookingDueBalance(bookingDetails);
   }
 }
 

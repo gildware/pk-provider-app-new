@@ -83,7 +83,10 @@ export 'package:demandium_provider/feature/dashboard/widgets/custom_button.dart'
 export 'package:demandium_provider/feature/dashboard/widgets/recent_activity_card.dart';
 export 'package:demandium_provider/feature/booking_details/controller/booking_details_controller.dart';
 export 'package:demandium_provider/feature/booking_details/widget/regular_booking/booking_details.dart';
+export 'package:demandium_provider/feature/booking_details/widget/regular_booking/booking_payments_tab.dart';
+export 'package:demandium_provider/feature/booking_details/widget/regular_booking/booking_revenue_tab.dart';
 export 'package:demandium_provider/feature/booking_details/widget/regular_booking/booking_status.dart';
+export 'package:demandium_provider/feature/booking_details/widget/regular_booking/booking_event_history_widget.dart';
 export 'package:demandium_provider/feature/auth/widgets/registration/registration_steps.dart';
 export 'package:demandium_provider/feature/auth/widgets/registration/registration_shared_widgets.dart';
 export 'package:demandium_provider/feature/auth/model/registration_step.dart';

@@ -48,19 +48,30 @@ class DateConverter {
   }
 
   static DateTime isoStringToLocalDate(String dateTime) {
-    return DateFormat('yyyy-MM-ddTHH:mm:ss.SSS').parse(dateTime);
+    final trimmed = dateTime.trim();
+    final parsed = DateTime.tryParse(trimmed);
+    if (parsed != null) {
+      return parsed.toLocal();
+    }
+    return DateFormat('yyyy-MM-ddTHH:mm:ss.SSS').parse(trimmed);
   }
 
   static DateTime isoUtcStringToLocalDate(String dateTime) {
-    return DateFormat('yyyy-MM-ddTHH:mm:ss.SSS').parse(dateTime, true).toLocal();
+    final trimmed = dateTime.trim();
+    final parsed = DateTime.tryParse(trimmed);
+    if (parsed != null) {
+      return parsed.toLocal();
+    }
+    return DateFormat('yyyy-MM-ddTHH:mm:ss.SSS').parse(trimmed, true).toLocal();
   }
 
   static DateTime isoUtcStringToLocalDateOnly(String dateTime) {
-    return DateFormat('yyyy-MM-dd').parse(dateTime, true).toLocal();
+    final localDate = isoUtcStringToLocalDate(dateTime);
+    return DateTime(localDate.year, localDate.month, localDate.day);
   }
 
   static DateTime isoUtcStringToLocalTimeOnly(String dateTime) {
-    return DateFormat('yyyy-MM-ddTHH:mm:ss.SSS').parse(dateTime, true).toLocal();
+    return isoUtcStringToLocalDate(dateTime);
   }
 
   static String isoStringToLocalDateAndTime(String dateTime) {

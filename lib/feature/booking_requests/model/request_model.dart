@@ -11,6 +11,8 @@ class BookingRequestModel {
   int? isPaid;
   String? paymentMethod;
   double? totalBookingAmount;
+  double? listDisplayTotal;
+  double? payableGrandTotal;
   double? totalTaxAmount;
   double? totalDiscountAmount;
   String? createdAt;
@@ -25,6 +27,9 @@ class BookingRequestModel {
   String ? serviceLocation;
   BookingStatusUiFields? statusUi;
 
+  double get displayGrandTotal =>
+      listDisplayTotal ?? payableGrandTotal ?? totalBookingAmount ?? 0;
+
 
   BookingRequestModel({
     this.id,
@@ -34,6 +39,8 @@ class BookingRequestModel {
     this.isPaid,
     this.paymentMethod,
     this.totalBookingAmount,
+    this.listDisplayTotal,
+    this.payableGrandTotal,
     this.totalTaxAmount,
     this.totalDiscountAmount,
     this.createdAt,
@@ -58,6 +65,8 @@ class BookingRequestModel {
     isPaid = json['is_paid'];
     paymentMethod = json['payment_method'];
     totalBookingAmount = double.tryParse(json['total_booking_amount'].toString());
+    listDisplayTotal = double.tryParse(json['list_display_total']?.toString() ?? '');
+    payableGrandTotal = double.tryParse(json['payable_grand_total']?.toString() ?? '');
     totalTaxAmount = double.tryParse(json['total_tax_amount'].toString());
     totalDiscountAmount = double.tryParse(json['total_discount_amount'].toString());
     createdAt = json['created_at'];
@@ -90,6 +99,8 @@ class BookingRequestModel {
     data['is_paid'] = isPaid;
     data['payment_method'] = paymentMethod;
     data['total_booking_amount'] = totalBookingAmount;
+    data['list_display_total'] = listDisplayTotal;
+    data['payable_grand_total'] = payableGrandTotal;
     data['total_tax_amount'] = totalTaxAmount;
     data['total_discount_amount'] = totalDiscountAmount;
     data['created_at'] = createdAt;
@@ -110,7 +121,6 @@ class BookingRequestModel {
     return data;
   }
 }
-
 
 
 

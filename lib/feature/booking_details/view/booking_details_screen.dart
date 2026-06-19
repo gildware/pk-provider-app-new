@@ -22,7 +22,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> with Single
   void initState() {
     Get.find<BookingDetailsController>().showHideExpandView(0, shouldUpdate: false);
     super.initState();
-    controller = TabController(vsync: this, length: 2);
+    controller = TabController(vsync: this, length: 4);
     var bookingDetailsController = Get.find<BookingDetailsController>();
     bool isRegularBooking = widget.bookingId != null && widget.bookingId != "null";
     bookingDetailsController.resetBookingDetailsValue(resetBookingDetails: isRegularBooking);
@@ -37,6 +37,12 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> with Single
     }
   }
 
+  String? _bookingIdSubtitle(BookingDetailsContent? bookingDetailsContent) {
+    final readableId = bookingDetailsContent?.readableId;
+    if (readableId == null || readableId.isEmpty) return null;
+    return '${'booking'.tr} #$readableId';
+  }
+
   @override
   Widget build(BuildContext context) {
     return CustomPopScopeWidget(
@@ -45,10 +51,18 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> with Single
          Get.offAllNamed(RouteHelper.getInitialRoute());
        }
      },
-      child: Scaffold(
+      child: GetBuilder<BookingDetailsController>(
+        builder: (bookingDetailsController) {
+          bool isSubBooking = widget.subBookingId != null && widget.subBookingId != "null";
+          BookingDetailsContent? bookingDetails = bookingDetailsController.bookingDetails?.content;
+          BookingDetailsContent? subBookingDetails = bookingDetailsController.subBookingDetails?.content;
+          BookingDetailsContent? bookingDetailsContent = isSubBooking ? subBookingDetails : bookingDetails;
+
+          return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: CustomAppBar(
           title: 'booking_details'.tr,
+          subtitle: _bookingIdSubtitle(bookingDetailsContent),
           onBackPressed: (){
             if(widget.fromPage == 'fromNotification'){
               Get.offAllNamed(RouteHelper.getInitialRoute());
@@ -59,14 +73,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> with Single
         ),
 
         body: SafeArea(
-          child: GetBuilder<BookingDetailsController>(
-            builder: (bookingDetailsController) {
-
-              bool isSubBooking = widget.subBookingId !=null && widget.subBookingId != "null";
-              BookingDetailsContent? bookingDetails = bookingDetailsController.bookingDetails?.content;
-              BookingDetailsContent? subBookingDetails = bookingDetailsController.subBookingDetails?.content;
-
-              return ExpandableBottomSheet(
+          child: ExpandableBottomSheet(
 
                 expandableContent: !AppFeatureFlags.servicemanEnabled ||
                         bookingDetailsController.bottomSheetHeight == 0
@@ -95,44 +102,60 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> with Single
                         ),
                       ),
                       child: TabBar(
+                        isScrollable: true,
+                        tabAlignment: TabAlignment.start,
                         unselectedLabelColor:Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha:0.5),
                         indicatorColor: Theme.of(context).primaryColor,
                         controller: controller,
                         labelColor: Theme.of(context).primaryColor,
                         labelStyle:  robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge),
-                        labelPadding: EdgeInsets.zero,
+                        labelPadding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
                         onTap: (int? index) {
                           switch (index) {
                             case 0:
                               bookingDetailsController.updateServicePageCurrentState(BookingDetailsTabControllerState.bookingDetails);
                               break;
                             case 1:
-                              bookingDetailsController.updateServicePageCurrentState(BookingDetailsTabControllerState.status);
-                              bookingDetailsController
-                                  .showHideExpandView(0);
+                              bookingDetailsController.updateServicePageCurrentState(BookingDetailsTabControllerState.payments);
+                              bookingDetailsController.showHideExpandView(0);
+                              break;
+                            case 2:
+                              bookingDetailsController.updateServicePageCurrentState(BookingDetailsTabControllerState.history);
+                              bookingDetailsController.showHideExpandView(0);
+                              break;
+                            case 3:
+                              bookingDetailsController.updateServicePageCurrentState(BookingDetailsTabControllerState.revenue);
+                              bookingDetailsController.showHideExpandView(0);
                               break;
                           }
                         },
                         tabs: [
-                          SizedBox(width: MediaQuery.of(context).size.width * 0.5,child: Tab(text: 'booking_details'.tr)),
-                          SizedBox(width: MediaQuery.of(context).size.width * 0.5, child: Tab(text: 'status'.tr)),
+                          Tab(text: 'booking_overview'.tr),
+                          Tab(text: 'payments'.tr),
+                          Tab(text: 'history'.tr),
+                          Tab(text: 'revenue'.tr),
                         ],
                       ),
                     ),
 
                     Expanded(
                       child: TabBarView(controller: controller ,children: [
-                        BookingDetailsWidget(bookingId: widget.bookingId , subBookingId : widget.subBookingId, isSubBooking: isSubBooking, tabController: controller,) ,
-                        BookingStatus(bookingId: widget.bookingId, isSubBooking: isSubBooking,),
+                        BookingDetailsWidget(bookingId: widget.bookingId , subBookingId : widget.subBookingId, isSubBooking: isSubBooking, tabController: controller,),
+                        BookingPaymentsTab(bookingId: widget.bookingId, subBookingId: widget.subBookingId, isSubBooking: isSubBooking,),
+                        BookingEventHistoryWidget(
+                          bookingId: isSubBooking ? widget.subBookingId : widget.bookingId,
+                          isSubBooking: isSubBooking,
+                        ),
+                        BookingRevenueTab(bookingId: widget.bookingId, subBookingId: widget.subBookingId, isSubBooking: isSubBooking,),
                       ]),
                     ),
 
                   ]),
                 ),
-              );
-            }
-          ),
+              ),
         ),
+      );
+        },
       ),
     );
   }

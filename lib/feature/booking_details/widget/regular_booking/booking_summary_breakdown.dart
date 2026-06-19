@@ -68,8 +68,9 @@ class BookingSummaryGrandTotal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final grandTotal = BookingHelper.resolveGrandTotal(bookingDetails);
-    final summary = BookingHelper.resolveBookingSummary(bookingDetails);
-    final dueAmount = summary.dueAmount ?? bookingDetails.paymentDetails?.dueBalance ?? 0;
+    final dueAmount = BookingHelper.resolveBookingDueBalance(bookingDetails);
+    final isDisputed = BookingHelper.hasDisputedSettlement(bookingDetails);
+    final refundedAmount = BookingHelper.resolveRefundedAmount(bookingDetails);
     final grandTotalColor = Get.isDarkMode
         ? Theme.of(context).textTheme.bodyLarge?.color
         : Theme.of(context).colorScheme.primary;
@@ -83,7 +84,7 @@ class BookingSummaryGrandTotal extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'grand_total'.tr,
+              isDisputed ? 'original_invoice_total'.tr : 'grand_total'.tr,
               style: robotoBold.copyWith(
                 fontSize: Dimensions.fontSizeSmall,
                 color: grandTotalColor,
@@ -102,7 +103,33 @@ class BookingSummaryGrandTotal extends StatelessWidget {
             ),
           ],
         ),
-        if (showDueAmount && dueAmount > 0)
+        if (isDisputed && refundedAmount != null && refundedAmount > 0.009)
+          Padding(
+            padding: const EdgeInsets.only(top: Dimensions.paddingSizeSmall),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'refunded_amount'.tr,
+                  style: robotoRegular.copyWith(
+                    fontSize: Dimensions.fontSizeSmall,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+                Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: Text(
+                    '-${PriceConverter.convertPrice(refundedAmount, isShowLongPrice: true)}',
+                    style: robotoRegular.copyWith(
+                      fontSize: Dimensions.fontSizeSmall,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (showDueAmount && dueAmount > 0.009 && !isDisputed)
           Padding(
             padding: const EdgeInsets.only(top: Dimensions.paddingSizeSmall),
             child: Row(
@@ -122,6 +149,36 @@ class BookingSummaryGrandTotal extends StatelessWidget {
                     style: robotoMedium.copyWith(
                       fontSize: Dimensions.fontSizeSmall,
                       color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (isDisputed)
+          Padding(
+            padding: const EdgeInsets.only(top: Dimensions.paddingSizeSmall),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'final_booking_amount'.tr,
+                  style: robotoBold.copyWith(
+                    fontSize: Dimensions.fontSizeSmall,
+                    color: grandTotalColor,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: Text(
+                    PriceConverter.convertPrice(
+                      BookingHelper.resolveDisputedFinalBookingAmount(bookingDetails) ?? 0,
+                      isShowLongPrice: true,
+                    ),
+                    style: robotoBold.copyWith(
+                      fontSize: Dimensions.fontSizeDefault,
+                      color: grandTotalColor,
                     ),
                   ),
                 ),

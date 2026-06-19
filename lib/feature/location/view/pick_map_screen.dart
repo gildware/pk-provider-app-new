@@ -22,6 +22,7 @@ class _PickMapScreenState extends State<PickMapScreen> {
   CameraPosition? _cameraPosition;
   late LatLng _initialPosition;
   bool _isMapReady = false;
+  bool _mapInitializing = true;
 
   @override
   void initState() {
@@ -35,6 +36,7 @@ class _PickMapScreenState extends State<PickMapScreen> {
           defaultLat,
           defaultLon,
         );
+    _cameraPosition = CameraPosition(target: _initialPosition, zoom: 16);
   }
 
   @override
@@ -60,32 +62,39 @@ class _PickMapScreenState extends State<PickMapScreen> {
                           onMapCreated: (GoogleMapController mapController) {
                             _mapController = mapController;
                             WidgetsBinding.instance.addPostFrameCallback((_) async {
-                              await Get.find<LocationController>().initializePickMapPosition(
+                              _mapInitializing = true;
+                              final locationController = Get.find<LocationController>();
+                              await locationController.initializePickMapPosition(
                                 _initialPosition,
                                 mapController: mapController,
                               );
+                              _cameraPosition = CameraPosition(
+                                target: LatLng(
+                                  locationController.pickPosition.latitude,
+                                  locationController.pickPosition.longitude,
+                                ),
+                                zoom: 16,
+                              );
+                              await Future.delayed(const Duration(milliseconds: 300));
+                              _mapInitializing = false;
                               _isMapReady = true;
                             });
                           },
                           zoomControlsEnabled: false,
                           myLocationButtonEnabled: false,
                           myLocationEnabled: true,
+                          gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                            Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
+                          },
                           onCameraMove: (CameraPosition cameraPosition) {
                             _cameraPosition = cameraPosition;
                           },
                           onCameraMoveStarted: () {
-                            if (!_isMapReady) return;
-                            locationController.disableButton();
+                            if (!_isMapReady || _mapInitializing) return;
                           },
                           onCameraIdle: () {
-                            if (!_isMapReady || _cameraPosition == null) return;
-                            try {
-                              Get.find<LocationController>().updatePosition(_cameraPosition!);
-                            } catch (e) {
-                              if (kDebugMode) {
-                                print(e);
-                              }
-                            }
+                            if (!_isMapReady || _mapInitializing || _cameraPosition == null) return;
+                            Get.find<LocationController>().updatePosition(_cameraPosition!);
                           },
                         ),
                       ),

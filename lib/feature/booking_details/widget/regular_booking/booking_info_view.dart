@@ -17,15 +17,17 @@ class BookingInformationView extends StatelessWidget {
           boxShadow: context.customThemeColors.lightShadow
         ),
         padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall, horizontal: Dimensions.paddingSizeDefault),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
 
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: Text(
                     '${'booking'.tr} # ${bookingDetails.readableId}',
-                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    softWrap: false,
                     style: robotoBold.copyWith(
                       fontSize: Dimensions.fontSizeLarge,
                       color: Theme.of(context).textTheme.bodyLarge!.color?.withValues(alpha: 0.9),
@@ -40,18 +42,20 @@ class BookingInformationView extends StatelessWidget {
                     margin: const EdgeInsets.only(left: Dimensions.paddingSizeExtraSmall),
                     child: const Icon(Icons.repeat, color: Colors.white, size: 12),
                   ),
+                if (bookingDetails.bookingStatus != null ||
+                    (bookingDetails.statusUi?.displayKey?.isNotEmpty ?? false)) ...[
+                  const SizedBox(width: Dimensions.paddingSizeSmall),
+                  BookingStatusBadge(
+                    rawStatus: bookingDetails.bookingStatus,
+                    displayKey: bookingDetails.statusUi?.displayKey,
+                    badgeVariant: bookingDetails.statusUi?.badgeVariant,
+                  ),
+                ],
               ],
             ),
-
-            if (bookingDetails.bookingStatus != null ||
-                (bookingDetails.statusUi?.tags.isNotEmpty ?? false) ||
-                (bookingDetails.statusUi?.displayKey?.isNotEmpty ?? false)) ...[
-              const SizedBox(height: Dimensions.paddingSizeExtraSmall),
-              BookingStatusAndTagsRow(
-                rawStatus: bookingDetails.bookingStatus,
-                ui: bookingDetails.statusUi,
-                alignment: MainAxisAlignment.start,
-              ),
+            if (bookingDetails.statusUi?.tags.isNotEmpty ?? false) ...[
+              const SizedBox(height: Dimensions.paddingSizeSmall),
+              BookingStatusTagsScrollRow(tags: bookingDetails.statusUi!.tags),
             ],
 
             const SizedBox(height: Dimensions.paddingSizeExtraSmall),

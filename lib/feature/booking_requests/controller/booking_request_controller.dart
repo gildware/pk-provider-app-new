@@ -1,8 +1,11 @@
 import 'package:get/get.dart';
+import 'package:demandium_provider/helper/booking_list_filter_tabs.dart';
 import 'package:demandium_provider/util/core_export.dart';
 
 
-class BookingRequestController extends GetxController with GetSingleTickerProviderStateMixin implements GetxService {
+class BookingRequestController extends GetxController implements GetxService {
+  static const String bookingTabsUpdateId = 'booking_tabs';
+  static const String bookingListUpdateId = 'booking_list';
 
   final BookingRequestRepo bookingRequestRepo;
   BookingRequestController({required this.bookingRequestRepo});
@@ -11,8 +14,15 @@ class BookingRequestController extends GetxController with GetSingleTickerProvid
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  int _selectedIndex = 0;
-  int get currentIndex =>_selectedIndex;
+  bool _isTabLoading = false;
+  bool get isTabLoading => _isTabLoading;
+
+  int get currentIndex {
+    final visible = bookingRequestStatusList;
+    if (visible.isEmpty) return 0;
+    final idx = visible.indexOf(_selectedBookingStatus);
+    return idx >= 0 ? idx : 0;
+  }
 
   int _apiHitCount = 0;
 
@@ -31,20 +41,13 @@ class BookingRequestController extends GetxController with GetSingleTickerProvid
   BookingCount? get bookingCount => _bookingCount;
 
   AutoScrollController? menuScrollController;
-  TabController? tabController;
 
+  String _selectedBookingStatus = 'pending';
 
-  List<String> bookingRequestStatusList = [
-    "all",
-    "pending",
-    "accepted",
-    "ongoing",
-    "on_hold",
-    "completed",
-    "canceled",
-    "refunded",
-  ];
-  String get bookingStatus => bookingRequestStatusList[_selectedIndex];
+  List<String> get bookingRequestStatusList =>
+      visibleBookingListFilterTabsOrDefault(_bookingCount);
+
+  String get bookingStatus => _selectedBookingStatus;
 
   final ScrollController scrollController = ScrollController();
 
@@ -52,100 +55,135 @@ class BookingRequestController extends GetxController with GetSingleTickerProvid
   @override
   void onInit(){
     super.onInit();
-    tabController = TabController(vsync: this, length: bookingRequestStatusList.length);
     scrollController.addListener(() {
       if(scrollController.position.maxScrollExtent == scrollController.position.pixels) {
         if(_offset < _pageSize! ) {
-          getBookingRequestList(bookingRequestStatusList[_selectedIndex],offset+1, paginationLoading: true);
+          getBookingRequestList(bookingStatus, offset+1, paginationLoading: true);
         }
       }
 
     });
   }
 
+  void _ensureSelectedTabVisible() {
+    final visible = bookingRequestStatusList;
+    if (visible.isEmpty) return;
+    if (!visible.contains(_selectedBookingStatus)) {
+      _selectedBookingStatus = visible.first;
+    }
+  }
 
-  Future<void> getBookingRequestList(String requestType,int offset, {bool reload = false, int index = 0, bool isFirst = false,bool paginationLoading = false}) async {
+  Future<void> switchBookingTab(String tab) async {
+    if (!bookingFilterTabShouldShow(tab, _bookingCount)) return;
+    if (_selectedBookingStatus == tab) return;
+
+    _selectedBookingStatus = tab;
+    update([bookingTabsUpdateId]);
+
+    await getBookingRequestList(tab, 1, reload: true, tabSwitch: true);
+  }
+
+
+  Future<void> getBookingRequestList(String requestType,int offset, {bool reload = false, int index = 0, bool isFirst = false,bool paginationLoading = false, bool tabSwitch = false}) async {
     if (Get.find<UserProfileController>().isPendingAdminVerification) {
       _bookingRequestList = [];
       _bookingCount = BookingCount(
+        all: 0,
         pending: 0,
         accepted: 0,
         ongoing: 0,
         onHold: 0,
         completed: 0,
         canceled: 0,
-        refunded: 0,
+        reopened: 0,
+        resolved: 0,
+        disputedCancelled: 0,
+        disputedCompleted: 0,
+        holdAfterVisit: 0,
+        completedNoOrLittle: 0,
+        cancelledAfterVisit: 0,
+        lossMakingPending: 0,
+        lossRecovered: 0,
+        lossSettled: 0,
       );
+      _ensureSelectedTabVisible();
       _isLoading = false;
-      update();
+      _isTabLoading = false;
+      update([bookingTabsUpdateId, bookingListUpdateId]);
       return;
     }
 
     _offset = offset;
     _apiHitCount ++;
-    if(reload){
-      _bookingRequestList = null;
-    }
-    if(paginationLoading){
-      _isLoading = true;
-    }
-
-    if(!isFirst){
-      update();
-    }
-    Response response = await bookingRequestRepo.getBookingRequestData(requestType.toLowerCase(), offset, selectedServiceType);
-
-    if(response.statusCode == 200){
-
-      _bookingCount = BookingCount.fromJson(response.body['content']['bookings_count']);
-
-
-      if(_offset == 1){
-        _bookingRequestList = [];
-        List<dynamic> bookingList = response.body['content']['bookings']['data'];
-        for (var bookingRequest in bookingList) {
-          bookingRequestList!.add(BookingRequestModel.fromJson(bookingRequest));
-        }
-      }else{
-        List<dynamic> bookingList = response.body['content']['bookings']['data'];
-        for (var bookingRequest in bookingList) {
-          bookingRequestList!.add(BookingRequestModel.fromJson(bookingRequest));
-        }
+    try {
+      if (tabSwitch) {
+        _isTabLoading = true;
+        update([bookingListUpdateId]);
+      } else if(reload){
+        _bookingRequestList = null;
+        update([bookingListUpdateId]);
       }
-      _pageSize = response.body['content']['bookings']['last_page'];
-    }
-    else{
-     ApiChecker.checkApi(response);
-    }
-    _apiHitCount--;
-    _isLoading = false;
+      if(paginationLoading){
+        _isLoading = true;
+        update([bookingListUpdateId]);
+      }
 
-    if(_apiHitCount==0){
-      update();
+      Response response = await bookingRequestRepo.getBookingRequestData(requestType.toLowerCase(), offset, selectedServiceType);
+
+      if(response.statusCode == 200){
+
+        _bookingCount = BookingCount.fromJson(
+          Map<String, dynamic>.from(response.body['content']['bookings_count'] ?? {}),
+        );
+        _ensureSelectedTabVisible();
+
+        if (requestType.toLowerCase() != bookingStatus && _offset == 1 && !paginationLoading) {
+          await getBookingRequestList(bookingStatus, 1, reload: true, tabSwitch: tabSwitch);
+          return;
+        }
+
+        if(_offset == 1){
+          _bookingRequestList = [];
+          List<dynamic> bookingList = response.body['content']['bookings']['data'];
+          for (var bookingRequest in bookingList) {
+            bookingRequestList!.add(BookingRequestModel.fromJson(bookingRequest));
+          }
+        }else{
+          List<dynamic> bookingList = response.body['content']['bookings']['data'];
+          for (var bookingRequest in bookingList) {
+            bookingRequestList!.add(BookingRequestModel.fromJson(bookingRequest));
+          }
+        }
+        _pageSize = response.body['content']['bookings']['last_page'];
+      }
+      else{
+       ApiChecker.checkApi(response);
+      }
+    } finally {
+      _apiHitCount--;
+      _isLoading = false;
+      _isTabLoading = false;
+
+      if(_apiHitCount==0){
+        update([bookingListUpdateId, bookingTabsUpdateId]);
+      }
     }
-  }
-
-
-  void updateBookingRequestIndex(int index){
-    _selectedIndex = index;
-    tabController?.index = index;
-    update();
   }
 
   void removeBookingItemFromList(String bookingId,  {bool shouldUpdate = false, required String bookingStatus}){
 
-    if(bookingRequestStatusList[currentIndex] != "all"){
+    if(bookingStatus != "all"){
       _bookingRequestList?.removeWhere((element) => element.id == bookingId);
     }
     if(shouldUpdate){
-      update();
+      update([bookingListUpdateId]);
     }
   }
 
   void updateSelectedServiceType({ServiceType? type}){
     if(type!=null){
       selectedServiceType = type;
-      update();
+      update([bookingTabsUpdateId]);
       getBookingRequestList(bookingStatus, 1, reload: true);
     }else{
       selectedServiceType = ServiceType.all;

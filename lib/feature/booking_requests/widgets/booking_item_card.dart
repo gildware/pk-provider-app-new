@@ -225,7 +225,7 @@ class _BookingCardFooter extends StatelessWidget {
           ),
           const SizedBox(width: Dimensions.paddingSizeSmall),
           Text(
-            PriceConverter.convertPrice(booking.totalBookingAmount),
+            PriceConverter.convertPrice(booking.displayGrandTotal),
             style: robotoBold.copyWith(
               fontSize: Dimensions.fontSizeExtraLarge,
               color: Theme.of(context).primaryColor,

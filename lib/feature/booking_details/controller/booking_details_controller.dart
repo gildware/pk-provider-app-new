@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:demandium_provider/helper/booking_helper.dart';
 import 'package:demandium_provider/util/core_export.dart';
 
 class BookingDetailsController extends GetxController implements GetxService{
@@ -155,6 +156,14 @@ class BookingDetailsController extends GetxController implements GetxService{
 
 
    Future<void> changeBookingStatus(String bookingId,{String? bookingStatus, bool isBack = false, required  bool isSubBooking}) async {
+    final targetStatus = isSubBooking ? subBookingDropDownValue : dropDownValue;
+    final bookingContent = isSubBooking ? subBookingDetails?.content : bookingDetails?.content;
+
+    if (targetStatus == 'completed' && bookingContent != null && !BookingHelper.canCompleteBooking(bookingContent)) {
+      showCustomSnackBar('complete_booking_after_due_cleared'.tr, type: ToasterMessageType.info);
+      return;
+    }
+
     _isStatusUpdateLoading = true;
     update();
 
@@ -162,12 +171,12 @@ class BookingDetailsController extends GetxController implements GetxService{
     for(XFile file in _photoEvidence) {
       multiParts.add(MultipartBody('evidence_photos[]', file));
     }
-    if(bookingStatus != null && bookingStatus == 'ongoing' && (isSubBooking ? subBookingDropDownValue : dropDownValue) == 'canceled'){
+    if(bookingStatus != null && bookingStatus == 'ongoing' && targetStatus == 'canceled'){
       showCustomSnackBar('service_ongoing_can_not_cancel_booking'.tr, type : ToasterMessageType.info);
-    }else if(bookingStatus != null && bookingStatus == 'ongoing' && (isSubBooking ? subBookingDropDownValue : dropDownValue) == 'accepted'){
+    }else if(bookingStatus != null && bookingStatus == 'ongoing' && targetStatus == 'accepted'){
       showCustomSnackBar('service_is_already_ongoing'.tr, type : ToasterMessageType.info);
     }else{
-      Response response = await bookingDetailsRepo.changeBookingStatus( bookingId, isSubBooking ? subBookingDropDownValue : dropDownValue, otp ,multiParts, isSubBooking);
+      Response response = await bookingDetailsRepo.changeBookingStatus( bookingId, targetStatus, otp ,multiParts, isSubBooking);
       if(response.statusCode==200 && response.body["response_code"]=="status_update_success_200"){
 
         if(isSubBooking){
@@ -193,6 +202,46 @@ class BookingDetailsController extends GetxController implements GetxService{
     }
     _isStatusUpdateLoading = false;
     update();
+  }
+
+  bool _isRecordPaymentLoading = false;
+  bool get isRecordPaymentLoading => _isRecordPaymentLoading;
+
+  Future<bool> recordCustomerPayment({
+    required String bookingId,
+    required double amount,
+    bool isSubBooking = false,
+    String? subBookingId,
+    bool closeModalOnSuccess = false,
+  }) async {
+    _isRecordPaymentLoading = true;
+    update();
+
+    final response = await bookingDetailsRepo.recordBookingPayment(bookingId, amount);
+    bool isSuccess = false;
+
+    if (response.statusCode == 200 && response.body['response_code'] == 'default_update_200') {
+      if (isSubBooking) {
+        await getBookingSubDetails(subBookingId ?? bookingId, reload: false);
+        await getBookingDetails(bookingId, reload: false);
+      } else {
+        await getBookingDetails(bookingId, reload: false);
+      }
+      if (closeModalOnSuccess && (Get.isBottomSheetOpen ?? false)) {
+        Get.back();
+      }
+      showCustomSnackBar(
+        response.body['message']?.toString() ?? 'payment_recorded_successfully'.tr,
+        type: ToasterMessageType.success,
+      );
+      isSuccess = true;
+    } else {
+      ApiChecker.checkApi(response);
+    }
+
+    _isRecordPaymentLoading = false;
+    update();
+    return isSuccess;
   }
 
   Future<bool> sendBookingOTPNotification(String? bookingId, {bool shouldUpdate = true, bool resend = false}) async {

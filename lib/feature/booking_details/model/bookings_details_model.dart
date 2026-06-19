@@ -30,6 +30,8 @@ class BookingDetailsModel {
 class BookingDetailsContent {
   String? id;
   String? readableId;
+  /// Parent booking UUID when this row is a repeat visit (`booking_id` from API).
+  String? parentBookingId;
   String? customerId;
   String? providerId;
   String? zoneId;
@@ -38,6 +40,8 @@ class BookingDetailsContent {
   String? paymentMethod;
   String? transactionId;
   double? totalBookingAmount;
+  double? payableGrandTotal;
+  double? listDisplayTotal;
   double? totalTaxAmount;
   double? totalDiscountAmount;
   String? serviceSchedule;
@@ -83,12 +87,20 @@ class BookingDetailsContent {
   String? serviceLocation;
   BookingStatusUiFields? statusUi;
   PaymentDetailsSummary? paymentDetails;
+  BookingPaymentLedger? paymentLedger;
   RevenueSettlement? revenueSettlement;
   ServiceLocationDetails? serviceLocationDetails;
+  ProviderBookingSummary? bookingSummary;
+  List<ProviderExtraServiceLine>? extraServiceLines;
+  List<BookingChangeLog>? changeLogs;
+  LossMakingSettlement? lossMakingSettlement;
+  SpecialFinancialSettlement? specialFinancialSettlement;
+  DisputedSettlement? disputedSettlement;
 
   BookingDetailsContent({
     this.id,
     this.readableId,
+    this.parentBookingId,
     this.customerId,
     this.providerId,
     this.zoneId,
@@ -97,6 +109,8 @@ class BookingDetailsContent {
     this.paymentMethod,
     this.transactionId,
     this.totalBookingAmount,
+    this.payableGrandTotal,
+    this.listDisplayTotal,
     this.totalTaxAmount,
     this.totalDiscountAmount,
     this.serviceSchedule,
@@ -142,13 +156,20 @@ class BookingDetailsContent {
     this.serviceLocation,
     this.statusUi,
     this.paymentDetails,
+    this.paymentLedger,
     this.revenueSettlement,
     this.serviceLocationDetails,
+    this.bookingSummary,
+    this.extraServiceLines,
+    this.changeLogs,
+    this.lossMakingSettlement,
+    this.specialFinancialSettlement,
   });
 
   BookingDetailsContent.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     readableId = json['readable_id'].toString();
+    parentBookingId = json['booking_id']?.toString();
     customerId = json['customer_id'];
     providerId = json['provider_id'];
     zoneId = json['zone_id'];
@@ -157,6 +178,8 @@ class BookingDetailsContent {
     paymentMethod = json['payment_method'];
     transactionId = json['transaction_id'];
     totalBookingAmount = double.tryParse(json['total_booking_amount'].toString());
+    payableGrandTotal = double.tryParse(json['payable_grand_total']?.toString() ?? '');
+    listDisplayTotal = double.tryParse(json['list_display_total']?.toString() ?? '');
     totalTaxAmount = double.tryParse(json['total_tax_amount'].toString());
     totalDiscountAmount = double.tryParse(json['total_discount_amount'].toString());
     serviceSchedule = json['service_schedule'];
@@ -178,15 +201,15 @@ class BookingDetailsContent {
         details!.add(ItemService.fromJson(v));
       });
     }
-    if (json['schedule_histories'] != null) {
+    if (json['schedule_histories'] != null || json['scheduleHistories'] != null) {
       scheduleHistories = <ScheduleHistories>[];
-      json['schedule_histories'].forEach((v) {
+      (json['schedule_histories'] ?? json['scheduleHistories']).forEach((v) {
         scheduleHistories!.add(ScheduleHistories.fromJson(v));
       });
     }
-    if (json['status_histories'] != null) {
+    if (json['status_histories'] != null || json['statusHistories'] != null) {
       statusHistories = <StatusHistories>[];
-      json['status_histories'].forEach((v) {
+      (json['status_histories'] ?? json['statusHistories']).forEach((v) {
 
         statusHistories!.add(StatusHistories.fromJson(v));
       });
@@ -264,12 +287,72 @@ class BookingDetailsContent {
     paymentDetails = json['payment_details'] != null
         ? PaymentDetailsSummary.fromJson(json['payment_details'])
         : null;
+    paymentLedger = json['payment_ledger'] != null
+        ? BookingPaymentLedger.fromJson(json['payment_ledger'])
+        : null;
+    if (json['change_logs'] != null) {
+      changeLogs = <BookingChangeLog>[];
+      json['change_logs'].forEach((v) {
+        changeLogs!.add(BookingChangeLog.fromJson(v));
+      });
+    }
     revenueSettlement = json['revenue_settlement'] != null
         ? RevenueSettlement.fromJson(json['revenue_settlement'])
         : null;
     serviceLocationDetails = json['service_location_details'] != null
         ? ServiceLocationDetails.fromJson(json['service_location_details'])
         : null;
+    bookingSummary = json['booking_summary'] != null
+        ? ProviderBookingSummary.fromJson(Map<String, dynamic>.from(json['booking_summary']))
+        : null;
+    if (json['extra_service_lines'] is List) {
+      extraServiceLines = (json['extra_service_lines'] as List)
+          .map((v) => ProviderExtraServiceLine.fromJson(Map<String, dynamic>.from(v)))
+          .toList();
+    }
+    lossMakingSettlement = json['loss_making_settlement'] != null
+        ? LossMakingSettlement.fromJson(Map<String, dynamic>.from(json['loss_making_settlement']))
+        : null;
+    specialFinancialSettlement = json['special_financial_settlement'] != null
+        ? SpecialFinancialSettlement.fromJson(Map<String, dynamic>.from(json['special_financial_settlement']))
+        : null;
+    disputedSettlement = json['disputed_settlement'] != null
+        ? DisputedSettlement.fromJson(Map<String, dynamic>.from(json['disputed_settlement']))
+        : null;
+
+    _applyHistoryDataFallbacks(json);
+  }
+
+  void _applyHistoryDataFallbacks(Map<String, dynamic> json) {
+    if ((partialPayments == null || partialPayments!.isEmpty) && json['booking'] is Map) {
+      final nested = Map<String, dynamic>.from(json['booking'] as Map);
+      if (nested['booking_partial_payments'] != null) {
+        partialPayments = <PartialPayment>[];
+        nested['booking_partial_payments'].forEach((v) {
+          partialPayments!.add(PartialPayment.fromJson(v));
+        });
+      }
+    }
+
+    if (subBooking != null) {
+      customer ??= subBooking!.customer;
+      provider ??= subBooking!.provider;
+      if (partialPayments == null || partialPayments!.isEmpty) {
+        partialPayments = subBooking!.partialPayments;
+      }
+    }
+
+    if (paymentLedger == null || (paymentLedger!.installments?.isEmpty ?? true)) {
+      paymentLedger = buildPaymentLedgerFallback() ?? paymentLedger;
+    }
+
+    if (transactionId != null && transactionId!.isNotEmpty) {
+      paymentLedger?.installments?.forEach((entry) {
+        if (entry.transactionId == null || entry.transactionId!.isEmpty) {
+          entry.transactionId = transactionId;
+        }
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -284,6 +367,8 @@ class BookingDetailsContent {
     data['payment_method'] = paymentMethod;
     data['transaction_id'] = transactionId;
     data['total_booking_amount'] = totalBookingAmount;
+    data['payable_grand_total'] = payableGrandTotal;
+    data['list_display_total'] = listDisplayTotal;
     data['total_tax_amount'] = totalTaxAmount;
     data['total_discount_amount'] = totalDiscountAmount;
     data['service_schedule'] = serviceSchedule;
@@ -327,6 +412,7 @@ class BookingDetailsContent {
 
 class ItemService {
 
+  String? id;
   String? bookingId;
   String? serviceId;
   String? serviceName;
@@ -349,6 +435,7 @@ class ItemService {
 
   ItemService(
       {
+        this.id,
         this.bookingId,
         this.serviceId,
         this.serviceName,
@@ -365,6 +452,7 @@ class ItemService {
         this.overallCouponDiscountAmount,});
 
   ItemService.fromJson(Map<String, dynamic> json) {
+    id = json['id']?.toString();
     bookingId = json['booking_id'];
     serviceId = json['service_id'];
     serviceName = json['service_name'];
@@ -384,6 +472,7 @@ class ItemService {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
     data['booking_id'] = bookingId;
     data['service_id'] = serviceId;
     data['service_name'] = serviceName;
@@ -521,6 +610,73 @@ class ScheduleHistories {
 }
 
 
+class BookingChangeLog {
+  int? id;
+  String? bookingId;
+  String? changedBy;
+  String? actorName;
+  String? propertyKey;
+  String? propertyLabel;
+  String? oldValue;
+  String? newValue;
+  String? context;
+  String? createdAt;
+  String? eventTitle;
+  String? eventDescription;
+  String? eventType;
+  User? changedByUser;
+
+  BookingChangeLog({
+    this.id,
+    this.bookingId,
+    this.changedBy,
+    this.actorName,
+    this.propertyKey,
+    this.propertyLabel,
+    this.oldValue,
+    this.newValue,
+    this.context,
+    this.createdAt,
+    this.eventTitle,
+    this.eventDescription,
+    this.eventType,
+    this.changedByUser,
+  });
+
+  BookingChangeLog.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    bookingId = json['booking_id']?.toString();
+    actorName = json['actor_name'];
+    propertyKey = json['property_key'];
+    propertyLabel = json['property_label'];
+    oldValue = json['old_value']?.toString();
+    newValue = json['new_value']?.toString();
+    context = json['context'];
+    createdAt = json['created_at'];
+    eventTitle = json['event_title'];
+    eventDescription = json['event_description'];
+    eventType = json['event_type'];
+    final changedByRaw = json['changed_by'];
+    if (changedByRaw is Map<String, dynamic>) {
+      changedByUser = User.fromJson(changedByRaw);
+    } else {
+      changedBy = changedByRaw?.toString();
+    }
+    if (json['changedBy'] is Map<String, dynamic>) {
+      changedByUser = User.fromJson(json['changedBy']);
+    }
+  }
+
+  String get actorDisplayName {
+    if (changedByUser != null) {
+      final name = '${changedByUser?.firstName ?? ''} ${changedByUser?.lastName ?? ''}'.trim();
+      if (name.isNotEmpty) return name;
+    }
+    if (actorName != null && actorName!.trim().isNotEmpty) return actorName!.trim();
+    return '';
+  }
+}
+
 class StatusHistories {
   int? id;
   String? bookingId;
@@ -529,6 +685,12 @@ class StatusHistories {
   String? createdAt;
   String? updatedAt;
   User? user;
+  int? bookingHoldReopenReasonId;
+  String? holdReopenReasonName;
+
+  bool get isReopenStatusChange =>
+      (bookingHoldReopenReasonId ?? 0) > 0 ||
+      (holdReopenReasonName != null && holdReopenReasonName!.trim().isNotEmpty);
 
   StatusHistories(
       {this.id,
@@ -537,7 +699,9 @@ class StatusHistories {
       this.bookingStatus,
       this.createdAt,
       this.updatedAt,
-      this.user});
+      this.user,
+      this.bookingHoldReopenReasonId,
+      this.holdReopenReasonName});
 
   StatusHistories.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -547,6 +711,11 @@ class StatusHistories {
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
     user = json['user'] != null ? User.fromJson(json['user']) : null;
+    bookingHoldReopenReasonId = int.tryParse(json['booking_hold_reopen_reason_id']?.toString() ?? '');
+    final reason = json['hold_reopen_reason'];
+    if (reason is Map) {
+      holdReopenReasonName = reason['name']?.toString();
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -773,6 +942,19 @@ class PaymentDetailsSummary {
   double? scaledBadDebtBalanceNotDue;
   double? scaledLossCompanyShare;
   double? scaledLossProviderShare;
+  double? scaledLossWriteoffAmount;
+  bool? isWriteoffSettled;
+  bool? canComplete;
+  bool? canRecordPayment;
+  bool? isDisputedSettlement;
+  double? customerPaidTotal;
+  double? refundedAmount;
+  double? refundTotal;
+  double? finalBookingAmount;
+  double? retainedAmount;
+  double? refundableAmount;
+  double? refundableRemaining;
+  double? pendingRefund;
 
   PaymentDetailsSummary({
     this.total,
@@ -786,6 +968,19 @@ class PaymentDetailsSummary {
     this.scaledBadDebtBalanceNotDue,
     this.scaledLossCompanyShare,
     this.scaledLossProviderShare,
+    this.scaledLossWriteoffAmount,
+    this.isWriteoffSettled,
+    this.canComplete,
+    this.canRecordPayment,
+    this.isDisputedSettlement,
+    this.customerPaidTotal,
+    this.refundedAmount,
+    this.refundTotal,
+    this.finalBookingAmount,
+    this.retainedAmount,
+    this.refundableAmount,
+    this.refundableRemaining,
+    this.pendingRefund,
   });
 
   PaymentDetailsSummary.fromJson(Map<String, dynamic> json) {
@@ -800,6 +995,149 @@ class PaymentDetailsSummary {
     scaledBadDebtBalanceNotDue = double.tryParse(json['scaled_bad_debt_balance_not_due']?.toString() ?? '');
     scaledLossCompanyShare = double.tryParse(json['scaled_loss_company_share']?.toString() ?? '');
     scaledLossProviderShare = double.tryParse(json['scaled_loss_provider_share']?.toString() ?? '');
+    scaledLossWriteoffAmount = double.tryParse(json['scaled_loss_writeoff_amount']?.toString() ?? '');
+    isWriteoffSettled = json['is_writeoff_settled'] == true;
+    canComplete = _parseNullableBool(json['can_complete']);
+    canRecordPayment = _parseNullableBool(json['can_record_payment']);
+    isDisputedSettlement = json['is_disputed_settlement'] == true;
+    customerPaidTotal = double.tryParse(json['customer_paid_total']?.toString() ?? '');
+    refundedAmount = double.tryParse(json['refunded_amount']?.toString() ?? '');
+    refundTotal = double.tryParse(json['refund_total']?.toString() ?? '');
+    finalBookingAmount = double.tryParse(json['final_booking_amount']?.toString() ?? '');
+    retainedAmount = double.tryParse(json['retained_amount']?.toString() ?? '');
+    refundableAmount = double.tryParse(json['refundable_amount']?.toString() ?? '');
+    refundableRemaining = double.tryParse(json['refundable_remaining']?.toString() ?? '');
+    pendingRefund = double.tryParse(json['pending_refund']?.toString() ?? '');
+  }
+
+  static bool? _parseNullableBool(dynamic value) {
+    if (value == null) return null;
+    if (value is bool) return value;
+    if (value is int) return value == 1;
+    if (value is String) {
+      final normalized = value.toLowerCase();
+      if (normalized == '1' || normalized == 'true') return true;
+      if (normalized == '0' || normalized == 'false') return false;
+    }
+    return null;
+  }
+}
+
+class BookingPaymentLedger {
+  List<BookingPaymentLedgerEntry>? installments;
+  List<BookingRefundLedgerEntry>? refunds;
+
+  BookingPaymentLedger({this.installments, this.refunds});
+
+  BookingPaymentLedger.fromJson(Map<String, dynamic> json) {
+    if (json['installments'] != null) {
+      installments = <BookingPaymentLedgerEntry>[];
+      json['installments'].forEach((v) {
+        installments!.add(BookingPaymentLedgerEntry.fromJson(v));
+      });
+    }
+    if (json['refunds'] != null) {
+      refunds = <BookingRefundLedgerEntry>[];
+      json['refunds'].forEach((v) {
+        refunds!.add(BookingRefundLedgerEntry.fromJson(v));
+      });
+    }
+  }
+}
+
+class BookingPaymentLedgerEntry {
+  int? serial;
+  String? date;
+  String? receivedByLabel;
+  double? amount;
+  String? paymentMethodLabel;
+  String? transactionId;
+  double? dueAfterPayment;
+
+  BookingPaymentLedgerEntry({
+    this.serial,
+    this.date,
+    this.receivedByLabel,
+    this.amount,
+    this.paymentMethodLabel,
+    this.transactionId,
+    this.dueAfterPayment,
+  });
+
+  BookingPaymentLedgerEntry.fromJson(Map<String, dynamic> json) {
+    serial = int.tryParse(json['serial']?.toString() ?? '');
+    date = json['date'];
+    receivedByLabel = json['received_by_label'];
+    amount = double.tryParse(json['amount']?.toString() ?? '');
+    paymentMethodLabel = json['payment_method_label'];
+    transactionId = json['transaction_id'];
+    dueAfterPayment = double.tryParse(json['due_after_payment']?.toString() ?? '');
+  }
+}
+
+class BookingRefundLedgerEntry {
+  int? serial;
+  String? date;
+  double? amount;
+  String? transactionId;
+  String? referenceNote;
+
+  BookingRefundLedgerEntry({
+    this.serial,
+    this.date,
+    this.amount,
+    this.transactionId,
+    this.referenceNote,
+  });
+
+  BookingRefundLedgerEntry.fromJson(Map<String, dynamic> json) {
+    serial = int.tryParse(json['serial']?.toString() ?? '');
+    date = json['date'];
+    amount = double.tryParse(json['amount']?.toString() ?? '');
+    transactionId = json['transaction_id'];
+    referenceNote = json['reference_note'];
+  }
+}
+
+extension BookingDetailsContentPaymentLedger on BookingDetailsContent {
+  BookingPaymentLedger? buildPaymentLedgerFallback() {
+    if (partialPayments == null || partialPayments!.isEmpty) {
+      return null;
+    }
+
+    final cap = paymentDetails?.total ??
+        payableGrandTotal ??
+        bookingSummary?.grandTotal ??
+        totalBookingAmount ??
+        0;
+    var runningPaid = 0.0;
+    final installments = <BookingPaymentLedgerEntry>[];
+
+    for (final partial in partialPayments!) {
+      final amount = partial.paidAmount ?? 0;
+      if (amount == 0) {
+        continue;
+      }
+      runningPaid += amount;
+      installments.add(BookingPaymentLedgerEntry(
+        serial: installments.length + 1,
+        date: partial.createdAt,
+        receivedByLabel: partial.receivedByLabel ?? partial.receivedBy,
+        amount: amount,
+        paymentMethodLabel: partial.paymentMethodLabel ?? partial.paidWith,
+        transactionId: (partial.transactionId != null && partial.transactionId!.isNotEmpty)
+            ? partial.transactionId
+            : transactionId,
+        dueAfterPayment: partial.dueAfterPayment ??
+            (cap - runningPaid).clamp(0, double.infinity).toDouble(),
+      ));
+    }
+
+    if (installments.isEmpty) {
+      return null;
+    }
+
+    return BookingPaymentLedger(installments: installments, refunds: []);
   }
 }
 
@@ -1059,15 +1397,15 @@ class RepeatBooking {
         details!.add(ItemService.fromJson(v));
       });
     }
-    if (json['schedule_histories'] != null) {
+    if (json['schedule_histories'] != null || json['scheduleHistories'] != null) {
       scheduleHistories = <ScheduleHistories>[];
-      json['schedule_histories'].forEach((v) {
+      (json['schedule_histories'] ?? json['scheduleHistories']).forEach((v) {
         scheduleHistories!.add(ScheduleHistories.fromJson(v));
       });
     }
-    if (json['status_histories'] != null) {
+    if (json['status_histories'] != null || json['statusHistories'] != null) {
       statusHistories = <StatusHistories>[];
-      json['status_histories'].forEach((v) {
+      (json['status_histories'] ?? json['statusHistories']).forEach((v) {
 
         statusHistories!.add(StatusHistories.fromJson(v));
       });
@@ -1256,6 +1594,120 @@ class RepeatHistoryLog {
   }
 }
 
+class ProviderExtraServiceLine {
+  String? id;
+  String? name;
+  double? amount;
+  String? type;
+  String? details;
+  double? price;
+  int? quantity;
+  double? discount;
+  double? total;
+
+  ProviderExtraServiceLine({
+    this.id,
+    this.name,
+    this.amount,
+    this.type,
+    this.details,
+    this.price,
+    this.quantity,
+    this.discount,
+    this.total,
+  });
+
+  ProviderExtraServiceLine.fromJson(Map<String, dynamic> json) {
+    id = json['id']?.toString();
+    name = json['name']?.toString();
+    amount = double.tryParse(json['amount']?.toString() ?? '');
+    type = json['type']?.toString();
+    details = json['details']?.toString();
+    price = double.tryParse(json['price']?.toString() ?? '');
+    quantity = int.tryParse(json['quantity']?.toString() ?? '');
+    discount = double.tryParse(json['discount']?.toString() ?? '');
+    total = double.tryParse(json['total']?.toString() ?? '');
+  }
+
+  bool get isSparePart => type == 'spare_part';
+}
+
+class ProviderBookingSummaryLine {
+  String? name;
+  double? amount;
+
+  ProviderBookingSummaryLine({this.name, this.amount});
+
+  ProviderBookingSummaryLine.fromJson(Map<String, dynamic> json) {
+    name = json['name']?.toString();
+    amount = double.tryParse(json['amount']?.toString() ?? '');
+  }
+}
+
+class ProviderBookingSummary {
+  double? serviceAmount;
+  List<ProviderBookingSummaryLine>? extraServiceLines;
+  List<ProviderBookingSummaryLine>? sparePartLines;
+  List<ProviderBookingSummaryLine>? additionalChargeLines;
+  double? grossTotal;
+  double? serviceDiscount;
+  double? couponDiscount;
+  double? campaignDiscount;
+  double? referralDiscount;
+  double? tax;
+  bool? hasTax;
+  double? grandTotal;
+  double? totalPaid;
+  double? dueAmount;
+
+  ProviderBookingSummary({
+    this.serviceAmount,
+    this.extraServiceLines,
+    this.sparePartLines,
+    this.additionalChargeLines,
+    this.grossTotal,
+    this.serviceDiscount,
+    this.couponDiscount,
+    this.campaignDiscount,
+    this.referralDiscount,
+    this.tax,
+    this.hasTax,
+    this.grandTotal,
+    this.totalPaid,
+    this.dueAmount,
+  });
+
+  ProviderBookingSummary.fromJson(Map<String, dynamic> json) {
+    serviceAmount = double.tryParse(json['service_amount']?.toString() ?? '');
+    grossTotal = double.tryParse(json['gross_total']?.toString() ?? '');
+    serviceDiscount = double.tryParse(json['service_discount']?.toString() ?? '');
+    couponDiscount = double.tryParse(json['coupon_discount']?.toString() ?? '');
+    campaignDiscount = double.tryParse(json['campaign_discount']?.toString() ?? '');
+    referralDiscount = double.tryParse(json['referral_discount']?.toString() ?? '');
+    tax = double.tryParse(json['tax']?.toString() ?? '');
+    hasTax = json['has_tax'] == true;
+    grandTotal = double.tryParse(json['grand_total']?.toString() ?? '');
+    totalPaid = double.tryParse(json['total_paid']?.toString() ?? '');
+    dueAmount = double.tryParse(json['due_amount']?.toString() ?? '');
+
+    if (json['extra_service_lines'] is List) {
+      extraServiceLines = (json['extra_service_lines'] as List)
+          .map((v) => ProviderBookingSummaryLine.fromJson(Map<String, dynamic>.from(v)))
+          .toList();
+    }
+    if (json['spare_part_lines'] is List) {
+      sparePartLines = (json['spare_part_lines'] as List)
+          .map((v) => ProviderBookingSummaryLine.fromJson(Map<String, dynamic>.from(v)))
+          .toList();
+    }
+    if (json['additional_charge_lines'] is List) {
+      additionalChargeLines = (json['additional_charge_lines'] as List)
+          .map((v) => ProviderBookingSummaryLine.fromJson(Map<String, dynamic>.from(v)))
+          .toList();
+    }
+  }
+}
+
 class BookingCategoryInfo {
   String? id;
   String? name;
@@ -1275,4 +1727,137 @@ class BookingCategoryInfo {
   }
 }
 
+class SpecialFinancialSettlement {
+  bool? hasSpecialSettlement;
+  String? settlementOutcome;
+  String? scenarioLabelKey;
+  double? finalBookingAmount;
+  double? finalServiceCharges;
+  double? finalSparePartsCharges;
+  double? finalAdminCommission;
+  double? finalProviderEarning;
+  String? notes;
 
+  SpecialFinancialSettlement({
+    this.hasSpecialSettlement,
+    this.settlementOutcome,
+    this.scenarioLabelKey,
+    this.finalBookingAmount,
+    this.finalServiceCharges,
+    this.finalSparePartsCharges,
+    this.finalAdminCommission,
+    this.finalProviderEarning,
+    this.notes,
+  });
+
+  SpecialFinancialSettlement.fromJson(Map<String, dynamic> json) {
+    hasSpecialSettlement = json['has_special_settlement'] == true;
+    settlementOutcome = json['settlement_outcome']?.toString();
+    scenarioLabelKey = json['scenario_label_key']?.toString();
+    finalBookingAmount = double.tryParse(json['final_booking_amount']?.toString() ?? '');
+    finalServiceCharges = double.tryParse(json['final_service_charges']?.toString() ?? '');
+    finalSparePartsCharges = double.tryParse(json['final_spare_parts_charges']?.toString() ?? '');
+    finalAdminCommission = double.tryParse(json['final_admin_commission']?.toString() ?? '');
+    finalProviderEarning = double.tryParse(json['final_provider_earning']?.toString() ?? '');
+    notes = json['notes']?.toString();
+  }
+}
+
+class DisputedSettlement {
+  bool? hasDisputedSettlement;
+  double? customerPaidTotal;
+  double? refundTotal;
+  double? refundCompanyAmount;
+  double? refundProviderAmount;
+  double? finalBookingAmount;
+  double? retainedFromCustomer;
+  double? finalAdminCommission;
+  double? finalProviderEarning;
+  double? providerOwesCompany;
+  double? companyOwesProvider;
+  double? pendingRefund;
+  bool? isFullRefund;
+  bool? isPartialRefund;
+
+  DisputedSettlement({
+    this.hasDisputedSettlement,
+    this.customerPaidTotal,
+    this.refundTotal,
+    this.refundCompanyAmount,
+    this.refundProviderAmount,
+    this.finalBookingAmount,
+    this.retainedFromCustomer,
+    this.finalAdminCommission,
+    this.finalProviderEarning,
+    this.providerOwesCompany,
+    this.companyOwesProvider,
+    this.pendingRefund,
+    this.isFullRefund,
+    this.isPartialRefund,
+  });
+
+  DisputedSettlement.fromJson(Map<String, dynamic> json) {
+    hasDisputedSettlement = json['has_disputed_settlement'] == true;
+    customerPaidTotal = double.tryParse(json['customer_paid_total']?.toString() ?? '');
+    refundTotal = double.tryParse(json['refund_total']?.toString() ?? '');
+    refundCompanyAmount = double.tryParse(json['refund_company_amount']?.toString() ?? '');
+    refundProviderAmount = double.tryParse(json['refund_provider_amount']?.toString() ?? '');
+    finalBookingAmount = double.tryParse(json['final_booking_amount']?.toString() ?? '');
+    retainedFromCustomer = double.tryParse(json['retained_from_customer']?.toString() ?? '');
+    finalAdminCommission = double.tryParse(json['final_admin_commission']?.toString() ?? '');
+    finalProviderEarning = double.tryParse(json['final_provider_earning']?.toString() ?? '');
+    providerOwesCompany = double.tryParse(json['provider_owes_company']?.toString() ?? '');
+    companyOwesProvider = double.tryParse(json['company_owes_provider']?.toString() ?? '');
+    pendingRefund = double.tryParse(json['pending_refund']?.toString() ?? '');
+    isFullRefund = json['is_full_refund'] == true;
+    isPartialRefund = json['is_partial_refund'] == true;
+  }
+}
+
+class LossMakingSettlement {
+  bool? isLossMaking;
+  double? totalBookingAmount;
+  double? amountPaid;
+  double? pendingBalance;
+  double? amountPaidByCustomer;
+  double? lossAmount;
+  double? lossToCompany;
+  double? lossToProvider;
+  double? companyCommissionFullBooking;
+  double? providerShareBeforeLossFullBooking;
+  double? netCompanyShareAfterLoss;
+  double? netProviderShareAfterLoss;
+  String? notes;
+
+  LossMakingSettlement({
+    this.isLossMaking,
+    this.totalBookingAmount,
+    this.amountPaid,
+    this.pendingBalance,
+    this.amountPaidByCustomer,
+    this.lossAmount,
+    this.lossToCompany,
+    this.lossToProvider,
+    this.companyCommissionFullBooking,
+    this.providerShareBeforeLossFullBooking,
+    this.netCompanyShareAfterLoss,
+    this.netProviderShareAfterLoss,
+    this.notes,
+  });
+
+  LossMakingSettlement.fromJson(Map<String, dynamic> json) {
+    isLossMaking = json['is_loss_making'] == true;
+    totalBookingAmount = double.tryParse(json['total_booking_amount']?.toString() ?? '');
+    amountPaid = double.tryParse(json['amount_paid']?.toString() ?? '');
+    pendingBalance = double.tryParse(json['pending_balance']?.toString() ?? '');
+    amountPaidByCustomer = double.tryParse(json['amount_paid_by_customer']?.toString() ?? '');
+    lossAmount = double.tryParse(json['loss_amount']?.toString() ?? '');
+    lossToCompany = double.tryParse(json['loss_to_company']?.toString() ?? '');
+    lossToProvider = double.tryParse(json['loss_to_provider']?.toString() ?? '');
+    companyCommissionFullBooking = double.tryParse(json['company_commission_full_booking']?.toString() ?? '');
+    providerShareBeforeLossFullBooking = double.tryParse(json['provider_share_before_loss_full_booking']?.toString() ?? '');
+    netCompanyShareAfterLoss = double.tryParse(json['net_company_share_after_loss']?.toString() ?? '');
+    netProviderShareAfterLoss = double.tryParse(json['net_provider_share_after_loss']?.toString() ?? '');
+    notes = json['notes'];
+  }
+}

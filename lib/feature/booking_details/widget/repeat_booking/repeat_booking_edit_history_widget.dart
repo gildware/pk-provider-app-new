@@ -126,22 +126,26 @@ class RepeatBookingEditHistoryDialog extends StatelessWidget {
                         amount: subTotal,
                         boldText: false,
                       ),
-                      const SizedBox(height: Dimensions.paddingSizeTini,),
 
-                      _SubTotalItemWidget(
-                        title: "service_discount".tr,
-                        additionalSign: "-",
-                        amount: editHistory[index].totalDiscountAmount ?? 0,
-                        boldText: false,
-                      ),
-                      const SizedBox(height: Dimensions.paddingSizeTini,),
+                      if ((editHistory[index].totalDiscountAmount ?? 0) > 0) ...[
+                        const SizedBox(height: Dimensions.paddingSizeTini),
+                        _SubTotalItemWidget(
+                          title: "service_discount".tr,
+                          additionalSign: "-",
+                          amount: editHistory[index].totalDiscountAmount ?? 0,
+                          boldText: false,
+                        ),
+                      ],
 
-                      _SubTotalItemWidget(
-                        title: "service_tax".tr,
-                        additionalSign: "+",
-                        amount: editHistory[index].totalTaxAmount ?? 0,
-                        boldText: false,
-                      ),
+                      if ((editHistory[index].totalTaxAmount ?? 0) > 0) ...[
+                        const SizedBox(height: Dimensions.paddingSizeTini),
+                        _SubTotalItemWidget(
+                          title: "service_tax".tr,
+                          additionalSign: "+",
+                          amount: editHistory[index].totalTaxAmount ?? 0,
+                          boldText: false,
+                        ),
+                      ],
 
                       const SizedBox(height: Dimensions.paddingSizeTini,),
 

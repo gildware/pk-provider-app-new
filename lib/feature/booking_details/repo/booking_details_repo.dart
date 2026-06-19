@@ -33,8 +33,23 @@ class BookingDetailsRepo{
   }
 
   Future<Response> changeBookingStatus(String bookingID,String status, String otp, List<MultipartBody>? photoEvidence, bool isSubBooking) async {
+    final Map<String, String> body = {
+      'booking_status': status,
+      '_method': 'put',
+      'booking_otp': otp,
+    };
+    if (status == 'completed') {
+      body['payment_received_confirmed'] = '1';
+    }
     return await apiClient.postMultipartData(
-        "${isSubBooking ? AppConstants.changeSubBookingStatus : AppConstants.changeBookingStatus}/$bookingID",{'booking_status':status,'_method':'put', "booking_otp": otp}, photoEvidence,null
+        "${isSubBooking ? AppConstants.changeSubBookingStatus : AppConstants.changeBookingStatus}/$bookingID", body, photoEvidence,null
+    );
+  }
+
+  Future<Response> recordBookingPayment(String bookingId, double amount) async {
+    return await apiClient.postData(
+      '${AppConstants.recordBookingPaymentUrl}/$bookingId',
+      {'amount': amount},
     );
   }
 

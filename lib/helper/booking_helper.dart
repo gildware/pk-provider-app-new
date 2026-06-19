@@ -7,7 +7,7 @@ class BookingHelper{
   static double getSubTotalCost(BookingDetailsContent booking) {
     double subTotal = 0;
     for (var element in booking.details!) {
-      subTotal = subTotal + ((element.serviceCost ?? 1) * (element.quantity ?? 1));
+      subTotal = subTotal + ((element.serviceCost ?? 0) * (element.quantity ?? 1));
     }
     return subTotal;
   }
@@ -224,9 +224,51 @@ class BookingHelper{
   static ProviderBookingSummary resolveBookingSummary(BookingDetailsContent booking) {
     final fromApi = booking.bookingSummary;
     if (fromApi != null && fromApi.grossTotal != null) {
+      final resolvedGrand = resolveInvoiceGrandTotal(booking, summary: fromApi);
+      if (fromApi.grandTotal == null ||
+          (fromApi.grandTotal! - resolvedGrand).abs() > 0.009) {
+        fromApi.grandTotal = resolvedGrand;
+      }
       return fromApi;
     }
     return buildBookingSummaryFallback(booking, base: fromApi);
+  }
+
+  /// Invoice grand total (subtotal + additional charges + tax). Never use [PaymentDetailsSummary.total].
+  static double resolveInvoiceGrandTotal(
+    BookingDetailsContent booking, {
+    ProviderBookingSummary? summary,
+  }) {
+    summary ??= booking.bookingSummary;
+    if (summary?.grandTotal != null && summary!.grandTotal! > 0.009) {
+      return summary.grandTotal!;
+    }
+    if (booking.payableGrandTotal != null && booking.payableGrandTotal! > 0.009) {
+      return booking.payableGrandTotal!;
+    }
+    final computed = computeGrandTotalFromBreakdown(booking, summary: summary);
+    if (computed > 0.009) {
+      return computed;
+    }
+    return booking.totalBookingAmount ?? 0;
+  }
+
+  static double computeGrandTotalFromBreakdown(
+    BookingDetailsContent booking, {
+    ProviderBookingSummary? summary,
+  }) {
+    summary ??= booking.bookingSummary;
+    double total = getDiscountedSubTotal(booking);
+    final additionalLines =
+        summary?.additionalChargeLines ?? getAdditionalChargeLines(booking);
+    for (final line in additionalLines) {
+      total += line.amount ?? 0;
+    }
+    final taxAmount = summary?.tax ?? booking.totalTaxAmount ?? 0;
+    if (summary?.hasTax == true || taxAmount > 0.009) {
+      total += taxAmount;
+    }
+    return total;
   }
 
   static ProviderBookingSummary buildBookingSummaryFallback(
@@ -243,9 +285,13 @@ class BookingHelper{
         .fold<double>(0, (sum, line) => sum + (line.total ?? line.amount ?? 0));
     final additionalTotal = additionalLines.fold<double>(0, (sum, line) => sum + (line.amount ?? 0));
     final grossTotal = serviceAmount + additionalTotal + extraServiceTotal + spareTotal;
-    final grandTotalValue = booking.paymentDetails?.total ?? booking.totalBookingAmount ?? grossTotal;
-    final paid = booking.paymentDetails?.amountPaidDisplay ?? 0;
-    final due = booking.paymentDetails?.dueBalance ?? (grandTotalValue - paid).clamp(0, double.infinity);
+    final grandTotalValue = resolveInvoiceGrandTotal(booking, summary: base);
+    final paid = booking.paymentDetails?.amountPaidDisplay ??
+        base?.totalPaid ??
+        0;
+    final due = booking.paymentDetails?.dueBalance ??
+        base?.dueAmount ??
+        (grandTotalValue - paid).clamp(0, double.infinity);
 
     return ProviderBookingSummary(
       serviceAmount: base?.serviceAmount ?? serviceAmount,
@@ -266,11 +312,185 @@ class BookingHelper{
   }
 
   static double resolveGrandTotal(BookingDetailsContent booking) {
-    final summary = resolveBookingSummary(booking);
-    return summary.grandTotal
-        ?? booking.paymentDetails?.total
-        ?? booking.totalBookingAmount
+    return resolveInvoiceGrandTotal(booking);
+  }
+
+  static double? resolveDisputedFinalBookingAmount(BookingDetailsContent booking) {
+    final disputed = booking.disputedSettlement;
+    if (disputed?.hasDisputedSettlement == true) {
+      final amount = disputed?.finalBookingAmount ?? disputed?.retainedFromCustomer;
+      if (amount != null) {
+        return amount;
+      }
+    }
+    final payment = booking.paymentDetails;
+    if (payment?.isDisputedSettlement == true) {
+      return payment?.finalBookingAmount ?? payment?.retainedAmount ?? payment?.total;
+    }
+    return null;
+  }
+
+  static bool hasDisputedSettlement(BookingDetailsContent booking) {
+    if (booking.disputedSettlement?.hasDisputedSettlement == true) {
+      return true;
+    }
+    return booking.paymentDetails?.isDisputedSettlement == true;
+  }
+
+  static double? resolveDisputedCustomerPaidTotal(BookingDetailsContent booking) {
+    final disputed = booking.disputedSettlement;
+    if (disputed?.hasDisputedSettlement == true && disputed?.customerPaidTotal != null) {
+      return disputed!.customerPaidTotal;
+    }
+    return booking.paymentDetails?.customerPaidTotal ?? booking.paymentDetails?.amountPaidDisplay;
+  }
+
+  static double? resolveDisputedRefundTotal(BookingDetailsContent booking) {
+    final disputed = booking.disputedSettlement;
+    if (disputed?.hasDisputedSettlement == true && disputed?.refundTotal != null) {
+      return disputed!.refundTotal;
+    }
+    return booking.paymentDetails?.refundedAmount ?? booking.paymentDetails?.refundTotal;
+  }
+
+  static double? resolveRefundedAmount(BookingDetailsContent booking) {
+    final disputedRefund = resolveDisputedRefundTotal(booking);
+    if (disputedRefund != null && disputedRefund > 0.009) {
+      return disputedRefund;
+    }
+    final refunded = booking.paymentDetails?.refundedAmount;
+    if (refunded != null && refunded > 0.009) {
+      return refunded;
+    }
+    return null;
+  }
+
+  static double resolvePaymentDueBalance(PaymentDetailsSummary payment) {
+    if (payment.dueBalance != null) {
+      return payment.dueBalance!.clamp(0.0, double.infinity);
+    }
+    final total = payment.total ?? 0;
+    final paid = payment.amountPaidDisplay ?? 0;
+    return (total - paid).clamp(0.0, double.infinity).toDouble();
+  }
+
+  static bool isWriteoffSettledBooking(BookingDetailsContent booking) {
+    final payment = booking.paymentDetails;
+    if (payment?.isWriteoffSettled == true) {
+      return true;
+    }
+    final writeoff = payment?.scaledLossWriteoffAmount
+        ?? booking.revenueSettlement?.scaledLossWriteoffAmount
         ?? 0;
+    return writeoff > 0.009;
+  }
+
+  static double getWriteoffSettlementAmount(BookingDetailsContent booking) {
+    final payment = booking.paymentDetails;
+    if ((payment?.scaledLossWriteoffAmount ?? 0) > 0.009) {
+      return payment!.scaledLossWriteoffAmount!;
+    }
+    return booking.revenueSettlement?.scaledLossWriteoffAmount ?? 0;
+  }
+
+  static double resolveBookingDueBalance(BookingDetailsContent booking) {
+    if (hasDisputedSettlement(booking)) {
+      return 0;
+    }
+    if (isWriteoffSettledBooking(booking)) {
+      return 0;
+    }
+
+    final payment = booking.paymentDetails;
+    if (payment != null) {
+      final due = payment.dueBalance;
+      if (due != null) {
+        return due.clamp(0.0, double.infinity);
+      }
+      return resolvePaymentDueBalance(payment);
+    }
+
+    final summaryDue = resolveBookingSummary(booking).dueAmount;
+    if (summaryDue != null) {
+      return summaryDue.clamp(0.0, double.infinity);
+    }
+
+    final grandTotal = resolveGrandTotal(booking);
+    double paid = 0;
+    if (booking.partialPayments != null && booking.partialPayments!.isNotEmpty) {
+      for (final partial in booking.partialPayments!) {
+        paid += partial.paidAmount ?? 0;
+      }
+    } else if (booking.isPaid == 1) {
+      paid = grandTotal;
+    }
+    return (grandTotal - paid).clamp(0, double.infinity);
+  }
+
+  static bool canCompleteBooking(BookingDetailsContent booking) {
+    final due = resolveBookingDueBalance(booking);
+    if (booking.paymentDetails?.canComplete == true) {
+      return true;
+    }
+    if (booking.paymentDetails?.canComplete == false) {
+      return false;
+    }
+    return due <= 0.009;
+  }
+
+  static bool canRecordCustomerPayment(BookingDetailsContent booking) {
+    if (hasDisputedSettlement(booking)) {
+      return false;
+    }
+
+    final status = (booking.bookingStatus ?? '').toLowerCase();
+    if (const {'canceled', 'cancelled', 'refunded'}.contains(status)) {
+      return false;
+    }
+
+    final due = resolveBookingDueBalance(booking);
+    if (due <= 0.009) return false;
+
+    if (booking.paymentDetails?.canRecordPayment == true) {
+      return true;
+    }
+
+    if (status == 'completed') {
+      return booking.paymentDetails?.canRecordPayment != false;
+    }
+
+    return const {'pending', 'accepted', 'ongoing', 'on_hold'}.contains(status);
+  }
+
+  static String resolveRecordPaymentBookingId(
+    BookingDetailsContent booking, {
+    String? fallbackBookingId,
+  }) {
+    final parentId = booking.parentBookingId?.trim();
+    if (parentId != null && parentId.isNotEmpty) {
+      return parentId;
+    }
+    final fallback = fallbackBookingId?.trim();
+    if (fallback != null && fallback.isNotEmpty) {
+      return fallback;
+    }
+    return booking.id ?? '';
+  }
+
+  static double? resolvePendingRefundAmount(BookingDetailsContent booking) {
+    final disputed = booking.disputedSettlement;
+    if (disputed?.hasDisputedSettlement == true) {
+      final pending = disputed?.pendingRefund;
+      if (pending != null && pending > 0.009) {
+        return pending;
+      }
+      return null;
+    }
+    final pending = booking.paymentDetails?.pendingRefund ?? booking.paymentDetails?.refundableRemaining;
+    if (pending != null && pending > 0.009) {
+      return pending;
+    }
+    return null;
   }
 
   static double resolveListGrandTotal(BookingRequestModel booking) {

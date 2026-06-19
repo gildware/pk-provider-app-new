@@ -1,7 +1,11 @@
 import 'package:demandium_provider/util/core_export.dart';
 import 'package:get/get.dart';
 
-Future<void> showCustomBottomSheet({required Widget child}) async {
+Future<void> showCustomBottomSheet({
+  required Widget child,
+  bool isDismissible = true,
+  bool enableDrag = true,
+}) async {
 
   Future.delayed(const Duration(milliseconds: 10), (){
     Get.find<UserProfileController>().trialWidgetShow(route: "show-dialog");
@@ -15,6 +19,8 @@ Future<void> showCustomBottomSheet({required Widget child}) async {
     useRootNavigator: true,
     backgroundColor: Theme.of(Get.context!).cardColor,
     isScrollControlled: true,
+    isDismissible: isDismissible,
+    enableDrag: enableDrag,
     barrierColor: Colors.black.withValues(alpha:Get.isDarkMode ? 0.8 : 0.6 ),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.only(

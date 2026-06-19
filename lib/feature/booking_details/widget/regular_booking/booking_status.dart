@@ -1,10 +1,10 @@
+import 'package:demandium_provider/common/widgets/booking_status_tags_widget.dart';
 import 'package:demandium_provider/feature/booking_details/widget/timeline/connectors.dart';
 import 'package:demandium_provider/feature/booking_details/widget/timeline/indicator_theme.dart';
 import 'package:demandium_provider/feature/booking_details/widget/timeline/indicators.dart';
 import 'package:demandium_provider/feature/booking_details/widget/timeline/timeline_theme.dart';
 import 'package:demandium_provider/feature/booking_details/widget/timeline/timeline_tile_builder.dart';
 import 'package:demandium_provider/feature/booking_details/widget/timeline/timelines.dart';
-import 'package:demandium_provider/helper/extension_helper.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
 
@@ -87,16 +87,10 @@ class _BookingStatusState extends State<BookingStatus> {
             ),
 
             const SizedBox(height: Dimensions.paddingSizeDefault,),
-            RichText(text:  TextSpan(text: '${'booking_status'.tr}:   ',
-                style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault,
-                  color:Theme.of(context).textTheme.bodyLarge!.color,),
-                children: [
-                  TextSpan(text: bookingDetails.bookingStatus!.tr,
-                      style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault,
-                          color: context.customThemeColors.buttonTextColorMap[bookingDetails.bookingStatus],
-                          decoration: TextDecoration.none)
-                  ),
-                ]),
+            BookingStatusAndTagsRow(
+              rawStatus: bookingDetails.bookingStatus,
+              ui: bookingDetails.statusUi,
+              alignment: MainAxisAlignment.center,
             ),
 
             const SizedBox(height: Dimensions.paddingSizeDefault,),

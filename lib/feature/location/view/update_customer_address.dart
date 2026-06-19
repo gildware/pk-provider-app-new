@@ -112,7 +112,6 @@ class _UpdateCustomerAddressState extends State<UpdateCustomerAddress> {
                             if(_initialPosition != null)
                               GoogleMap(
                                 minMaxZoomPreference: const MinMaxZoomPreference(0, 16),
-
                                 initialCameraPosition: CameraPosition(
                                   target: _initialPosition!,
                                   zoom: 14.4746,
@@ -120,13 +119,7 @@ class _UpdateCustomerAddressState extends State<UpdateCustomerAddress> {
                                 zoomControlsEnabled: false,
                                 onCameraIdle: () {
                                   if (!_isMapReady || _cameraPosition == null) return;
-                                  try{
-                                    locationController.updatePosition(_cameraPosition!);
-                                  }catch(error){
-                                    if (kDebugMode) {
-                                      print('error : $error');
-                                    }
-                                  }
+                                  locationController.updatePosition(_cameraPosition!);
                                 },
                                 onCameraMove: ((position) => _cameraPosition = position),
                                 onMapCreated: (GoogleMapController controller) {
@@ -134,11 +127,16 @@ class _UpdateCustomerAddressState extends State<UpdateCustomerAddress> {
                                   WidgetsBinding.instance.addPostFrameCallback((_) async {
                                     await locationController.setMapController(controller);
                                     _controller.complete(controller);
+                                    if (_cameraPosition != null) {
+                                      await locationController.updatePosition(_cameraPosition!);
+                                    }
                                     _isMapReady = true;
                                   });
                                 },
                                 myLocationButtonEnabled: false,
-
+                                gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                                  Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
+                                },
                               ),
                             locationController.loading ? const Center(child: CircularProgressIndicator()) : const SizedBox(),
                             Center(child: !locationController.loading ? Image.asset(Images.marker, height: 40, width: 40,)
@@ -374,6 +372,7 @@ class _UpdateCustomerAddressState extends State<UpdateCustomerAddress> {
       widget.address.lat ?? location?.lat ?? 23.0000,
       widget.address.lon ?? location?.lon ?? 90.0000,
     );
+    _cameraPosition = CameraPosition(target: _initialPosition!, zoom: 14.4746);
 
     String countryCode = ValidationHelper.getValidCountryCode(widget.address.contactPersonNumber ?? "");
 

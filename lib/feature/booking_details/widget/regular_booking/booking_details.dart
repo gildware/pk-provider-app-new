@@ -1,6 +1,4 @@
 import 'package:demandium_provider/feature/booking_details/widget/booking_service_location.dart';
-import 'package:demandium_provider/feature/booking_details/widget/regular_booking/booking_payment_details_view.dart';
-import 'package:demandium_provider/feature/booking_details/widget/regular_booking/booking_revenue_settlement_view.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
 
@@ -92,10 +90,6 @@ class BookingDetailsWidget extends StatelessWidget {
                       bookingDetails: bookingDetails, isSubBooking: isSubBooking,
                       bookingEditType: isSubBooking ? BookingEditType.subBooking : BookingEditType.regular,
                     ),
-
-                    BookingPaymentDetailsView(bookingDetails: bookingDetails),
-
-                    BookingRevenueSettlementView(bookingDetails: bookingDetails),
 
                     BookingSummeryView(bookingDetails: bookingDetails),
 

@@ -100,9 +100,14 @@ class CalenderBooking {
   String bookingStatus;
   ServiceLocation serviceLocation;
   double totalBookingAmount;
+  double? listDisplayTotal;
+  double? payableGrandTotal;
   DateTime createdAt;
   bool? isRepeatBooking;
   BookingStatusUiFields? statusUi;
+
+  double get displayGrandTotal =>
+      listDisplayTotal ?? payableGrandTotal ?? totalBookingAmount;
 
 
   CalenderBooking({
@@ -112,6 +117,8 @@ class CalenderBooking {
     required this.bookingStatus,
     required this.serviceLocation,
     required this.totalBookingAmount,
+    this.listDisplayTotal,
+    this.payableGrandTotal,
     required this.createdAt,
     required this.isRepeatBooking,
     this.statusUi,
@@ -124,6 +131,8 @@ class CalenderBooking {
     bookingStatus: json["booking_status"]?.toString() ?? '',
     serviceLocation: serviceLocationValues.map[json["service_location"]] ?? ServiceLocation.customer,
     totalBookingAmount: double.tryParse('${json["total_booking_amount"]}') ?? 0,
+    listDisplayTotal: double.tryParse('${json["list_display_total"]}'),
+    payableGrandTotal: double.tryParse('${json["payable_grand_total"]}'),
     createdAt: DateTime.parse(json["created_at"]),
     isRepeatBooking: '${json["is_repeated"]}'.contains('1'),
     statusUi: BookingStatusUiFields.fromJson(json),
@@ -136,6 +145,8 @@ class CalenderBooking {
     "booking_status": bookingStatus,
     "service_location": serviceLocationValues.reverse[serviceLocation],
     "total_booking_amount": totalBookingAmount,
+    "list_display_total": listDisplayTotal,
+    "payable_grand_total": payableGrandTotal,
     "created_at": createdAt.toIso8601String(),
     "is_repeated": isRepeatBooking,
   };
