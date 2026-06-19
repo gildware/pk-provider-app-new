@@ -5,6 +5,7 @@ class PaymentRedirectHandler {
   static void handlePaymentResult({
     required String fromPage,
     required String flag,
+    String? token,
     bool closeCurrentRoute = false,
   }) {
     final isSuccess = flag.contains('success');
@@ -15,7 +16,7 @@ class PaymentRedirectHandler {
     }
 
     if (isSuccess) {
-      _handleSuccess(fromPage, closeCurrentRoute);
+      _handleSuccess(fromPage, token, closeCurrentRoute);
       return;
     }
 
@@ -39,14 +40,20 @@ class PaymentRedirectHandler {
       return;
     }
 
+    final token = isSuccess ? StringParser.parseString(url, 'token') : null;
     handlePaymentResult(
       fromPage: fromPage,
       flag: isSuccess ? 'success' : 'fail',
+      token: token,
       closeCurrentRoute: closeCurrentRoute,
     );
   }
 
-  static void _handleSuccess(String fromPage, bool closeCurrentRoute) {
+  static void _handleSuccess(
+    String fromPage,
+    String? token,
+    bool closeCurrentRoute,
+  ) {
     if (fromPage == 'signUp') {
       Get.offAllNamed(RouteHelper.signIn);
       showCustomBottomSheet(

@@ -151,33 +151,16 @@ class DigitalPaymentLauncher {
     _showLoading();
 
     try {
-      final verifyUri = Uri.parse(
-        '${AppConstants.baseUrl}/payment/razor-pay/verify-payment',
-      ).replace(
-        queryParameters: {
-          'payment_request_id': paymentRequestId,
-          'payment_id': response.paymentId ?? '',
-          'order_id': response.orderId ?? '',
-          'signature': response.signature ?? '',
-          'native_sdk': '1',
-        },
+      final result = await _verifyWithRetry(
+        paymentRequestId: paymentRequestId,
+        paymentId: response.paymentId ?? '',
+        orderId: response.orderId ?? '',
+        signature: response.signature ?? '',
       );
-
-      final verifyResponse = await http.get(verifyUri);
       _hideLoading();
       _clearNativeSession();
 
-      if (verifyResponse.statusCode != 200) {
-        PaymentRedirectHandler.handlePaymentResult(
-          fromPage: fromPage,
-          flag: 'fail',
-        );
-        _completeNativeFlow();
-        return;
-      }
-
-      final body = jsonDecode(verifyResponse.body);
-      if (body is! Map<String, dynamic> || body['flag'] == null) {
+      if (result == null) {
         PaymentRedirectHandler.handlePaymentResult(
           fromPage: fromPage,
           flag: 'fail',
@@ -188,7 +171,8 @@ class DigitalPaymentLauncher {
 
       PaymentRedirectHandler.handlePaymentResult(
         fromPage: fromPage,
-        flag: body['flag'].toString(),
+        flag: result['flag']?.toString() ?? 'fail',
+        token: result['token']?.toString(),
       );
       _completeNativeFlow();
     } catch (e, stack) {
@@ -203,6 +187,53 @@ class DigitalPaymentLauncher {
       );
       _completeNativeFlow();
     }
+  }
+
+  static Future<Map<String, dynamic>?> _verifyWithRetry({
+    required String paymentRequestId,
+    required String paymentId,
+    required String orderId,
+    required String signature,
+    int maxAttempts = 4,
+  }) async {
+    for (var attempt = 0; attempt < maxAttempts; attempt++) {
+      if (attempt > 0) {
+        await Future<void>.delayed(Duration(milliseconds: 400 * attempt));
+      }
+
+      try {
+        final verifyUri = Uri.parse(
+          '${AppConstants.baseUrl}/payment/razor-pay/verify-payment',
+        ).replace(
+          queryParameters: {
+            'payment_request_id': paymentRequestId,
+            'payment_id': paymentId,
+            'order_id': orderId,
+            'signature': signature,
+            'native_sdk': '1',
+          },
+        );
+
+        final verifyResponse = await http
+            .get(verifyUri)
+            .timeout(const Duration(seconds: 30));
+
+        if (verifyResponse.statusCode != 200) {
+          continue;
+        }
+
+        final body = jsonDecode(verifyResponse.body);
+        if (body is! Map<String, dynamic> || body['flag'] == null) {
+          continue;
+        }
+
+        return body;
+      } catch (_) {
+        continue;
+      }
+    }
+
+    return null;
   }
 
   static void _handlePaymentError(PaymentFailureResponse response) {
