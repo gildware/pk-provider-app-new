@@ -235,6 +235,14 @@ class BusinessReportController extends GetxController implements GetxService{
 
   Future<void> prepareEarningReportFilterOptions() async {
     if (_isFilterOptionsLoading) return;
+    if (_zoneNameList.isNotEmpty &&
+        _categoryNameList.isNotEmpty &&
+        _subscribedEarningFilterSource.isNotEmpty) {
+      _rebuildSubcategoryFilterOptions();
+      _sanitizeFilterSelections();
+      update();
+      return;
+    }
     _isFilterOptionsLoading = true;
     update();
 

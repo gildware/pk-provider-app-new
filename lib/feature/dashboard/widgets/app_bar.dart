@@ -7,11 +7,12 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
   final Color color;
   final bool fromBookingRequest;
+  final bool showBackButton;
   final  double? titleFontSize;
   const MainAppBar({
     super.key,
     this.title,
-    required this.color, this.fromBookingRequest = false, this.titleFontSize,
+    required this.color, this.fromBookingRequest = false, this.showBackButton = false, this.titleFontSize,
   });
 
   @override
@@ -28,14 +29,23 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
           surfaceTintColor: Theme.of(context).cardColor,
           backgroundColor: Theme.of(context).cardColor,
           shadowColor: Get.isDarkMode ? Theme.of(context).primaryColor.withValues(alpha:0.5) :Theme.of(context).primaryColor.withValues(alpha:0.1),
-          leading: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall + 3, vertical: Dimensions.paddingSizeExtraSmall ),
-            child: MobileAppIconHelper.homeLeadingLogo(
-              width: 40,
-              height: 40,
-              fit: BoxFit.fitWidth,
-            ),
-          ),
+          leading: showBackButton
+              ? IconButton(
+                  onPressed: () => Get.back(),
+                  icon: Icon(
+                    Icons.arrow_back_ios,
+                    size: 20,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                )
+              : Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall + 3, vertical: Dimensions.paddingSizeExtraSmall ),
+                  child: MobileAppIconHelper.homeLeadingLogo(
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.fitWidth,
+                  ),
+                ),
           title: title!=null?
           Text(title!.tr,
             style: robotoBold.copyWith(
@@ -61,6 +71,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
             SizedBox(width: Dimensions.fontSizeExtraSmall),
 
+            // Post/bidding shortcut — hidden unless enabled via admin (Mobile App Management → App Features).
             (fromBookingRequest && Get.find<SplashController>().configModel.content?.biddingStatus==1)?
             Row(
               children: [

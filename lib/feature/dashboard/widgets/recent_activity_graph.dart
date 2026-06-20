@@ -1,3 +1,4 @@
+import 'package:demandium_provider/helper/extension_helper.dart';
 import 'package:demandium_provider/util/core_export.dart';
 import 'package:get/get.dart';
 
@@ -6,99 +7,142 @@ class RecentActivityGraph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<DashboardController>(builder: (dashboardController){
-      return SizedBox(height: 290,
-        child: Column(children: [
-          const SizedBox(height: Dimensions.paddingSizeDefault),
-          Expanded(
-            child: PieChart(
-              PieChartData(
-                borderData: FlBorderData(
-                  show: false,
-                ),
-                sectionsSpace: 0,
-                centerSpaceRadius: 50,
-                sections: showingSections(dashboardController),
-              ),
-            ),
-          ),
-          const SizedBox(height: Dimensions.paddingSizeDefault),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            const Icon(Icons.circle,color: Colors.blue,size: 15,),
-            const SizedBox(width: 5,),
-            Text(
-              "total_normal_booking".tr,
-              style: robotoRegular.copyWith(fontSize: 12),
-            ),
-          ]),
-          const SizedBox(height: Dimensions.paddingSizeSmall),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(Icons.circle,color: Colors.cyan.shade300,size: 15,),
-            const SizedBox(width: 5,),
-            Text(
-              "total_customized_booking".tr,
-              style: robotoRegular.copyWith(fontSize: 12),
-            ),
-          ]),
-          const SizedBox(height: Dimensions.paddingSizeLarge),
+    return GetBuilder<DashboardController>(builder: (dashboardController) {
+      final stats = dashboardController.bookingStatusStats;
+      final totalBookings = dashboardController.totalBookings;
 
-        ]),
+      return SizedBox(
+        height: stats.length > 4 ? 360 : 320,
+        child: Column(
+          children: [
+            const SizedBox(height: Dimensions.paddingSizeDefault),
+            Expanded(
+              child: stats.isEmpty
+                  ? Center(
+                      child: Text(
+                        'no_data_found'.tr,
+                        style: robotoRegular.copyWith(
+                          color: Theme.of(context).hintColor,
+                        ),
+                      ),
+                    )
+                  : Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        PieChart(
+                          PieChartData(
+                            borderData: FlBorderData(show: false),
+                            sectionsSpace: 1.5,
+                            centerSpaceRadius: 52,
+                            sections: _buildSections(context, stats, totalBookings),
+                          ),
+                        ),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              totalBookings.toString(),
+                              style: robotoBold.copyWith(
+                                fontSize: Dimensions.fontSizeExtraLarge,
+                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                              ),
+                            ),
+                            Text(
+                              'total_booking'.tr,
+                              style: robotoRegular.copyWith(
+                                fontSize: Dimensions.fontSizeSmall,
+                                color: Theme.of(context).hintColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+            ),
+            if (stats.isNotEmpty) ...[
+              const SizedBox(height: Dimensions.paddingSizeSmall),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Dimensions.paddingSizeDefault,
+                ),
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: Dimensions.paddingSizeDefault,
+                  runSpacing: Dimensions.paddingSizeSmall,
+                  children: stats.map((item) {
+                    return _LegendItem(
+                      color: _statusColor(context, item.status),
+                      label: item.status.tr,
+                      count: item.count,
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+            const SizedBox(height: Dimensions.paddingSizeLarge),
+          ],
+        ),
       );
     });
   }
 
-  List<PieChartSectionData> showingSections(DashboardController dashboardController) {
+  List<PieChartSectionData> _buildSections(
+    BuildContext context,
+    List<BookingStatusStat> stats,
+    int totalBookings,
+  ) {
+    if (totalBookings <= 0) {
+      return [
+        PieChartSectionData(
+          color: Theme.of(context).hintColor.withValues(alpha: 0.35),
+          value: 1,
+          title: '',
+          radius: 40,
+        ),
+      ];
+    }
 
-    int pendingCustomisedPost = dashboardController.additionalInfoCount?.customizedPostCount ?? 0;
-    int pendingBookingRequest = dashboardController.additionalInfoCount?.pendingBookingCount ?? 0;
-    int totalCount = pendingBookingRequest + pendingCustomisedPost;
+    return stats.map((item) {
+      final percentage = (item.count * 100) / totalBookings;
+      return PieChartSectionData(
+        color: _statusColor(context, item.status),
+        value: item.count.toDouble(),
+        title: percentage >= 8 ? item.count.toString() : '',
+        radius: 38,
+        titleStyle: robotoMedium.copyWith(color: Colors.white, fontSize: 12),
+      );
+    }).toList();
+  }
 
+  Color _statusColor(BuildContext context, String status) {
+    return context.customThemeColors.buttonTextColorMap[status] ??
+        Theme.of(context).primaryColor;
+  }
+}
 
-    double pendingCustomisedPostPercentage = (pendingCustomisedPost  * 100) / totalCount;
-    double pendingBookingRequestPercentage = (pendingBookingRequest  * 100) / totalCount;
+class _LegendItem extends StatelessWidget {
+  final Color color;
+  final String label;
+  final int count;
 
+  const _LegendItem({
+    required this.color,
+    required this.label,
+    required this.count,
+  });
 
-
-    return totalCount > 0 ? List.generate(2, (i) {
-      const radius =  35.0;
-      switch (i) {
-        case 0:
-          return PieChartSectionData(
-            color: Colors.cyan.shade300,
-            value: pendingCustomisedPostPercentage ,
-            title: pendingCustomisedPost.toString(),
-            radius: radius,
-            titleStyle: robotoMedium.copyWith(color: Colors.white),
-          );
-        case 1:
-          return PieChartSectionData(
-            color: Colors.blue,
-            value: pendingBookingRequestPercentage,
-            title:  pendingBookingRequest.toString(),
-            radius: radius,
-            titleStyle: robotoMedium.copyWith(color: Colors.white),
-          );
-
-        default:
-          throw Error();
-      }
-    }):List.generate(1, (i) {
-      const radius =  40.0;
-      switch (i) {
-        case 0:
-          return PieChartSectionData(
-            color: Theme.of(Get.context!).hintColor.withValues(alpha:0.6),
-            value: 1.0,
-            title: "",
-            radius: radius,
-            titleStyle: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Color(0xffffffff),
-            ),
-          );
-        default:
-          throw Error();
-      }
-    });
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.circle, color: color, size: 12),
+        const SizedBox(width: 4),
+        Text(
+          '$label ($count)',
+          style: robotoRegular.copyWith(fontSize: 12),
+        ),
+      ],
+    );
   }
 }

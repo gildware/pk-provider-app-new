@@ -2,7 +2,7 @@ import 'package:demandium_provider/feature/service_details/model/service_details
 
 class DashboardRecentActivityModel {
   String? id;
-  int? readableId;
+  String? readableId;
   String? customerId;
   String? providerId;
   String? zoneId;
@@ -56,9 +56,7 @@ class DashboardRecentActivityModel {
 
   DashboardRecentActivityModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
-    readableId = json['readable_id'] is int
-        ? json['readable_id'] as int?
-        : int.tryParse('${json['readable_id']}');
+    readableId = json['readable_id']?.toString();
     customerId = json['customer_id'];
     providerId = json['provider_id'];
     zoneId = json['zone_id'];

@@ -6,11 +6,18 @@ class DashBoardRepo{
   final SharedPreferences sharedPreferences;
   DashBoardRepo({required this.apiClient,required this.sharedPreferences});
 
-  Future<Response> getDashBoardData() async {
+  Future<Response> getDashBoardData({bool includeCustomizedPost = true}) async {
     // SERVICEMAN_DISABLED: omit serviceman_list until AppFeatureFlags.servicemanEnabled
-    return await apiClient.getData(
-      "${AppConstants.dashboardUri}?sections=top_cards,earning_stats,booking_stats,recent_bookings,my_subscriptions,customized_post,additional_info_count",
-    );
+    final sections = [
+      'top_cards',
+      'earning_stats',
+      'booking_stats',
+      'recent_bookings',
+      'my_subscriptions',
+      if (includeCustomizedPost) 'customized_post',
+      'additional_info_count',
+    ].join(',');
+    return await apiClient.getData("${AppConstants.dashboardUri}?sections=$sections");
   }
 
   Future<Response> getYearlyDashBoardChartData(String year) async {

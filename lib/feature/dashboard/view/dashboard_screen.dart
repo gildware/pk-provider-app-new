@@ -38,6 +38,7 @@ class _DashBoardScreenState extends State<DashBoardScreen>{
     if (bundleLoaded) {
       final businessSettings = Get.find<BusinessSettingController>();
       await Future.wait([
+        Get.find<DashboardController>().getEarningData(),
         Get.find<PaymentsController>().loadOverview(),
         businessSettings.getBookingSettingsDataFromServer(),
         businessSettings.getServiceAvailabilitySettingsFromServer(),

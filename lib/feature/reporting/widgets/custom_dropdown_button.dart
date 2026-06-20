@@ -38,12 +38,13 @@ class _ReportCustomDropdownButtonState extends State<ReportCustomDropdownButton>
       width:widget.width ?? MediaQuery.of(context).size.width,
       margin: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
       child: DropdownButtonFormField<String>(
+        key: ValueKey('${widget.label}_${widget.items.length}_${widget.value}'),
         menuMaxHeight: MediaQuery.of(context).size.height/2,
         dropdownColor: widget.dropdownBackgroundColor ?? Theme.of(context).cardColor,
         hint:  Text( widget.value !=null ? 'Not available' :'select'.tr, maxLines: 1,overflow: TextOverflow.ellipsis,
           style: robotoRegular.copyWith(color: widget.value !=null ? Theme.of(context).textTheme.bodyLarge!.color : Theme.of(context).hintColor),
         ),
-        initialValue: widget.value != null && widget.items.contains(widget.value)
+        value: widget.value != null && widget.items.contains(widget.value)
             ? widget.value
             : null,
         items: widget.items.map((String value) {

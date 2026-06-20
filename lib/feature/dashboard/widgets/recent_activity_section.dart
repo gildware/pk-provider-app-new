@@ -12,9 +12,17 @@ class RecentActivitySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<DashboardController>(builder: (dashboardController){
-      return dashboardController.dashboardRecentActivityList.isEmpty && dashboardController.dashboardCustomizedPostList.isEmpty ?
-      const SizedBox()
-      : Container(
+      final isBiddingEnabled = dashboardController.isBiddingEnabled;
+      final hasNormalBookings = dashboardController.dashboardRecentActivityList.isNotEmpty;
+      final hasCustomizedBookings =
+          isBiddingEnabled && dashboardController.dashboardCustomizedPostList.isNotEmpty;
+      final hasBookingStats = dashboardController.totalBookings > 0;
+
+      if (!hasNormalBookings && !hasCustomizedBookings && !hasBookingStats) {
+        return const SizedBox();
+      }
+
+      return Container(
         decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             boxShadow: context.customThemeColors.cardBottomShadow
@@ -48,7 +56,7 @@ class RecentActivitySection extends StatelessWidget {
             dashboardController.showRecentActivityList ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TabBar(
+                if (isBiddingEnabled) TabBar(
                   controller: dashboardController.tabController,
                   unselectedLabelColor: Colors.grey,
                   isScrollable: true,
@@ -72,7 +80,7 @@ class RecentActivitySection extends StatelessWidget {
                     }
                   },
                 ),
-                SizedBox(height: Dimensions.paddingSizeDefault),
+                if (isBiddingEnabled) SizedBox(height: Dimensions.paddingSizeDefault),
 
                 const RecentActivityListView(),
               ],

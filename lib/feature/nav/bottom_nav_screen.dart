@@ -46,6 +46,12 @@ class BottomNavScreenState extends State<BottomNavScreen> {
   List<Widget>? _screens;
   bool _canExit = GetPlatform.isWeb ? true : false;
 
+  /// Bidding/post system — controlled by admin (Mobile App Management → App Features).
+  bool get _isBiddingEnabled =>
+      Get.find<SplashController>().configModel.content?.biddingStatus == 1;
+
+  int get _moreTabIndex => _isBiddingEnabled ? 3 : 2;
+
   @override
   void initState() {
     super.initState();
@@ -53,8 +59,9 @@ class BottomNavScreenState extends State<BottomNavScreen> {
     if(!widget.formTutorial) {
       BottomNavScreen.loadData(pageIndex: widget.pageIndex);
     }
-    _pageIndex = widget.pageIndex;
-    _pageController = PageController(initialPage: widget.pageIndex);
+    final initialPage = widget.pageIndex == 2 && !_isBiddingEnabled ? 0 : widget.pageIndex;
+    _pageIndex = initialPage;
+    _pageController = PageController(initialPage: initialPage);
 
     Future.delayed(const Duration(seconds: 1), () {
       setState(() {});
@@ -67,7 +74,8 @@ class BottomNavScreenState extends State<BottomNavScreen> {
     _screens = [
       const DashBoardScreen(),
       const BookingRequestScreen(),
-      const CustomerRequestListScreen(embeddedInBottomNav: true),
+      // Post/bidding tab — hidden unless enabled via admin (Mobile App Management → App Features).
+      if (_isBiddingEnabled) const CustomerRequestListScreen(embeddedInBottomNav: true),
       Text("more".tr),
     ];
 
@@ -111,14 +119,16 @@ class BottomNavScreenState extends State<BottomNavScreen> {
                 child: Row(children: [
                   _getBottomNavItem(0, iconKey: 'bottom_dashboard', fallbackAsset: Images.dashboard, title: 'dashboard'.tr),
                   _getBottomNavItem(1, iconKey: 'bottom_requests', fallbackAsset: Images.requests, title: 'requests'.tr),
-                  _getBottomNavItem(
-                    2,
-                    iconKey: 'post',
-                    fallbackAsset: Images.customPostIcon,
-                    title: 'post'.tr,
-                    showBadge: showPostBadge,
-                  ),
-                  _getBottomNavItem(3, iconKey: 'bottom_more', fallbackAsset: Images.more, title: 'more'.tr),
+                  // Post/bidding tab — hidden unless enabled via admin (Mobile App Management → App Features).
+                  if (_isBiddingEnabled)
+                    _getBottomNavItem(
+                      2,
+                      iconKey: 'post',
+                      fallbackAsset: Images.customPostIcon,
+                      title: 'post'.tr,
+                      showBadge: showPostBadge,
+                    ),
+                  _getBottomNavItem(_moreTabIndex, iconKey: 'bottom_more', fallbackAsset: Images.more, title: 'more'.tr),
                 ]),
               );
             }),
@@ -145,7 +155,7 @@ class BottomNavScreenState extends State<BottomNavScreen> {
   }
 
   void _setPage(int pageIndex) {
-    if(pageIndex == 3) {
+    if(pageIndex == _moreTabIndex) {
       Get.find<UserProfileController>().trialWidgetShow(route: "show-dialog");
       Get.bottomSheet(
         const MenuScreen(),
@@ -154,7 +164,7 @@ class BottomNavScreenState extends State<BottomNavScreen> {
       ).then((_){
         Get.find<UserProfileController>().trialWidgetShow(route: "");
       });
-    } else if (pageIndex == 2) {
+    } else if (_isBiddingEnabled && pageIndex == 2) {
       _openPostTab();
     } else {
       setState(() {

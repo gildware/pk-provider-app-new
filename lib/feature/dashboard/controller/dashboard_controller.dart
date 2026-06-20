@@ -26,6 +26,8 @@ class  DashboardController extends GetxController with GetSingleTickerProviderSt
   List<DashboardRecentActivityModel> dashboardRecentActivityList=[];
   List<SubscriptionModelData> dashboardSubscriptionList=[];
   List<PostData> dashboardCustomizedPostList = [];
+  List<BookingStatusStat> bookingStatusStats = [];
+  int totalBookings = 0;
 
   bool _showNormalBooking = true;
   bool get showNormalBooking => _showNormalBooking;
@@ -43,6 +45,9 @@ class  DashboardController extends GetxController with GetSingleTickerProviderSt
 
   EarningDataModel? _earningDataModel;
   EarningDataModel? get earningDataModel => _earningDataModel;
+
+  bool get isBiddingEnabled =>
+      Get.find<SplashController>().configModel.content?.biddingStatus == 1;
 
 
   void changeTypeOfShowBookingStatus({required bool status, bool shouldUpdate = true}){
@@ -85,40 +90,15 @@ class  DashboardController extends GetxController with GetSingleTickerProviderSt
       dashboardTopCards = null;
     }
 
-    Response response = await dashBoardRepo.getDashBoardData();
+    Response response = await dashBoardRepo.getDashBoardData(
+      includeCustomizedPost: isBiddingEnabled,
+    );
 
     if(response.statusCode==200){
-      dashboardTopCards = DashboardTopCards.fromJson(response.body['content'][0]['top_cards']);
-
-      dashboardRecentActivityList = [];
-      List<dynamic> resentList = response.body['content'][3]['recent_bookings'];
-      for (var element in resentList) {
-        dashboardRecentActivityList.add(DashboardRecentActivityModel.fromJson(element));
+      final sections = response.body['content'];
+      if (sections is List) {
+        applyHomeBundleDashboard(sections);
       }
-
-
-      dashboardSubscriptionList=[];
-      List<dynamic> subscriptionList = response.body['content'][4]['subscriptions'];
-      for (var element in subscriptionList) {
-        dashboardSubscriptionList.add(SubscriptionModelData.fromJson(element));
-      }
-
-      // SERVICEMAN_DISABLED: serviceman_list section removed from dashboard API request
-      dashboardServicemanList = [];
-
-      dashboardCustomizedPostList = [];
-      List<dynamic> customizedPost = response.body['content'][5]['customized_post'];
-      for (var element in customizedPost) {
-        dashboardCustomizedPostList.add(PostData.fromJson(element));
-      }
-
-      additionalInfoCount = AdditionalInfoCount.fromJson(response.body['content'][6]['additional_info_count']);
-
-      if(dashboardRecentActivityList.isEmpty && dashboardCustomizedPostList.isNotEmpty){
-        tabController?.index = 1;
-        _showNormalBooking = false;
-      }
-
     }
     else{
       ApiChecker.checkApi(response);
@@ -178,19 +158,54 @@ class  DashboardController extends GetxController with GetSingleTickerProviderSt
         for (final element in customizedPost) {
           dashboardCustomizedPostList.add(PostData.fromJson(element));
         }
+      } else if (map.containsKey('booking_stats')) {
+        _applyBookingStats(map);
       } else if (map.containsKey('additional_info_count')) {
         additionalInfoCount = AdditionalInfoCount.fromJson(map['additional_info_count']);
       }
     }
 
     dashboardServicemanList = [];
+    _finalizeRecentActivityState();
+
+    update();
+  }
+
+  void _applyBookingStats(Map<String, dynamic> map) {
+    bookingStatusStats = [];
+    final rawStats = map['booking_stats'];
+    if (rawStats is List) {
+      for (final element in rawStats) {
+        if (element is Map) {
+          bookingStatusStats.add(
+            BookingStatusStat.fromJson(Map<String, dynamic>.from(element)),
+          );
+        }
+      }
+    }
+    bookingStatusStats = BookingStatusStat.sorted(bookingStatusStats);
+    totalBookings = int.tryParse('${map['total_bookings']}') ??
+        bookingStatusStats.fold(0, (sum, item) => sum + item.count);
+  }
+
+  void _finalizeRecentActivityState() {
+    if (!isBiddingEnabled) {
+      dashboardCustomizedPostList = [];
+      if (additionalInfoCount != null) {
+        additionalInfoCount!.customizedPostCount = 0;
+      }
+      _showNormalBooking = true;
+      tabController?.index = 0;
+      return;
+    }
 
     if (dashboardRecentActivityList.isEmpty && dashboardCustomizedPostList.isNotEmpty) {
       tabController?.index = 1;
       _showNormalBooking = false;
+    } else {
+      _showNormalBooking = true;
+      tabController?.index = 0;
     }
-
-    update();
   }
 
   void applyHomeBundleEarning(Map<String, dynamic> earning) {

@@ -117,6 +117,14 @@ class BookingReportController extends GetxController implements GetxService {
 
   Future<void> prepareBookingReportFilterOptions() async {
     if (_isFilterOptionsLoading) return;
+    if (_zoneNameList.isNotEmpty &&
+        _categoryNameList.isNotEmpty &&
+        _subscribedBookingFilterSource.isNotEmpty) {
+      _rebuildSubcategoryFilterOptions();
+      _sanitizeFilterSelections();
+      update();
+      return;
+    }
     _isFilterOptionsLoading = true;
     update();
 

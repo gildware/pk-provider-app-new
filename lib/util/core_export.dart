@@ -141,6 +141,7 @@ export 'package:demandium_provider/util/month_map.dart';
 export 'package:demandium_provider/feature/dashboard/model/dashboard_serviceman_model.dart';
 export 'package:demandium_provider/feature/dashboard/model/dashboard_top_cards.dart';
 export 'package:demandium_provider/feature/dashboard/model/graph_data_model.dart';
+export 'package:demandium_provider/feature/dashboard/model/dashboard_booking_stats_model.dart';
 export 'package:demandium_provider/feature/dashboard/widgets/app_bar.dart';
 export 'package:demandium_provider/feature/notifications/view/notification_screen.dart';
 export 'package:demandium_provider/feature/dashboard/widgets/dashboard_shimmer.dart';
