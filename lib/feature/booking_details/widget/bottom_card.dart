@@ -12,6 +12,7 @@ class BottomCard extends StatelessWidget {
     this.address,
     this.avgRating,
     this.ratingCount,
+    this.showRating = false,
   });
 
   final String name;
@@ -20,6 +21,7 @@ class BottomCard extends StatelessWidget {
   final String? address;
   final double? avgRating;
   final int? ratingCount;
+  final bool showRating;
 
   @override
   Widget build(BuildContext context) {
@@ -52,11 +54,11 @@ class BottomCard extends StatelessWidget {
           Text(phone, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault,
               color: Theme.of(context).textTheme.bodyLarge!.color!.withValues(alpha:0.7))),
 
-          if (avgRating != null) ...[
+          if (showRating) ...[
             const SizedBox(height: Dimensions.paddingSizeSmall),
             RatingBar(
               rating: avgRating ?? 0,
-              ratingCount: ratingCount,
+              ratingCount: ratingCount ?? 0,
               size: 16,
             ),
           ],

@@ -868,8 +868,12 @@ class Customer {
     isEmailVerified = json['is_email_verified'];
     isActive = json['is_active'];
     userType = json['user_type'];
-    receivedAvgRating = double.tryParse(json['received_avg_rating']?.toString() ?? '');
-    receivedRatingCount = json['received_rating_count'];
+    receivedAvgRating = json['received_avg_rating'] != null
+        ? double.tryParse(json['received_avg_rating'].toString())
+        : null;
+    receivedRatingCount = json['received_rating_count'] != null
+        ? int.tryParse(json['received_rating_count'].toString())
+        : null;
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
   }

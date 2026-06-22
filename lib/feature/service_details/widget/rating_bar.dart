@@ -11,10 +11,12 @@ class RatingBar extends StatelessWidget {
     List<Widget> starList = [];
     int realNumber = rating.floor();
     bool partNumber = (rating - realNumber) > 0;
+    final starColor = Theme.of(context).colorScheme.tertiary;
+    final emptyStarColor = Theme.of(context).hintColor;
 
     for (int i = 0; i < 5; i++) {
       if (i < realNumber) {
-        starList.add(Icon(Icons.star_rate_rounded, color: Theme.of(context).colorScheme.tertiary, size: size ));
+        starList.add(Icon(Icons.star_rate_rounded, color: starColor, size: size ));
       } else if (i == realNumber && partNumber) {
         starList.add(SizedBox(
           height: size,
@@ -22,19 +24,20 @@ class RatingBar extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Icon(Icons.star_half_rounded, color: Theme.of(context).colorScheme.tertiary, size: size),
-
+              Icon(Icons.star_half_rounded, color: starColor, size: size),
             ],
           ),
         ));
       } else {
-        starList.add(Icon(Icons.star_outline_rounded, color: Theme.of(context).colorScheme.tertiary, size: size ));
+        starList.add(Icon(Icons.star_outline_rounded, color: emptyStarColor, size: size ));
       }
     }
-    ratingCount != null ? starList.add(Padding(
-      padding: const EdgeInsets.only(left: Dimensions.paddingSizeExtraSmall),
-      child: Text('($ratingCount)', style: robotoRegular.copyWith(fontSize: size*0.8, color: Theme.of(context).disabledColor)),
-    )) : const SizedBox();
+    if (ratingCount != null) {
+      starList.add(Padding(
+        padding: const EdgeInsets.only(left: Dimensions.paddingSizeExtraSmall),
+        child: Text('($ratingCount)', style: robotoRegular.copyWith(fontSize: size*0.8, color: Theme.of(context).disabledColor)),
+      ));
+    }
 
     return Row(
       mainAxisSize: MainAxisSize.min,
