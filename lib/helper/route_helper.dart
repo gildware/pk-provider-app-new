@@ -48,6 +48,7 @@ class RouteHelper {
   static const String maintenanceRoute = '/maintenance-screen';
   static const String notificationSetup = '/notification-screen';
   static const String reviewReply = '/review-reply';
+  static const String rateCustomer = '/rate-customer';
   static const String helpAndSupport = '/help-and-support';
   static const String paymentInformation = '/payment-information';
   static const String addPaymentInfo = '/add-payment-information';
@@ -115,6 +116,10 @@ class RouteHelper {
       data = base64Encode(encoded);
     }
     return '$reviewReply?data=$data&from-page=$fromPage';
+  }
+
+  static String getRateCustomerRoute({required String bookingId, required String customerName}) {
+    return '$rateCustomer?booking_id=$bookingId&customer_name=${Uri.encodeComponent(customerName)}';
   }
 
   static String getHelpAndSupportScreen() => helpAndSupport;
@@ -245,6 +250,11 @@ class RouteHelper {
         fromPage: Get.parameters['from-page'],
       );
     }),
+
+    GetPage(name: rateCustomer, page: () => RateCustomerScreen(
+      bookingId: Get.parameters['booking_id'] ?? '',
+      customerName: Uri.decodeComponent(Get.parameters['customer_name'] ?? ''),
+    )),
 
     GetPage(name: helpAndSupport, page: () => SupportScreen()),
 

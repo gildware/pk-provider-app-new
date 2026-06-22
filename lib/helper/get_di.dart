@@ -29,6 +29,7 @@ Future<Map<String, Map<String, String>>> init() async{
   Get.lazyPut(() => ConversationRepo(apiClient: Get.find()));
   Get.lazyPut(() => SuggestServiceRepo(apiClient: Get.find()));
   Get.lazyPut(() => ReviewRepo(apiClient: Get.find()));
+  Get.lazyPut(() => CustomerReviewRepo(apiClient: Get.find()));
   Get.lazyPut(() => ProviderCacheRepo(apiClient: Get.find(), sharedPreferences: Get.find()));
   Get.lazyPut(() => DashboardBundleRepo(apiClient: Get.find(), sharedPreferences: Get.find()));
   Get.lazyPut(() => SplashRepo(sharedPreferences: Get.find(), apiClient: Get.find(), cacheRepo: Get.find()));
@@ -58,6 +59,7 @@ Future<Map<String, Map<String, String>>> init() async{
   /// Controller
   Get.lazyPut(() => ThemeController(sharedPreferences: Get.find()));
   Get.lazyPut(() => ReviewController(reviewRepo: Get.find()));
+  Get.lazyPut(() => CustomerReviewController(customerReviewRepo: Get.find()), fenix: true);
   Get.lazyPut(() => SplashController(splashRepo: Get.find()));
   Get.lazyPut(() => AuthController(authRepo: Get.find()));
   Get.lazyPut(() => PostController(postRepo: Get.find()));

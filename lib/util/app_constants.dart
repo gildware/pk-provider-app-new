@@ -80,6 +80,8 @@ class AppConstants {
   static const String getServiceReviewList = '/api/v1/provider/service/review';
   static const String getProviderReviewList = '/api/v1/provider/review';
   static const String reviewReply = '/api/v1/provider/review-reply';
+  static const String customerReview = '/api/v1/provider/customer-review';
+  static const String submitCustomerReview = '/api/v1/provider/customer-review/submit';
   static const String pagesDetailsApi = '/api/v1/customer/config/page-details';
   static const String getBookingReportList = '/api/v1/provider/report/booking';
   static const String getBusinessExpenseList = '/api/v1/provider/report/business/expense';

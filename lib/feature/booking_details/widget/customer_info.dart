@@ -31,6 +31,8 @@ class BookingDetailsCustomerInfo extends StatelessWidget {
             phone:  bookingDetails.serviceAddress?.contactPersonNumber?? bookingDetails.subBooking?.serviceAddress?.contactPersonNumber ?? bookingDetails.customer?.phone?? bookingDetails.customer?.email??"",
             image: bookingDetails.customer?.profileImageFullPath ?? bookingDetails.subBooking?.customer?.profileImageFullPath ?? "",
             address: bookingDetails.serviceAddress?.address ?? bookingDetails.subBooking?.serviceAddress?.address ?? 'address_not_found'.tr,
+            avgRating: bookingDetails.customer?.receivedAvgRating ?? bookingDetails.subBooking?.customer?.receivedAvgRating,
+            ratingCount: bookingDetails.customer?.receivedRatingCount ?? bookingDetails.subBooking?.customer?.receivedRatingCount,
           )
 
         ]),

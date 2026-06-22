@@ -402,6 +402,10 @@ export 'package:demandium_provider/feature/settings/notification/widgets/notific
 export 'package:demandium_provider/feature/settings/notification/widgets/notification_setup_shimmer.dart';
 export 'package:demandium_provider/feature/language/view/language_screen.dart';
 export 'package:demandium_provider/feature/review/view/review_reply_screen.dart';
+export 'package:demandium_provider/feature/customer_review/controller/customer_review_controller.dart';
+export 'package:demandium_provider/feature/customer_review/repo/customer_review_repo.dart';
+export 'package:demandium_provider/feature/customer_review/view/customer_rating_button.dart';
+export 'package:demandium_provider/feature/customer_review/view/rate_customer_screen.dart';
 export 'package:demandium_provider/theme/custom_theme_colors.dart';
 export 'package:demandium_provider/helper/file_validation_helper.dart';
 export 'package:demandium_provider/common/widgets/image_validation_text_widget.dart';

@@ -4,12 +4,22 @@ import 'package:demandium_provider/util/core_export.dart';
 
 class BottomCard extends StatelessWidget {
 
-  const BottomCard({super.key, required this.name, required this.phone, required this.image, this.address});
+  const BottomCard({
+    super.key,
+    required this.name,
+    required this.phone,
+    required this.image,
+    this.address,
+    this.avgRating,
+    this.ratingCount,
+  });
 
   final String name;
   final String phone;
   final String image;
   final String? address;
+  final double? avgRating;
+  final int? ratingCount;
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +51,15 @@ class BottomCard extends StatelessWidget {
           const SizedBox(height: Dimensions.paddingSizeSmall,),
           Text(phone, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault,
               color: Theme.of(context).textTheme.bodyLarge!.color!.withValues(alpha:0.7))),
+
+          if (avgRating != null) ...[
+            const SizedBox(height: Dimensions.paddingSizeSmall),
+            RatingBar(
+              rating: avgRating ?? 0,
+              ratingCount: ratingCount,
+              size: 16,
+            ),
+          ],
 
           // const SizedBox(height: Dimensions.paddingSizeSmall,),
           // address != null ?

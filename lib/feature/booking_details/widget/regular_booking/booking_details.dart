@@ -119,6 +119,12 @@ class BookingDetailsWidget extends StatelessWidget {
 
                     BookingDetailsCustomerInfo(bookingDetails: bookingDetails,),
 
+                    if (!isSubBooking && bookingDetails.bookingStatus == 'completed')
+                      CustomerRatingButton(
+                        bookingId: bookingDetails.id ?? '',
+                        customerName: _resolveCustomerName(bookingDetails),
+                      ),
+
                     ServiceCompletedPhotoEvidence(bookingDetails: bookingDetails, isSubBooking: isSubBooking,),
 
                     const SizedBox(height: Dimensions.paddingSizeExtraSmall,)
@@ -213,6 +219,8 @@ class BookingEmptyScreen extends StatelessWidget {
   }
 }
 
-
-
-
+String _resolveCustomerName(BookingDetailsContent bookingDetails) {
+  final customerName = bookingDetails.serviceAddress?.contactPersonName
+      ?? '${bookingDetails.customer?.firstName ?? ''} ${bookingDetails.customer?.lastName ?? ''}'.trim();
+  return customerName.isNotEmpty ? customerName : 'customer'.tr;
+}

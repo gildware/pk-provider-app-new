@@ -830,6 +830,8 @@ class Customer {
   int? isEmailVerified;
   int? isActive;
   String? userType;
+  double? receivedAvgRating;
+  int? receivedRatingCount;
   String? createdAt;
   String? updatedAt;
 
@@ -847,6 +849,8 @@ class Customer {
       this.isEmailVerified,
       this.isActive,
       this.userType,
+      this.receivedAvgRating,
+      this.receivedRatingCount,
       this.createdAt,
       this.updatedAt});
 
@@ -864,6 +868,8 @@ class Customer {
     isEmailVerified = json['is_email_verified'];
     isActive = json['is_active'];
     userType = json['user_type'];
+    receivedAvgRating = double.tryParse(json['received_avg_rating']?.toString() ?? '');
+    receivedRatingCount = json['received_rating_count'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
   }
@@ -883,6 +889,8 @@ class Customer {
     data['is_email_verified'] = isEmailVerified;
     data['is_active'] = isActive;
     data['user_type'] = userType;
+    data['received_avg_rating'] = receivedAvgRating;
+    data['received_rating_count'] = receivedRatingCount;
     data['created_at'] = createdAt;
     data['updated_at'] = updatedAt;
     return data;
