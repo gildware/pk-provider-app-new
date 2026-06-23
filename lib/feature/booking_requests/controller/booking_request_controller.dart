@@ -170,6 +170,15 @@ class BookingRequestController extends GetxController implements GetxService {
     }
   }
 
+  void resetOnAuthChange() {
+    _bookingRequestList = null;
+    _bookingCount = null;
+    _selectedBookingStatus = 'pending';
+    _offset = 1;
+    _pageSize = null;
+    update([bookingListUpdateId, bookingTabsUpdateId]);
+  }
+
   void removeBookingItemFromList(String bookingId,  {bool shouldUpdate = false, required String bookingStatus}){
 
     if(bookingStatus != "all"){

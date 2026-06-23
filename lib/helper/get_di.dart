@@ -59,7 +59,10 @@ Future<Map<String, Map<String, String>>> init() async{
   /// Controller
   Get.lazyPut(() => ThemeController(sharedPreferences: Get.find()));
   Get.lazyPut(() => ReviewController(reviewRepo: Get.find()));
-  Get.lazyPut(() => CustomerReviewController(customerReviewRepo: Get.find()), fenix: true);
+  Get.lazyPut(
+    () => CustomerReviewController(customerReviewRepo: Get.find<CustomerReviewRepo>()),
+    fenix: true,
+  );
   Get.lazyPut(() => SplashController(splashRepo: Get.find()));
   Get.lazyPut(() => AuthController(authRepo: Get.find()));
   Get.lazyPut(() => PostController(postRepo: Get.find()));

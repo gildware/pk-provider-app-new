@@ -1,3 +1,5 @@
+import 'package:demandium_provider/common/repo/provider_cache_repo.dart';
+import 'package:demandium_provider/feature/dashboard/helper/dashboard_bundle_helper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
@@ -40,6 +42,7 @@ class AuthController extends GetxController implements GetxService {
         authRepo.clearUserNumberAndPassword();
       }
       authRepo.saveUserToken(response.body['content']["token"]);
+      await _resetProviderSessionState();
       await Get.find<UserProfileController>().getProviderInfo();
       await authRepo.updateToken();
       Get.offAllNamed(RouteHelper.initial);
@@ -247,6 +250,7 @@ class AuthController extends GetxController implements GetxService {
     ResponseModel responseModel;
     if (response.statusCode == 200 && response.body['response_code'] == 'auth_login_200') {
       authRepo.saveUserToken(response.body['content']['token']);
+      await _resetProviderSessionState();
       await Get.find<UserProfileController>().getProviderInfo();
       await authRepo.updateToken();
       Get.offAllNamed(RouteHelper.initial);
@@ -388,7 +392,19 @@ class AuthController extends GetxController implements GetxService {
   }
 
   bool clearSharedData() {
+    _resetProviderSessionState();
     return authRepo.clearSharedData();
+  }
+
+  Future<void> _resetProviderSessionState() async {
+    await Get.find<ProviderCacheRepo>().clearProviderApiCache();
+    DashboardBundleHelper.reset();
+    if (Get.isRegistered<DashboardController>()) {
+      Get.find<DashboardController>().resetOnAuthChange();
+    }
+    if (Get.isRegistered<BookingRequestController>()) {
+      Get.find<BookingRequestController>().resetOnAuthChange();
+    }
   }
 
   void toggleRememberMe() {

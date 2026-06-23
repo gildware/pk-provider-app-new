@@ -92,4 +92,13 @@ class ProviderCacheRepo {
   }
 
   bool _isCacheDisabled() => AppConstants.cachesType == LocalCachesTypeEnum.none;
+
+  Future<void> clearProviderApiCache() async {
+    final keys = sharedPreferences.getKeys().where(
+      (key) => key.startsWith('/api/v1/provider') && key.contains('::lang:'),
+    );
+    for (final key in keys) {
+      await sharedPreferences.remove(key);
+    }
+  }
 }

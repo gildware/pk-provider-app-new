@@ -20,9 +20,7 @@ class _RateCustomerScreenState extends State<RateCustomerScreen> {
   @override
   void initState() {
     super.initState();
-    if (!Get.isRegistered<CustomerReviewController>()) {
-      Get.lazyPut(() => CustomerReviewController(customerReviewRepo: Get.find()));
-    }
+    CustomerReviewController.ensureDependencies();
     Get.find<CustomerReviewController>().loadCustomerReview(widget.bookingId);
   }
 

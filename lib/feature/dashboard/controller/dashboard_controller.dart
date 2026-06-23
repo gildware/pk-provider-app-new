@@ -131,6 +131,21 @@ class  DashboardController extends GetxController with GetSingleTickerProviderSt
     }
   }
 
+  void resetOnAuthChange() {
+    dashboardTopCards = null;
+    dashboardRecentActivityList = [];
+    dashboardSubscriptionList = [];
+    dashboardCustomizedPostList = [];
+    dashboardServicemanList = [];
+    bookingStatusStats = [];
+    totalBookings = 0;
+    additionalInfoCount = null;
+    _earningDataModel = null;
+    _showNormalBooking = true;
+    _showRecentActivityList = true;
+    update();
+  }
+
   void applyHomeBundleDashboard(List<dynamic> sections) {
     for (final section in sections) {
       if (section is! Map) continue;

@@ -8,6 +8,20 @@ class CustomerReviewController extends GetxController {
 
   CustomerReviewController({required this.customerReviewRepo});
 
+  static void ensureDependencies() {
+    if (!Get.isRegistered<CustomerReviewRepo>()) {
+      Get.lazyPut(() => CustomerReviewRepo(apiClient: Get.find()));
+    }
+    if (!Get.isRegistered<CustomerReviewController>()) {
+      Get.lazyPut(
+        () => CustomerReviewController(
+          customerReviewRepo: Get.find<CustomerReviewRepo>(),
+        ),
+        fenix: true,
+      );
+    }
+  }
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 

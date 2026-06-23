@@ -29,6 +29,7 @@ class _CustomerRatingButtonState extends State<CustomerRatingButton> {
   Future<void> _loadReviewStatus() async {
     var hasReview = false;
     try {
+      CustomerReviewController.ensureDependencies();
       final controller = Get.find<CustomerReviewController>();
       hasReview = await controller.checkReviewExists(widget.bookingId);
     } catch (_) {
