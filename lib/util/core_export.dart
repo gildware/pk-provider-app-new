@@ -22,6 +22,7 @@ export 'package:image_picker/image_picker.dart';
 export 'package:demandium_provider/common/model/error_response.dart';
 export 'package:get/get_connect/http/src/request/request.dart';
 export 'package:demandium_provider/api/api_checker.dart';
+export 'package:demandium_provider/helper/silent_api_context.dart';
 export 'package:demandium_provider/feature/auth/repository/auth_repo.dart';
 export 'package:demandium_provider/feature/auth/model/signup_body.dart';
 export 'package:demandium_provider/common/model/response_model.dart';

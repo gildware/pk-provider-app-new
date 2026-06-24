@@ -39,12 +39,18 @@ class ApiClient extends GetxService {
     );
   }
   void updateHeader(String? token, String? languageCode) {
+    final resolvedToken = (token != null && token.isNotEmpty && token != 'null')
+        ? token
+        : null;
+    this.token = resolvedToken;
+
     _mainHeaders = {
       'Content-Type': 'application/json; charset=UTF-8',
-      'Authorization': 'Bearer $token',
       AppConstants.localizationKey: languageCode ?? AppConstants.languages[0].languageCode!,
-
     };
+    if (resolvedToken != null) {
+      _mainHeaders['Authorization'] = 'Bearer $resolvedToken';
+    }
   }
 
   Future<Response> getData(String uri, {Map<String, dynamic>? query, Map<String, String>? headers}) async {

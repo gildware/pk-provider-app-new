@@ -1,5 +1,6 @@
 import 'package:demandium_provider/common/repo/provider_cache_repo.dart';
 import 'package:demandium_provider/feature/dashboard/helper/dashboard_bundle_helper.dart';
+import 'package:demandium_provider/helper/error_logger.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
@@ -42,14 +43,10 @@ class AuthController extends GetxController implements GetxService {
         authRepo.clearUserNumberAndPassword();
       }
       authRepo.saveUserToken(response.body['content']["token"]);
-      await _resetProviderSessionState();
-      await Get.find<UserProfileController>().getProviderInfo();
-      await authRepo.updateToken();
-      Get.offAllNamed(RouteHelper.initial);
-      Get.find<SplashController>().updateLanguage(true);
-      showCustomSnackBar("successfully_logged_in".tr, type: ToasterMessageType.success);
       _isLoading = false;
       update();
+      Get.offAllNamed(RouteHelper.initial);
+      _completeProviderLogin();
     }
     else if((response.body['response_code']=='unverified_email_401' || response.body['response_code']=='unverified_phone_401') && response.statusCode==401){
 
@@ -246,39 +243,45 @@ class AuthController extends GetxController implements GetxService {
   Future<ResponseModel> verifyOtpForProviderLogin({required String phone, required String otp}) async {
     _isLoading = true;
     update();
-    Response response = await authRepo.verifyProviderLoginOtp(phone: phone, otp: otp);
     ResponseModel responseModel;
-    if (response.statusCode == 200 && response.body['response_code'] == 'auth_login_200') {
-      authRepo.saveUserToken(response.body['content']['token']);
-      await _resetProviderSessionState();
-      await Get.find<UserProfileController>().getProviderInfo();
-      await authRepo.updateToken();
-      Get.offAllNamed(RouteHelper.initial);
-      Get.find<SplashController>().updateLanguage(true);
-      showCustomSnackBar('successfully_logged_in'.tr, type: ToasterMessageType.success);
-      responseModel = ResponseModel(true, 'successfully_logged_in'.tr);
-    } else if (response.statusCode == 200 && response.body['response_code'] == 'provider_onboarding_200') {
-      final content = response.body['content'];
-      final verifiedPhone = content is Map ? (content['phone']?.toString() ?? phone) : phone;
-      final token = content is Map ? content['registration_token']?.toString() : null;
-      if (token != null && token.isNotEmpty) {
-        await authRepo.persistRegistrationSession(token: token, phone: verifiedPhone);
+    try {
+      final response = await authRepo.verifyProviderLoginOtp(phone: phone, otp: otp);
+      if (response.statusCode == 200 && response.body['response_code'] == 'auth_login_200') {
+        authRepo.saveUserToken(response.body['content']['token']);
+        responseModel = ResponseModel(true, 'successfully_logged_in'.tr);
+        _isLoading = false;
+        update();
+        Get.offAllNamed(RouteHelper.initial);
+        _completeProviderLogin();
+        return responseModel;
       }
-      final draft = content is Map ? content['draft'] : null;
-      Get.offAllNamed(
-        RouteHelper.signUp,
-        parameters: {
-          'verified_phone': verifiedPhone,
-          if (token != null && token.isNotEmpty) 'registration_token': token,
-        },
-        arguments: draft is Map ? {'draft': draft, 'verified_phone': verifiedPhone} : {'verified_phone': verifiedPhone},
-      );
-      responseModel = ResponseModel(true, '');
-    } else {
-      responseModel = _checkWrongOtp(response);
+      if (response.statusCode == 200 && response.body['response_code'] == 'provider_onboarding_200') {
+        final content = response.body['content'];
+        final verifiedPhone = content is Map ? (content['phone']?.toString() ?? phone) : phone;
+        final token = content is Map ? content['registration_token']?.toString() : null;
+        if (token != null && token.isNotEmpty) {
+          await authRepo.persistRegistrationSession(token: token, phone: verifiedPhone);
+        }
+        final draft = content is Map ? content['draft'] : null;
+        Get.offAllNamed(
+          RouteHelper.signUp,
+          parameters: {
+            'verified_phone': verifiedPhone,
+            if (token != null && token.isNotEmpty) 'registration_token': token,
+          },
+          arguments: draft is Map ? {'draft': draft, 'verified_phone': verifiedPhone} : {'verified_phone': verifiedPhone},
+        );
+        responseModel = ResponseModel(true, '');
+      } else {
+        responseModel = _checkWrongOtp(response);
+      }
+    } catch (e, stack) {
+      ErrorLogger.record(e, stack, reason: 'AuthController.verifyOtpForProviderLogin');
+      responseModel = ResponseModel(false, 'verification_failed'.tr);
+    } finally {
+      _isLoading = false;
+      update();
     }
-    _isLoading = false;
-    update();
     return responseModel;
   }
 
@@ -404,6 +407,18 @@ class AuthController extends GetxController implements GetxService {
     }
     if (Get.isRegistered<BookingRequestController>()) {
       Get.find<BookingRequestController>().resetOnAuthChange();
+    }
+  }
+
+  Future<void> _completeProviderLogin() async {
+    try {
+      await _resetProviderSessionState();
+      await Get.find<UserProfileController>().getProviderInfo();
+      await authRepo.updateToken();
+      Get.find<SplashController>().updateLanguage(true);
+      showCustomSnackBar('successfully_logged_in'.tr, type: ToasterMessageType.success);
+    } catch (e, stack) {
+      ErrorLogger.record(e, stack, reason: 'AuthController._completeProviderLogin');
     }
   }
 

@@ -9,27 +9,32 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
   final Function()? onBackPressed;
   final Widget? actionWidget;
   final double? elevation;
-  const CustomAppBar({super.key,required this.title,this.centerTitle= false,this.onBackPressed, this.actionWidget, this.subtitle, this.elevation});
+  final bool usePrimaryColor;
+  const CustomAppBar({super.key,required this.title,this.centerTitle= false,this.onBackPressed, this.actionWidget, this.subtitle, this.elevation, this.usePrimaryColor = false});
 
   static Color foregroundColor(BuildContext context) =>
       Theme.of(context).colorScheme.onSurface;
 
   @override
   Widget build(BuildContext context) {
-    final color = foregroundColor(context);
+    final color = usePrimaryColor
+        ? Theme.of(context).primaryColorLight
+        : foregroundColor(context);
     final titleStyle = robotoBold.copyWith(
       fontSize: Dimensions.fontSizeLarge,
       color: color,
     );
     return AppBar(
-      elevation: elevation ?? 5,
+      elevation: usePrimaryColor ? 0 : (elevation ?? 5),
       titleSpacing: 0,
       foregroundColor: color,
       iconTheme: IconThemeData(color: color, size: 20),
-      surfaceTintColor: Theme.of(context).cardColor,
-      backgroundColor: Theme.of(context).cardColor,
+      surfaceTintColor: usePrimaryColor ? null : Theme.of(context).cardColor,
+      backgroundColor: usePrimaryColor
+          ? (Get.isDarkMode ? Theme.of(context).cardColor.withValues(alpha: .2) : Theme.of(context).primaryColor)
+          : Theme.of(context).cardColor,
       shadowColor: Get.isDarkMode?Theme.of(context).primaryColor.withValues(alpha:0.5):Theme.of(context).primaryColor.withValues(alpha:0.1),
-      centerTitle: centerTitle,
+      centerTitle: centerTitle || usePrimaryColor,
       titleTextStyle: titleStyle,
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

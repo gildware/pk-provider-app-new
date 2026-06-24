@@ -76,7 +76,7 @@ class _DashBoardScreenState extends State<DashBoardScreen>{
           color: Theme.of(context).primaryColorLight,
           backgroundColor: Theme.of(context).cardColor,
           onRefresh: () async {
-            await _loadDashboardData(reload: true);
+            await SilentApiContext.run(() => _loadDashboardData(reload: true));
             Get.find<DashboardController>().changeRecentActivityView(status: true, shouldUpdate: true);
             Get.find<DashboardController>().changeTypeOfShowBookingStatus(status: true, shouldUpdate: true);
             await Get.find<UserProfileController>().getProviderInfo(reload: true);

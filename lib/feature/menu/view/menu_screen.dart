@@ -27,9 +27,6 @@ class MenuScreen extends StatelessWidget {
       MenuModel(iconKey: 'withdraw_list', icon: Images.transaction, title: 'withdraw_list'.tr, route: RouteHelper.transactions),
       MenuModel(iconKey: 'payments', icon: Images.paymentInfoIcon, title: 'payments'.tr, route: RouteHelper.getPaymentsRoute()),
       MenuModel(iconKey: 'reports', icon: Images.reportOverview2, title: 'reports'.tr, routeValidation: "reports_&_analytics", route: RouteHelper.getReportingPageRoute('menu')),
-      MenuModel(iconKey: 'advertisements', icon: Images.menuAdvertisement, title: 'advertisements'.tr, routeValidation: "advertisement", route: RouteHelper.getAdvertisementListScreen(
-        count: Get.find<DashboardController>().additionalInfoCount?.advertisementCount ?? 0
-      )),
       MenuModel(iconKey: 'business_plan', icon: Images.businessPlanIcon, title: 'business_plan'.tr, route: RouteHelper.getBusinessPlanScreen()),
       MenuModel(iconKey: 'help_support', icon: Images.helpIcon, title: 'help_&_support'.tr, route: RouteHelper.getHelpAndSupportScreen()),
 

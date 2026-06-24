@@ -617,75 +617,76 @@ class LogoWidget extends StatelessWidget {
       final localPath = userProfileController.brandingLogoLocalPath;
       final networkUrl = userProfileController.brandingLogoDisplayUrl ?? '';
 
-      return Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-        DottedBorderBox(
-          child: SizedBox(width: 100, height: 100, child: Stack(children: [
-            Positioned.fill(child: ClipRRect(
-              borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-              child: localPath != null
-                  ? Image.file(
-                      File(localPath),
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                    )
-                  : CustomImage(
-                image: networkUrl,
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: double.infinity,
-                errorWidget: InkWell(
-                  onTap: (){
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DottedBorderBox(
+            child: SizedBox(width: 100, height: 100, child: Stack(children: [
+              Positioned.fill(child: ClipRRect(
+                borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                child: localPath != null
+                    ? Image.file(
+                        File(localPath),
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                      )
+                    : CustomImage(
+                  image: networkUrl,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                  errorWidget: InkWell(
+                    onTap: (){
+                      userProfileController.pickImage();
+                    },
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Column(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
+                          Icon(Icons.cloud_upload, color: Theme.of(context).hintColor),
+
+                          Text('update_logo'.tr, style: robotoRegular.copyWith(color: Theme.of(context).hintColor, fontSize: Dimensions.fontSizeSmall))
+                        ]),
+                      ],
+                    ),
+                  ),
+                ),
+              )),
+
+              if (userProfileController.showBrandingLogoPendingBadge)
+                const Positioned(
+                  left: 4,
+                  bottom: 4,
+                  child: PendingBrandingBadge(),
+                ),
+
+
+              if(_canEdit(userProfileController)) Positioned.fill(child: Align(
+                alignment: Alignment.topRight,
+                child: IconButton(
+                  highlightColor: Colors.transparent,
+                  onPressed: (){
                     userProfileController.pickImage();
                   },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Column(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
-                        Icon(Icons.cloud_upload, color: Theme.of(context).hintColor),
-
-                        Text('update_logo'.tr, style: robotoRegular.copyWith(color: Theme.of(context).hintColor, fontSize: Dimensions.fontSizeSmall))
-                      ]),
-                    ],
+                  icon: Container(
+                    transform: Matrix4.translationValues(8, -8, 0),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                      color: Theme.of(context).cardColor,
+                      border: Border.all(color: Theme.of(context).primaryColor),
+                    ),
+                    padding: EdgeInsets.all(Dimensions.paddingSizeExtraSmall),
+                    child: Icon(Icons.edit, color: Theme.of(context).primaryColor, size: Dimensions.paddingSizeDefault,),
                   ),
                 ),
-              ),
-            )),
-
-            if (userProfileController.showBrandingLogoPendingBadge)
-              const Positioned(
-                left: 4,
-                bottom: 4,
-                child: PendingBrandingBadge(),
-              ),
-
-
-            if(_canEdit(userProfileController)) Positioned.fill(child: Align(
-              alignment: Alignment.topRight,
-              child: IconButton(
-                highlightColor: Colors.transparent,
-                onPressed: (){
-                  userProfileController.pickImage();
-                },
-                icon: Container(
-                  transform: Matrix4.translationValues(8, -8, 0),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                    color: Theme.of(context).cardColor,
-                    border: Border.all(color: Theme.of(context).primaryColor),
-                  ),
-                  padding: EdgeInsets.all(Dimensions.paddingSizeExtraSmall),
-                  child: Icon(Icons.edit, color: Theme.of(context).primaryColor, size: Dimensions.paddingSizeDefault,),
-                ),
-              ),
-            )),
-          ])),
-        ),
-        SizedBox(width: Dimensions.paddingSizeLarge),
-
-        ImageValidationTextWidget(),
-    
-      ]);
+              )),
+            ])),
+          ),
+          const SizedBox(height: Dimensions.paddingSizeSmall),
+          const ImageValidationTextWidget(textAlign: TextAlign.start, separator: '. '),
+        ],
+      );
     });
   }
 

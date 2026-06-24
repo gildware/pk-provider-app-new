@@ -1,5 +1,6 @@
 import 'package:demandium_provider/feature/settings/business/controller/company_identity_controller.dart';
 import 'package:demandium_provider/feature/settings/business/controller/identity_controller.dart';
+import 'package:demandium_provider/helper/error_logger.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
@@ -429,97 +430,110 @@ class UserProfileController extends GetxController implements GetxService{
     _isLoading = true;
     _scheduleUpdate();
 
-    Get.find<LocationController>().setPickedLocation();
+    try {
+      Get.find<LocationController>().setPickedLocation();
 
+      if (_providerModel == null || reload) {
+        final response = await userRepo.getProviderInfo();
+        if (response.statusCode == 200) {
+          _providerModel = ProviderModel.fromJson(response.body);
+          _hasPendingProfileChanges = _providerModel?.content?.hasPendingProfileChanges == true;
+          _hasPendingBrandingChanges = _providerModel?.content?.hasPendingBrandingChanges == true;
+          _syncPendingBrandingPreviewsFromModel();
+          _clearPendingBrandingPreviewsIfNotPending();
 
-    if(_providerModel==null || reload){
-      Response response = await userRepo.getProviderInfo();
-      if (response.statusCode == 200) {
-        _providerModel = ProviderModel.fromJson(response.body);
-        _hasPendingProfileChanges = _providerModel?.content?.hasPendingProfileChanges == true;
-        _hasPendingBrandingChanges = _providerModel?.content?.hasPendingBrandingChanges == true;
-        _syncPendingBrandingPreviewsFromModel();
-        _clearPendingBrandingPreviewsIfNotPending();
+          final payablePercentage = getOverflowPercent(
+            double.tryParse(_providerModel?.content?.providerInfo?.owner?.account?.accountPayable ?? '0') ?? 0,
+            double.tryParse(_providerModel?.content?.providerInfo?.owner?.account?.accountReceivable ?? '0') ?? 0,
+            Get.find<SplashController>().configModel.content?.maxCashInHandLimit ?? 0,
+          );
 
-         double payablePercentage = getOverflowPercent(
-           double.tryParse(_providerModel?.content?.providerInfo?.owner?.account?.accountPayable??"0")??0,
-           double.tryParse(_providerModel?.content?.providerInfo?.owner?.account?.accountReceivable??"0")??0,
-             Get.find<SplashController>().configModel.content?.maxCashInHandLimit ?? 0,
-         );
+          hideOverflowDialog(payablePercentage: payablePercentage, hideDialog: false);
 
-         hideOverflowDialog(payablePercentage: payablePercentage, hideDialog: false);
+          companyNameController!.text = _providerModel?.content?.providerInfo?.companyName ?? '';
 
-        companyNameController!.text = _providerModel?.content?.providerInfo?.companyName??'';
+          countryDialCode = ValidationHelper.getValidCountryCode(_providerModel?.content?.providerInfo?.companyPhone ?? '') != ''
+              ? ValidationHelper.getValidCountryCode(_providerModel?.content?.providerInfo?.companyPhone ?? '')
+              : ConfigHelper.defaultCountryDialCode;
 
-        countryDialCode = ValidationHelper.getValidCountryCode(_providerModel?.content?.providerInfo?.companyPhone ?? "" ) != ""
-            ? ValidationHelper.getValidCountryCode(_providerModel?.content?.providerInfo?.companyPhone ?? "")
-            : ConfigHelper.defaultCountryDialCode;
+          companyPhoneController!.text = ValidationHelper.getDisplayPhone(_providerModel?.content?.providerInfo?.companyPhone ?? '');
 
-        companyPhoneController!.text = ValidationHelper.getDisplayPhone(_providerModel?.content?.providerInfo?.companyPhone ?? "");
+          companyEmailController!.text = _providerModel?.content?.providerInfo?.companyEmail ?? '';
+          personalNameController!.text = _providerModel?.content?.providerInfo?.contactPersonName ?? '';
+          personalPhoneController!.text = ValidationHelper.getDisplayPhone(_providerModel?.content?.providerInfo?.contactPersonPhone ?? '');
+          personalEmailController!.text = _providerModel?.content?.providerInfo?.contactPersonEmail ?? '';
+          emailController!.text = _providerModel?.content?.providerInfo?.owner?.email ?? '';
+          _syncSavedContactPhoneFromProvider();
+          latitude = _providerModel?.content?.providerInfo?.coordinates?.latitude ?? 0;
+          longitude = _providerModel?.content?.providerInfo?.coordinates?.longitude ?? 0;
+          _totalCompleteRequest = 0;
+          _totalCanceledRequest = 0;
+          _totalOngoingRequest = 0;
+          _totalAcceptedRequest = 0;
 
-        companyEmailController!.text = _providerModel?.content?.providerInfo?.companyEmail??"";
-        personalNameController!.text = _providerModel?.content?.providerInfo?.contactPersonName??"";
-        personalPhoneController!.text = ValidationHelper.getDisplayPhone(_providerModel?.content?.providerInfo?.contactPersonPhone ?? "");
-        personalEmailController!.text = _providerModel?.content?.providerInfo?.contactPersonEmail ?? '';
-        emailController!.text = _providerModel?.content?.providerInfo?.owner?.email??"";
-        _syncSavedContactPhoneFromProvider();
-        latitude = _providerModel?.content?.providerInfo?.coordinates?.latitude?? 0;
-        longitude = _providerModel?.content?.providerInfo?.coordinates?.longitude?? 0;
-        _totalCompleteRequest= 0;
-        _totalCanceledRequest= 0;
-        _totalOngoingRequest= 0;
-        _totalAcceptedRequest= 0;
-
-        _providerId = _providerModel!.content!.providerInfo!.id!;
-        myZoneId = _providerModel!.content!.providerInfo!.zoneId!;
-        _selectedZoneID = myZoneId ?? '';
-        _selectedZoneName = '';
-        _syncSelectedZoneIdsFromProvider();
-        companyIdentityNumberController!.text =
-            _providerModel?.content?.providerInfo?.companyIdentityNumber ?? '';
-        syncAddressFieldsFromProvider();
-
-        syncProfileImagesFromProvider();
-
-        await loadZoneTree(force: true);
-
-        if(companyNameController!.text==personalNameController!.text
-            && companyPhoneController!.text==personalPhoneController!.text
-            &&companyEmailController!.text==personalEmailController!.text){
-          keepPersonalInfoAsCompanyInfo = true;
-        }else{
-          keepPersonalInfoAsCompanyInfo = false;
-        }
-
-        if(_providerModel!.content!.bookingOverview!=[] && _providerModel!.content!.bookingOverview!=null){
-          for (var element in _providerModel!.content!.bookingOverview!) {
-            if(element.bookingStatus=='accepted'){
-              _totalAcceptedRequest = element.total!;
-            }else if(element.bookingStatus=="canceled"){
-              _totalCanceledRequest = element.total!;
-            }else if(element.bookingStatus=="completed"){
-              _totalCompleteRequest = element.total!;
-            }else if(element.bookingStatus=="ongoing"){
-              _totalOngoingRequest = element.total!;
-            }
+          final info = _providerModel?.content?.providerInfo;
+          final providerId = info?.id?.toString();
+          if (providerId != null && providerId.isNotEmpty) {
+            _providerId = providerId;
           }
-        }else{
-          _totalCompleteRequest= 0;
-          _totalCanceledRequest= 0;
-          _totalOngoingRequest= 0;
-          _totalAcceptedRequest= 0;
+
+          final zoneId = info?.zoneId?.toString();
+          if (zoneId != null && zoneId.isNotEmpty) {
+            myZoneId = zoneId;
+          } else if (info?.zoneIds?.isNotEmpty == true) {
+            myZoneId = info!.zoneIds!.first;
+          }
+          _selectedZoneID = myZoneId ?? '';
+          _selectedZoneName = '';
+          _syncSelectedZoneIdsFromProvider();
+          companyIdentityNumberController!.text =
+              _providerModel?.content?.providerInfo?.companyIdentityNumber ?? '';
+          syncAddressFieldsFromProvider();
+
+          syncProfileImagesFromProvider();
+
+          await loadZoneTree(force: true);
+
+          if (companyNameController!.text == personalNameController!.text
+              && companyPhoneController!.text == personalPhoneController!.text
+              && companyEmailController!.text == personalEmailController!.text) {
+            keepPersonalInfoAsCompanyInfo = true;
+          } else {
+            keepPersonalInfoAsCompanyInfo = false;
+          }
+
+          final bookingOverview = _providerModel?.content?.bookingOverview;
+          if (bookingOverview != null && bookingOverview.isNotEmpty) {
+            for (final element in bookingOverview) {
+              final total = element.total ?? 0;
+              if (element.bookingStatus == 'accepted') {
+                _totalAcceptedRequest = total;
+              } else if (element.bookingStatus == 'canceled') {
+                _totalCanceledRequest = total;
+              } else if (element.bookingStatus == 'completed') {
+                _totalCompleteRequest = total;
+              } else if (element.bookingStatus == 'ongoing') {
+                _totalOngoingRequest = total;
+              }
+            }
+          } else {
+            _totalCompleteRequest = 0;
+            _totalCanceledRequest = 0;
+            _totalOngoingRequest = 0;
+            _totalAcceptedRequest = 0;
+          }
+        } else {
+          ApiChecker.checkApi(response);
         }
-        _isLoading= false;
-        _scheduleUpdate();
-      } else {
-        ApiChecker.checkApi(response);
       }
+    } catch (e, stack) {
+      ErrorLogger.record(e, stack, reason: 'UserProfileController.getProviderInfo');
+    } finally {
+      _isLoading = false;
+      _scheduleUpdate();
     }
-    _isLoading = false;
-    _scheduleUpdate();
 
     return _providerModel != null;
-
   }
 
   Future<ResponseModel> updateProfile({

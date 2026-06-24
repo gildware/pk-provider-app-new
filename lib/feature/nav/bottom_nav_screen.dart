@@ -1,6 +1,8 @@
 
 import 'package:demandium_provider/feature/payments/controller/payments_controller.dart';
 import 'package:demandium_provider/feature/payement_information/controller/payment_info_controller.dart';
+import 'package:demandium_provider/feature/advertisement/view/advertisement_list_screen.dart';
+import 'package:demandium_provider/helper/booking_alert_watcher.dart';
 import 'package:demandium_provider/util/core_export.dart';
 import 'package:get/get.dart';
 
@@ -10,28 +12,29 @@ class BottomNavScreen extends StatefulWidget {
   final bool formTutorial;
 
   static Future<void> loadData({int pageIndex = 0}) async {
-    Get.find<DashboardController>().getDashboardData(reload: true);
-    Get.find<DashboardController>().getEarningData();
-    Get.find<PaymentsController>().loadOverview();
-    Get.find<UserProfileController>().getProviderInfo(reload: true);
-    Get.find<ServiceCategoryController>().getCategoryList(shouldUpdate: true,reloadSubcategory: true);
-    Get.find<LocalizationController>().filterLanguage(shouldUpdate: false);
-    Get.find<ConversationController>().getChannelList(1, type: "customer");
-    // SERVICEMAN_DISABLED
-    if (AppFeatureFlags.servicemanEnabled) {
-      Get.find<ConversationController>().getChannelList(1, type: "serviceman");
-      Get.find<ServicemanSetupController>().getAllServicemanList(1, reload: true, status: 'all');
-    }
-    await Get.find<UserProfileController>().getProviderInfo(reload: true).then((isProviderModelAvailable){
-      Get.find<BusinessSubscriptionController>().getSubscriptionPackageList();
-      if(pageIndex != 1){
-        Get.find<BusinessSubscriptionController>().openTrialEndBottomSheet();
+    await SilentApiContext.run(() async {
+      Get.find<DashboardController>().getDashboardData(reload: true);
+      Get.find<DashboardController>().getEarningData();
+      Get.find<PaymentsController>().loadOverview();
+      Get.find<UserProfileController>().getProviderInfo(reload: true);
+      Get.find<ServiceCategoryController>().getCategoryList(shouldUpdate: true, reloadSubcategory: true);
+      Get.find<LocalizationController>().filterLanguage(shouldUpdate: false);
+      Get.find<ConversationController>().getChannelList(1, type: "customer");
+      // SERVICEMAN_DISABLED
+      if (AppFeatureFlags.servicemanEnabled) {
+        Get.find<ConversationController>().getChannelList(1, type: "serviceman");
+        Get.find<ServicemanSetupController>().getAllServicemanList(1, reload: true, status: 'all');
       }
-      Get.find<UserProfileController>().trialWidgetShow(route: "");
+      await Get.find<UserProfileController>().getProviderInfo(reload: true).then((isProviderModelAvailable) {
+        Get.find<BusinessSubscriptionController>().getSubscriptionPackageList();
+        if (pageIndex != 1) {
+          Get.find<BusinessSubscriptionController>().openTrialEndBottomSheet();
+        }
+        Get.find<UserProfileController>().trialWidgetShow(route: "");
+      });
+      await Get.find<AuthController>().updateToken();
+      Get.find<PaymentInfoController>().getPaymentMethods(isUpdate: false, isReload: false);
     });
-    await Get.find<AuthController>().updateToken();
-    Get.find<PaymentInfoController>().getPaymentMethods(isUpdate: false, isReload: false);
-
   }
 
   const BottomNavScreen({super.key, required this.pageIndex, this.formTutorial = false});
@@ -50,7 +53,8 @@ class BottomNavScreenState extends State<BottomNavScreen> {
   bool get _isBiddingEnabled =>
       Get.find<SplashController>().configModel.content?.biddingStatus == 1;
 
-  int get _moreTabIndex => _isBiddingEnabled ? 3 : 2;
+  int get _adsTabIndex => _isBiddingEnabled ? 3 : 2;
+  int get _moreTabIndex => _isBiddingEnabled ? 4 : 3;
 
   @override
   void initState() {
@@ -59,23 +63,42 @@ class BottomNavScreenState extends State<BottomNavScreen> {
     if(!widget.formTutorial) {
       BottomNavScreen.loadData(pageIndex: widget.pageIndex);
     }
-    final initialPage = widget.pageIndex == 2 && !_isBiddingEnabled ? 0 : widget.pageIndex;
+    final initialPage = widget.pageIndex;
     _pageIndex = initialPage;
     _pageController = PageController(initialPage: initialPage);
 
     Future.delayed(const Duration(seconds: 1), () {
       setState(() {});
     });
+
+    if (Get.isRegistered<BookingAlertWatcher>()) {
+      Get.find<BookingAlertWatcher>().start();
+    }
+  }
+
+  @override
+  void dispose() {
+    if (Get.isRegistered<BookingAlertWatcher>()) {
+      Get.find<BookingAlertWatcher>().stop();
+    }
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+
+    final int advertisementCount =
+        Get.find<DashboardController>().additionalInfoCount?.advertisementCount ?? 0;
 
     _screens = [
       const DashBoardScreen(),
       const BookingRequestScreen(),
       // Post/bidding tab — hidden unless enabled via admin (Mobile App Management → App Features).
       if (_isBiddingEnabled) const CustomerRequestListScreen(embeddedInBottomNav: true),
+      AdvertisementListScreen(
+        embeddedInBottomNav: true,
+        isDataAvailable: advertisementCount != 0,
+      ),
       Text("more".tr),
     ];
 
@@ -128,6 +151,12 @@ class BottomNavScreenState extends State<BottomNavScreen> {
                       title: 'post'.tr,
                       showBadge: showPostBadge,
                     ),
+                  _getBottomNavItem(
+                    _adsTabIndex,
+                    iconKey: 'bottom_advertisements',
+                    fallbackAsset: Images.menuAdvertisement,
+                    title: 'advertisements'.tr,
+                  ),
                   _getBottomNavItem(_moreTabIndex, iconKey: 'bottom_more', fallbackAsset: Images.more, title: 'more'.tr),
                 ]),
               );
@@ -166,12 +195,32 @@ class BottomNavScreenState extends State<BottomNavScreen> {
       });
     } else if (_isBiddingEnabled && pageIndex == 2) {
       _openPostTab();
+    } else if (pageIndex == _adsTabIndex) {
+      _openAdvertisementsTab();
     } else {
       setState(() {
         _pageController?.jumpToPage(pageIndex);
         _pageIndex = pageIndex;
       });
     }
+  }
+
+  void _openAdvertisementsTab() {
+    Get.find<BusinessSubscriptionController>().openTrialEndBottomSheet().then((isTrial) {
+      if (!isTrial) {
+        return;
+      }
+      if (!Get.find<UserProfileController>().checkAvailableFeatureInSubscriptionPlan(featureType: 'advertisement')) {
+        return;
+      }
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _pageController?.jumpToPage(_adsTabIndex);
+        _pageIndex = _adsTabIndex;
+      });
+    });
   }
 
   void _openPostTab() {

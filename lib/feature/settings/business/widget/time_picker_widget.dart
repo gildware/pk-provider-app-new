@@ -1,5 +1,6 @@
 import 'package:demandium_provider/util/core_export.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class TimePickerWidget extends StatefulWidget {
   final String title;
@@ -22,12 +23,38 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
   }
 
   @override
+  void didUpdateWidget(covariant TimePickerWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.time != oldWidget.time) {
+      _myTime = widget.time;
+    }
+  }
+
+  TimeOfDay _parseInitialTime() {
+    final raw = _myTime ?? widget.time;
+    if (raw == null || raw.trim().isEmpty) {
+      return TimeOfDay.now();
+    }
+
+    for (final pattern in ['h:mm a', 'hh:mm a', 'HH:mm', 'HH:mm:ss']) {
+      try {
+        final parsed = DateFormat(pattern).parse(raw.trim());
+        return TimeOfDay(hour: parsed.hour, minute: parsed.minute);
+      } catch (_) {
+        continue;
+      }
+    }
+
+    return TimeOfDay.now();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () async {
 
         Get.find<UserProfileController>().trialWidgetShow(route: "show-dialog");
-        TimeOfDay? time = await showCustomTimePicker();
+        TimeOfDay? time = await showCustomTimePicker(initialTime: _parseInitialTime());
         Get.find<UserProfileController>().trialWidgetShow(route: "");
         if(time != null) {
           setState(() {

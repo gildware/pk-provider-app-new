@@ -2,7 +2,11 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:demandium_provider/common/widgets/demo_reset_dialog_widget.dart';
 import 'package:demandium_provider/firebase_options.dart';
+import 'package:demandium_provider/helper/booking_alert_watcher.dart';
+import 'package:demandium_provider/helper/booking_notification_action_handler.dart';
+import 'package:demandium_provider/helper/booking_notification_constants.dart';
 import 'package:demandium_provider/util/core_export.dart';
+import 'package:demandium_provider/helper/notification_sound_util.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
@@ -14,37 +18,45 @@ class NotificationHelper {
   ) async {
     if (!GetPlatform.isAndroid) return;
 
-    const withSound = AndroidNotificationChannel(
-      'demandium',
-      'demandium with sound',
-      description: 'Notifications with sound',
-      importance: Importance.max,
-      playSound: true,
-      sound: RawResourceAndroidNotificationSound('notification'),
-    );
-    const withoutSound = AndroidNotificationChannel(
-      'demandiumWithoutsound',
-      'demandium without sound',
-      description: 'Notifications without sound',
-      importance: Importance.max,
-      playSound: false,
-    );
-
     final androidPlugin = flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    await androidPlugin?.createNotificationChannel(withSound);
-    await androidPlugin?.createNotificationChannel(withoutSound);
+    for (final channel in NotificationSoundUtil.buildAndroidChannels()) {
+      await androidPlugin?.createNotificationChannel(channel);
+    }
   }
 
   static Future<void> initialize(FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin) async {
     await createAndroidNotificationChannels(flutterLocalNotificationsPlugin);
     var androidInitialize = const AndroidInitializationSettings('notification_icon');
-    var iOSInitialize = const DarwinInitializationSettings();
+    var iOSInitialize = DarwinInitializationSettings(
+      notificationCategories: NotificationSoundUtil.buildDarwinCategories(),
+    );
     var initializationsSettings = InitializationSettings(android: androidInitialize, iOS: iOSInitialize);
-    flutterLocalNotificationsPlugin.initialize(settings: initializationsSettings, onDidReceiveNotificationResponse: (NotificationResponse? notificationResponse) async {
-      try{
-        if(notificationResponse!.payload!=null && notificationResponse.payload!=''){
-          NotificationBody notificationBody = NotificationBody.fromJson(jsonDecode(notificationResponse.payload!));
+    flutterLocalNotificationsPlugin.initialize(
+      settings: initializationsSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse? notificationResponse) async {
+        try {
+          if (notificationResponse == null) {
+            return;
+          }
+
+          final payload = notificationResponse.payload;
+          if (payload == null || payload.isEmpty) {
+            return;
+          }
+
+          final data = Map<String, dynamic>.from(jsonDecode(payload));
+          if (BookingNotificationConstants.isIncomingBookingRequest(
+            data['type']?.toString(),
+          )) {
+            await BookingNotificationActionHandler.handleResponse(
+              notificationResponse,
+              fromBackground: false,
+            );
+            return;
+          }
+
+          NotificationBody notificationBody = NotificationBody.fromJson(data);
           if (kDebugMode) {
             print("Type: ${notificationBody.notificationType}");
           }
@@ -112,14 +124,14 @@ class NotificationHelper {
             Get.toNamed(RouteHelper.getNotificationRoute(fromPage: "notification"));
 
           }
-        }
-      }catch (e) {
-        if (kDebugMode) {
-          print("");
-        }
+        }catch (e) {
+          if (kDebugMode) {
+            print("");
           }
-          return;
-        });
+        }
+      },
+      onDidReceiveBackgroundNotificationResponse: bookingNotificationBackgroundHandler,
+    );
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
 
@@ -183,6 +195,14 @@ class NotificationHelper {
           Get.dialog(const DemoResetDialogWidget(), barrierDismissible: false);
         }
       }
+      else if (BookingNotificationConstants.isIncomingBookingRequest(
+        message.data['type']?.toString(),
+      )) {
+        unawaited(_handleIncomingBookingMessage(
+          message,
+          flutterLocalNotificationsPlugin,
+        ));
+      }
       else{
         NotificationHelper.showNotification(message, false,flutterLocalNotificationsPlugin);
       }
@@ -192,6 +212,13 @@ class NotificationHelper {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage? message) {
       try{
         if(message!=null && message.data.isNotEmpty) {
+          if (BookingNotificationConstants.isIncomingBookingRequest(
+            message.data['type']?.toString(),
+          )) {
+            BookingNotificationActionHandler.showBookingAlert(message.data);
+            return;
+          }
+
           NotificationBody notificationBody = convertNotification(message.data);
           if(notificationBody.notificationType=="chatting"){
 
@@ -266,19 +293,56 @@ class NotificationHelper {
 
 
 
+  static Future<void> _handleIncomingBookingMessage(
+    RemoteMessage message,
+    FlutterLocalNotificationsPlugin fln,
+  ) async {
+    try {
+      await showBookingNotification(message, fln);
+      final bookingId = message.data['booking_id']?.toString();
+      if (bookingId != null && bookingId.isNotEmpty) {
+        BookingAlertWatcher.markBookingHandled(bookingId);
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        BookingNotificationActionHandler.showBookingAlert(message.data);
+      });
+      if (Get.isRegistered<DashboardController>()) {
+        Get.find<DashboardController>().getDashboardData(reload: true);
+      }
+      if (Get.isRegistered<BookingRequestController>()) {
+        Get.find<BookingRequestController>().getBookingRequestList(
+          Get.find<BookingRequestController>().bookingStatus,
+          1,
+          reload: true,
+        );
+      }
+    } catch (e, stack) {
+      if (kDebugMode) {
+        print('handleIncomingBookingMessage failed: $e\n$stack');
+      }
+    }
+  }
+
   static Future<void> showNotification(RemoteMessage message,bool data,FlutterLocalNotificationsPlugin fln) async {
     final title = message.data['title'] ?? message.notification?.title;
     final body = message.data['body'] ?? message.notification?.body ?? '';
     final playLoad = jsonEncode(message.data);
     if (title == null || title.isEmpty) return;
 
+    final notificationType = message.data['type']?.toString();
+    if (BookingNotificationConstants.isIncomingBookingRequest(notificationType)) {
+      await showBookingNotification(message, fln);
+      return;
+    }
+
+    final soundEnabled = _notificationSoundEnabled();
+
     if (GetPlatform.isIOS) {
-      const darwinDetails = DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
+      final darwinDetails = NotificationSoundUtil.darwinDetailsForType(
+        notificationType,
+        withSound: soundEnabled,
       );
-      const platformChannelSpecifics = NotificationDetails(iOS: darwinDetails);
+      final platformChannelSpecifics = NotificationDetails(iOS: darwinDetails);
       await fln.show(
         id: Random().nextInt(100000),
         title: title,
@@ -296,13 +360,73 @@ class NotificationHelper {
 
     if(image != null && image.isNotEmpty) {
       try{
-        await showBigPictureNotificationHiddenLargeIcon(title, body, playLoad, image, fln);
+        await showBigPictureNotificationHiddenLargeIcon(title, body, playLoad, image, fln, notificationType);
       }catch(e) {
-        await showBigTextNotification(title :title, body: body, payload: playLoad, fln : fln);
+        await showBigTextNotification(title :title, body: body, payload: playLoad, fln : fln, notificationType: notificationType);
       }
     }else {
-      await showBigTextNotification(title :title, body: body, payload: playLoad, fln : fln);
+      await showBigTextNotification(title :title, body: body, payload: playLoad, fln : fln, notificationType: notificationType);
     }
+  }
+
+  static Future<void> showBookingNotification(
+    RemoteMessage message,
+    FlutterLocalNotificationsPlugin fln,
+  ) async {
+    var title = message.data['title'] ?? message.notification?.title;
+    final body = message.data['body'] ?? message.notification?.body ?? '';
+    final payload = jsonEncode(message.data);
+    final bookingId = message.data['booking_id']?.toString();
+    if (bookingId == null || bookingId.isEmpty) {
+      if (kDebugMode) {
+        print('showBookingNotification skipped: missing booking_id');
+      }
+      return;
+    }
+    if (title == null || title.isEmpty) {
+      title = 'new_booking_received'.tr;
+    }
+
+    final notificationId = BookingNotificationConstants.notificationIdFor(bookingId);
+    final soundEnabled = _notificationSoundEnabled();
+    const notificationType = 'booking';
+
+    if (GetPlatform.isIOS) {
+      final darwinDetails = NotificationSoundUtil.darwinDetailsForType(
+        notificationType,
+        withSound: soundEnabled,
+        urgentBooking: true,
+      );
+      await fln.show(
+        id: notificationId,
+        title: title,
+        body: body,
+        notificationDetails: NotificationDetails(iOS: darwinDetails),
+        payload: payload,
+      );
+      return;
+    }
+
+    final bigTextStyleInformation = BigTextStyleInformation(
+      body,
+      htmlFormatBigText: true,
+      contentTitle: title,
+      htmlFormatContentTitle: true,
+    );
+    final androidDetails = NotificationSoundUtil.androidDetailsForType(
+      notificationType,
+      withSound: soundEnabled,
+      styleInformation: bigTextStyleInformation,
+      actions: NotificationSoundUtil.bookingNotificationActions(),
+      urgentBooking: true,
+    );
+    await fln.show(
+      id: notificationId,
+      title: title,
+      body: body,
+      notificationDetails: NotificationDetails(android: androidDetails),
+      payload: payload,
+    );
   }
 
   static Future<void> showBackgroundNotification(
@@ -313,39 +437,24 @@ class NotificationHelper {
     await showNotification(message, false, fln);
   }
 
-  static Future<void> showBigTextNotification({required String title, required String body, required String payload, required FlutterLocalNotificationsPlugin fln}) async {
+  static Future<void> showBigTextNotification({required String title, required String body, required String payload, required FlutterLocalNotificationsPlugin fln, String? notificationType}) async {
+    final resolvedType = notificationType ?? NotificationSoundUtil.typeFromPayload(payload);
     BigTextStyleInformation bigTextStyleInformation = BigTextStyleInformation(
       body, htmlFormatBigText: true,
       contentTitle: title, htmlFormatContentTitle: true,
     );
 
-    if(!_notificationSoundEnabled()){
-      AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        "demandiumWithoutsound","${AppConstants.appName} without sound", channelDescription:"description",
-        playSound: false,
-        importance: Importance.max,
-        styleInformation: bigTextStyleInformation, priority: Priority.max,
-
-      );
-      int randomNumber = Random().nextInt(100);
-      NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
-      await fln.show(id: randomNumber, title: title, body: body, notificationDetails: platformChannelSpecifics, payload: payload);
-    }
-    else {
-      AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        "demandium", '${AppConstants.appName} with sound', channelDescription:"description",
-        playSound: true,
-        sound: const RawResourceAndroidNotificationSound('notification'),
-        importance: Importance.max,
-        styleInformation: bigTextStyleInformation, priority: Priority.max,
-      );
-      int randomNumber = Random().nextInt(100);
-      NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
-      await fln.show(id: randomNumber, title: title, body: body, notificationDetails: platformChannelSpecifics, payload: payload);
-    }
-
+    final androidPlatformChannelSpecifics = NotificationSoundUtil.androidDetailsForType(
+      resolvedType,
+      withSound: _notificationSoundEnabled(),
+      styleInformation: bigTextStyleInformation,
+    );
+    int randomNumber = Random().nextInt(100);
+    NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+    await fln.show(id: randomNumber, title: title, body: body, notificationDetails: platformChannelSpecifics, payload: payload);
   }
-  static Future<void> showBigPictureNotificationHiddenLargeIcon(String title, String body, String payload, String image, FlutterLocalNotificationsPlugin fln) async {
+  static Future<void> showBigPictureNotificationHiddenLargeIcon(String title, String body, String payload, String image, FlutterLocalNotificationsPlugin fln, String? notificationType) async {
+    final resolvedType = notificationType ?? NotificationSoundUtil.typeFromPayload(payload);
     final String largeIconPath = await _downloadAndSaveFile(image, 'largeIcon');
     final String bigPicturePath = await _downloadAndSaveFile(image, 'bigPicture');
     final BigPictureStyleInformation bigPictureStyleInformation = BigPictureStyleInformation(
@@ -353,30 +462,15 @@ class NotificationHelper {
       contentTitle: title, htmlFormatContentTitle: true,
       summaryText: body, htmlFormatSummaryText: true,
     );
-
-    if(!_notificationSoundEnabled()){
-      AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        "demandiumWithoutsound","${AppConstants.appName} without sound", channelDescription:"description",
-        playSound: false,
-          largeIcon: FilePathAndroidBitmap(largeIconPath), priority: Priority.max,
-          styleInformation: bigPictureStyleInformation, importance: Importance.max,
-      );
-      int randomNumber = Random().nextInt(100);
-      NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
-      await fln.show(id: randomNumber, title: title, body: body, notificationDetails: platformChannelSpecifics, payload: payload);
-
-    }else{
-      AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        "demandium", '${AppConstants.appName} with sound', channelDescription:"description",
-        playSound: true,
-        sound: const RawResourceAndroidNotificationSound('notification'),
-        largeIcon: FilePathAndroidBitmap(largeIconPath), priority: Priority.max,
-        styleInformation: bigPictureStyleInformation, importance: Importance.max,
-      );
-      int randomNumber = Random().nextInt(100);
-      NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
-      await fln.show(id: randomNumber, title: title, body: body, notificationDetails: platformChannelSpecifics, payload: payload);
-    }
+    final androidPlatformChannelSpecifics = NotificationSoundUtil.androidDetailsForType(
+      resolvedType,
+      withSound: _notificationSoundEnabled(),
+      styleInformation: bigPictureStyleInformation,
+      largeIcon: FilePathAndroidBitmap(largeIconPath),
+    );
+    int randomNumber = Random().nextInt(100);
+    NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+    await fln.show(id: randomNumber, title: title, body: body, notificationDetails: platformChannelSpecifics, payload: payload);
   }
 
   static Future<String> _downloadAndSaveFile(String url, String fileName) async {
@@ -408,18 +502,23 @@ Future<dynamic> myBackgroundMessageHandler(RemoteMessage message) async {
     print("onBackground: ${message.notification?.title}/${message.notification?.body}/${message.notification?.titleLocKey}");
   }
 
-  if (message.notification != null) {
+  final type = message.data['type']?.toString();
+  if (!BookingNotificationConstants.isIncomingBookingRequest(type) &&
+      message.notification != null) {
     return;
   }
 
   final fln = FlutterLocalNotificationsPlugin();
   const androidInitialize = AndroidInitializationSettings('notification_icon');
-  const iOSInitialize = DarwinInitializationSettings();
+  final iOSInitialize = DarwinInitializationSettings(
+    notificationCategories: NotificationSoundUtil.buildDarwinCategories(),
+  );
   await fln.initialize(
-    settings: const InitializationSettings(
+    settings: InitializationSettings(
       android: androidInitialize,
       iOS: iOSInitialize,
     ),
+    onDidReceiveBackgroundNotificationResponse: bookingNotificationBackgroundHandler,
   );
   await NotificationHelper.showBackgroundNotification(message, fln);
 }

@@ -132,6 +132,10 @@ class SplashController extends GetxController implements GetxService {
   }
 
   Future<void> updateLanguage(bool isInitial) async {
+    if (!Get.find<AuthController>().isLoggedIn()) {
+      return;
+    }
+
     Response response = await splashRepo.updateLanguage();
 
     if(!isInitial){

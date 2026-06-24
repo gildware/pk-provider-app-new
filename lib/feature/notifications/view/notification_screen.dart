@@ -25,13 +25,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
         backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: CustomAppBar(
           title: "notifications".tr,
+          usePrimaryColor: true,
           onBackPressed: widget.fromNotificationPage == "notification" ? (){
             Get.offAllNamed(RouteHelper.getInitialRoute());
           } : null,
         ),
         body: GetBuilder<NotificationController>(builder: (controller) {
           return controller.notificationModel == null ? const NotificationShimmer(): controller.dateList.isEmpty ?
-          NoDataScreen(text: 'empty_notifications'.tr,type: NoDataType.notification,):
+          Center(child: NoDataScreen(text: 'empty_notifications'.tr,type: NoDataType.notification,)):
           RefreshIndicator(
             color: Theme.of(context).primaryColor,
             backgroundColor: Theme.of(context).cardColor,

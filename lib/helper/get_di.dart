@@ -11,6 +11,7 @@ import 'package:demandium_provider/feature/booking_requests/controller/calendar_
 import 'package:demandium_provider/feature/booking_requests/controller/calender_order_filter_controller.dart';
 import 'package:demandium_provider/common/repo/provider_cache_repo.dart';
 import 'package:demandium_provider/feature/dashboard/repo/dashboard_bundle_repo.dart';
+import 'package:demandium_provider/helper/booking_alert_watcher.dart';
 import 'package:demandium_provider/util/core_export.dart';
 import 'package:get/get.dart';
 
@@ -98,6 +99,8 @@ Future<Map<String, Map<String, String>>> init() async{
   Get.lazyPut(() => PaymentsController(paymentsRepo: Get.find()));
   Get.lazyPut(() => BookingCalendarController(bookingRequestRepo: Get.find()));
   Get.lazyPut(() => CalenderOrderFilterController());
+
+  Get.put(BookingAlertWatcher(), permanent: true);
 
 
 

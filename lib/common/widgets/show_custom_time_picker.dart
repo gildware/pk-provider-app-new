@@ -18,7 +18,10 @@ Future<TimeOfDay?> showCustomTimePicker({TimeOfDay? initialTime}) async {
           timePickerTheme: AppTimePickerTheme.forBrightness(brightness),
           colorScheme: AppTimePickerTheme.colorSchemeFor(brightness, baseScheme),
         ),
-        child: child!,
+        child: MediaQuery(
+          data: MediaQuery.of(pickerContext).copyWith(alwaysUse24HourFormat: false),
+          child: child!,
+        ),
       );
     },
   );

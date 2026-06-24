@@ -48,6 +48,10 @@ class MobileAppIconHelper {
       return '$_apiBase$trimmed';
     }
 
+    if (trimmed.startsWith('/assets/')) {
+      return '$_apiBase$trimmed';
+    }
+
     if (trimmed.startsWith('storage/')) {
       return '$_apiBase/$trimmed';
     }

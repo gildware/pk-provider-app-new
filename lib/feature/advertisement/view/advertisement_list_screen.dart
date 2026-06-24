@@ -3,7 +3,12 @@ import 'package:demandium_provider/util/core_export.dart';
 
 class AdvertisementListScreen extends StatefulWidget {
   final bool isDataAvailable;
-  const AdvertisementListScreen({super.key, required this.isDataAvailable});
+  final bool embeddedInBottomNav;
+  const AdvertisementListScreen({
+    super.key,
+    required this.isDataAvailable,
+    this.embeddedInBottomNav = false,
+  });
   @override
   State<AdvertisementListScreen> createState() => _AdvertisementListScreenState();
 }
@@ -31,7 +36,9 @@ class _AdvertisementListScreenState extends State<AdvertisementListScreen>{
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: CustomAppBar(title: 'advertisement_list'.tr),
+      appBar: widget.embeddedInBottomNav
+          ? MainAppBar(title: 'advertisements'.tr, color: Theme.of(context).primaryColor)
+          : CustomAppBar(title: 'advertisement_list'.tr),
       body: GetBuilder<AdvertisementController>(
         builder:(advertisementController){
 

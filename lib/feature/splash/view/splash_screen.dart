@@ -1,4 +1,5 @@
 import 'package:demandium_provider/helper/app_startup.dart';
+import 'package:demandium_provider/helper/booking_notification_action_handler.dart';
 import 'package:demandium_provider/helper/version.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
@@ -140,15 +141,12 @@ class SplashScreenState extends State<SplashScreen> {
         } break;
 
         case "booking": {
-          if( notificationBody.bookingId != null && notificationBody.bookingId != ""){
-            if(notificationBody.bookingType == "repeat" && notificationBody.repeatBookingType == "single"){
-              Get.toNamed(RouteHelper.getBookingDetailsRoute( subBookingId : notificationBody.bookingId, fromPage : "fromNotification"));
-            }else if(notificationBody.bookingType == "repeat" && notificationBody.repeatBookingType != "single"){
-              Get.toNamed(RouteHelper.getRepeatBookingDetailsRoute( bookingId : notificationBody.bookingId, fromPage : "fromNotification"));
-            }else{
-              Get.toNamed(RouteHelper.getBookingDetailsRoute( bookingId : notificationBody.bookingId, fromPage : "fromNotification"));
-            }
-          }else{
+          if (notificationBody.bookingId != null && notificationBody.bookingId != "") {
+            Get.offNamed(RouteHelper.getInitialRoute());
+            Future.delayed(const Duration(milliseconds: 600), () {
+              BookingNotificationActionHandler.showBookingAlertFromBody(notificationBody);
+            });
+          } else {
             Get.offNamed(RouteHelper.getInitialRoute());
           }
         } break;

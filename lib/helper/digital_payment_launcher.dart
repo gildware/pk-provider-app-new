@@ -9,6 +9,7 @@ class DigitalPaymentLauncher {
   static Razorpay? _razorpay;
   static String? _activeFromPage;
   static String? _activePaymentRequestId;
+  static String? _activeAccessToken;
   static Completer<void>? _activeCompleter;
 
   static bool isRazorpayEnabled() {
@@ -64,6 +65,7 @@ class DigitalPaymentLauncher {
 
       _activeFromPage = fromPage;
       _activePaymentRequestId = prepareData['payment_request_id']?.toString();
+      _activeAccessToken = _extractAccessToken(paymentUrl);
       _razorpay?.clear();
       _razorpay = Razorpay();
       _razorpay!
@@ -103,15 +105,19 @@ class DigitalPaymentLauncher {
     String paymentUrl,
   ) async {
     final uri = Uri.parse(paymentUrl);
+    final accessToken = _extractAccessToken(paymentUrl);
 
     if (uri.path.contains('razor-pay/pay')) {
       final paymentId = uri.queryParameters['payment_id'];
       if (paymentId != null && paymentId.isNotEmpty) {
-        final response = await http.get(
-          Uri.parse(
-            '${AppConstants.baseUrl}/payment/razor-pay/native-prepare?payment_id=$paymentId',
-          ),
-        );
+        final prepareUri = Uri.parse(
+          '${AppConstants.baseUrl}/payment/razor-pay/native-prepare',
+        ).replace(queryParameters: {
+          'payment_id': paymentId,
+          if (accessToken != null && accessToken.isNotEmpty)
+            'access_token': accessToken,
+        });
+        final response = await http.get(prepareUri);
         return _decodePrepareResponse(response);
       }
     }
@@ -125,6 +131,12 @@ class DigitalPaymentLauncher {
 
     final response = await http.get(nativeUri);
     return _decodePrepareResponse(response);
+  }
+
+  static String? _extractAccessToken(String paymentUrl) {
+    final uri = Uri.tryParse(paymentUrl);
+    final token = uri?.queryParameters['access_token'];
+    return token != null && token.isNotEmpty ? token : null;
   }
 
   static Map<String, dynamic>? _decodePrepareResponse(http.Response response) {
@@ -211,6 +223,8 @@ class DigitalPaymentLauncher {
             'order_id': orderId,
             'signature': signature,
             'native_sdk': '1',
+            if ((_activeAccessToken ?? '').isNotEmpty)
+              'access_token': _activeAccessToken!,
           },
         );
 
@@ -287,6 +301,7 @@ class DigitalPaymentLauncher {
     _razorpay = null;
     _activeFromPage = null;
     _activePaymentRequestId = null;
+    _activeAccessToken = null;
   }
 
   static void _completeNativeFlow() {
