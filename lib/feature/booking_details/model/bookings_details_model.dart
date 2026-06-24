@@ -348,6 +348,10 @@ class BookingDetailsContent {
 
     if (transactionId != null && transactionId!.isNotEmpty) {
       paymentLedger?.installments?.forEach((entry) {
+        final methodLabel = (entry.paymentMethodLabel ?? '').toLowerCase();
+        if (methodLabel.contains('wallet')) {
+          return;
+        }
         if (entry.transactionId == null || entry.transactionId!.isEmpty) {
           entry.transactionId = transactionId;
         }
@@ -1139,7 +1143,7 @@ extension BookingDetailsContentPaymentLedger on BookingDetailsContent {
         paymentMethodLabel: partial.paymentMethodLabel ?? partial.paidWith,
         transactionId: (partial.transactionId != null && partial.transactionId!.isNotEmpty)
             ? partial.transactionId
-            : transactionId,
+            : (partial.paidWith == 'wallet' ? null : transactionId),
         dueAfterPayment: partial.dueAfterPayment ??
             (cap - runningPaid).clamp(0, double.infinity).toDouble(),
       ));
