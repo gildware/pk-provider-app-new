@@ -42,7 +42,7 @@ class BusinessReportExpenseListView extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withValues(alpha:0.05),
+                        color: context.adaptivePrimaryColor.withValues(alpha:0.05),
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(Dimensions.radiusSmall),
                           topRight: Radius.circular(Dimensions.radiusSmall),
@@ -153,7 +153,7 @@ class BusinessReportExpenseListView extends StatelessWidget {
                             Text(PriceConverter.convertPrice(totalExpense),
                               style: robotoBold.copyWith(
                                 fontSize: Dimensions.fontSizeDefault,
-                                color: Theme.of(context).primaryColor,
+                                color: context.adaptivePrimaryColor,
                               ),
                             )
                           ],

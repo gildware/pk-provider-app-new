@@ -47,8 +47,8 @@ class ServiceManSection extends StatelessWidget {
                     child: Text(
                       dashboardController.dashboardServicemanList.isEmpty ? "add_new_service_man".tr:"view_all".tr,
                       style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault,decoration: TextDecoration.underline,
-                        color: Theme.of(context).primaryColor,
-                        decorationColor: Theme.of(context).primaryColor,
+                        color: context.adaptivePrimaryColor,
+                        decorationColor: context.tabSelectedColor,
                       )
                     )
                   )
@@ -83,7 +83,7 @@ class ServiceManSection extends StatelessWidget {
                     Container(padding: const EdgeInsets.all(Dimensions.paddingSizeExtraSmall),
                       margin: const EdgeInsets.all(5),
                       decoration: BoxDecoration(borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                        color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
+                        color: context.adaptivePrimaryColor.withValues(alpha: 0.05),
                       ),
 
                       child: Column(mainAxisAlignment: MainAxisAlignment.center, children:  [

@@ -8,6 +8,9 @@ class CustomDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dividerColor = color == Colors.black
+        ? Theme.of(context).dividerColor
+        : color;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final boxWidth = constraints.constrainWidth();
@@ -21,7 +24,7 @@ class CustomDivider extends StatelessWidget {
               width: width,
               height: dashHeight,
               child: DecoratedBox(
-                decoration: BoxDecoration(color: color),
+                decoration: BoxDecoration(color: dividerColor),
               ),
             );
           }),

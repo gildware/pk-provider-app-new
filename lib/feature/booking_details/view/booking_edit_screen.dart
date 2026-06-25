@@ -57,7 +57,7 @@ class _BookingEditScreenState extends State<BookingEditScreen> {
                       decoration: BoxDecoration(
                           color: Theme.of(context).cardColor.withValues(alpha:0.1),
                           borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall),
-                          border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha:0.2),width: 1)
+                          border: Border.all(color: context.adaptivePrimaryColor.withValues(alpha:0.2),width: 1)
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton(
@@ -96,7 +96,7 @@ class _BookingEditScreenState extends State<BookingEditScreen> {
                     decoration: BoxDecoration(
                         color: Theme.of(context).cardColor.withValues(alpha:0.1),
                         borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall),
-                        border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha:0.2),width: 1)
+                        border: Border.all(color: context.adaptivePrimaryColor.withValues(alpha:0.2),width: 1)
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton(
@@ -145,7 +145,7 @@ class _BookingEditScreenState extends State<BookingEditScreen> {
                     decoration: BoxDecoration(
                         color: Theme.of(context).cardColor.withValues(alpha:0.1),
                         borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall),
-                        border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha:0.2),width: 1)
+                        border: Border.all(color: context.adaptivePrimaryColor.withValues(alpha:0.2),width: 1)
                     ),
                     margin: const EdgeInsets.only(bottom : Dimensions.paddingSizeDefault),
                     padding: const EdgeInsets.only(left : Dimensions.paddingSizeDefault),
@@ -163,7 +163,7 @@ class _BookingEditScreenState extends State<BookingEditScreen> {
                         await bookingEditController.selectDate();
                         Get.find<UserProfileController>().trialWidgetShow(route: "");
                       },
-                        icon:  Icon(Icons.calendar_month_outlined, color: Theme.of(context).primaryColor.withValues(alpha:0.5),),
+                        icon:  Icon(Icons.calendar_month_outlined, color: context.adaptivePrimaryColor.withValues(alpha:0.5),),
                       )
 
                     ],),
@@ -174,7 +174,7 @@ class _BookingEditScreenState extends State<BookingEditScreen> {
                   SizedBox(height: nextBooking !=null && widget.bookingEditType == BookingEditType.repeat ? 15 : 0),
 
                   Row(mainAxisAlignment : MainAxisAlignment.spaceBetween, children: [
-                    Text('service_list'.tr, style: robotoMedium.copyWith(color: Theme.of(context).primaryColor,fontSize: Dimensions.fontSizeLarge),),
+                    Text('service_list'.tr, style: robotoMedium.copyWith(color: context.adaptivePrimaryColor,fontSize: Dimensions.fontSizeLarge),),
 
                     widget.bookingEditType == BookingEditType.regular ? TextButton(
                       onPressed: bookingEditController.cartList.length == 1 &&  bookingEditController.cartList[0].variantKey == null ? null : (){
@@ -195,13 +195,13 @@ class _BookingEditScreenState extends State<BookingEditScreen> {
                       ),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
                         Icon(Icons.add, color: bookingEditController.cartList.length == 1 &&  bookingEditController.cartList[0].variantKey == null ?
-                        Theme.of(context).hintColor : Theme.of(context).primaryColor,
+                        Theme.of(context).hintColor : context.tabSelectedColor,
                           size: Dimensions.fontSizeDefault,
                         ),
                         const SizedBox(width: 8.0), // Adjust the spacing between the icon and text here
                         Text("add_service".tr, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault,
                           color: bookingEditController.cartList.length == 1 &&  bookingEditController.cartList[0].variantKey == null
-                              ? Theme.of(context).hintColor : Theme.of(context).primaryColor,
+                              ? Theme.of(context).hintColor : context.tabSelectedColor,
                         ),),
                       ]),
                     ) : const SizedBox()
@@ -288,7 +288,7 @@ class _NextUpcomingBookingWidget extends StatelessWidget {
         Row( mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Text("${booking.bookingStatus == "accepted" ? 'next_upcoming'.tr : "currently_ongoing".tr} # ${booking.readableId ?? ""}",
             style:robotoMedium.copyWith(
-              color: Theme.of(context).primaryColor,
+              color: context.adaptivePrimaryColor,
               fontSize: Dimensions.fontSizeDefault,
             ),
           ),

@@ -124,7 +124,7 @@ class RepeatBookingSummeryWidget extends StatelessWidget{
             const SizedBox(height: Dimensions.paddingSizeDefault,),
 
             Container(
-              color: Theme.of(context).primaryColor.withValues(alpha:0.05),
+              color: context.adaptivePrimaryColor.withValues(alpha:0.05),
               padding: const EdgeInsets.symmetric(horizontal: 7),
               margin:  const EdgeInsets.symmetric(horizontal: 8),
               height: 40,
@@ -339,8 +339,8 @@ class _SubTotalItemWidget extends StatelessWidget {
               onTap: (){
                 showDialog(context: context, builder: (ctx) => const RepeatBookingEditHistoryDialog());
               },
-              child: Text('(${'view_details'.tr})',  style: robotoRegular.copyWith(color: Theme.of(context).primaryColor, decoration: TextDecoration.underline,
-                decorationColor: Theme.of(context).primaryColor, decorationThickness:  0.5, fontSize: Dimensions.fontSizeSmall,
+              child: Text('(${'view_details'.tr})',  style: robotoRegular.copyWith(color: context.adaptivePrimaryColor, decoration: TextDecoration.underline,
+                decorationColor: context.tabSelectedColor, decorationThickness:  0.5, fontSize: Dimensions.fontSizeSmall,
               )),
             ),
           ]),

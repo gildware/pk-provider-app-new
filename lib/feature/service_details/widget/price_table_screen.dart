@@ -18,7 +18,7 @@ class PriceTableScreen extends StatelessWidget {
                 ),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withValues(alpha:0.06),
+                    color: context.adaptivePrimaryColor.withValues(alpha:0.06),
                     borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                   ),
                   child: Padding(
@@ -35,7 +35,7 @@ class PriceTableScreen extends StatelessWidget {
                         Text("${serviceDetailsController.variantList.length}",
                           style: robotoBold.copyWith(
                               fontSize: Dimensions.fontSizeLarge,
-                              color: Theme.of(context).primaryColor),
+                              color: context.adaptivePrimaryColor),
                         ),
                         const SizedBox(width: Dimensions.paddingSizeExtraSmall,),
 
@@ -80,7 +80,7 @@ class PriceTableScreen extends StatelessWidget {
                                 serviceDetailsController.variantList[index].price.toString())),
                               style: robotoBold.copyWith(
                                 fontSize: Dimensions.fontSizeLarge,
-                                color: Theme.of(context).primaryColor,
+                                color: context.adaptivePrimaryColor,
                               ),
                             ),
 

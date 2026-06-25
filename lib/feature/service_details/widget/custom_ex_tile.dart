@@ -142,14 +142,14 @@ class _CustomExpansionTileState extends State<CustomExpansionTile> with SingleTi
                   vertical: Dimensions.paddingSizeSmall
               ),
               decoration:  BoxDecoration(
-                  color: Theme.of(context).primaryColor.withValues(alpha:0.08),
+                  color: context.adaptivePrimaryColor.withValues(alpha:0.08),
                   borderRadius:
                   const BorderRadius.all(Radius.circular(Dimensions.radiusDefault))),
               child: Row(children: [
                 Icon( _isExpanded == true ?
                 Icons.remove_circle:
                 Icons.add_circle_outlined,
-                    color: Theme.of(context).primaryColor),
+                    color: context.adaptivePrimaryColor),
                 const SizedBox(width: Dimensions.paddingSizeSmall,),
                 Expanded(
                   child: widget.title,

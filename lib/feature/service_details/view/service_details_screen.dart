@@ -36,7 +36,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
 
           return serviceDetailsController.isLoading?
           const ServiceDetailsShimmer() :
-          Container(color: Theme.of(context).primaryColor.withValues(alpha:0.002),
+          Container(color: context.adaptivePrimaryColor.withValues(alpha:0.002),
             child: CustomScrollView(slivers: [
 
 
@@ -69,6 +69,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                           ClipRRect(borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall),
                             child: CustomImage(height: 80, width: 80,
                               image: serviceDetailsController.serviceDetailsModel?.content?.thumbnailFullPath??"",
+                              placeholder: Images.servicePlaceholder,
                             ),
                           ),
                           const SizedBox(width: Dimensions.paddingSizeDefault),
@@ -139,7 +140,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                                     widget.discount.discountAmountType!:"").toString(),
                                   style: robotoBold.copyWith(
                                       fontSize: Dimensions.fontSizeDefault,
-                                      color: Theme.of(context).primaryColor,decoration: TextDecoration.none
+                                      color: context.adaptivePrimaryColor,decoration: TextDecoration.none
                                   ),
                                 ),
 
@@ -232,6 +233,7 @@ class BannerDelegate extends SliverPersistentHeaderDelegate {
 
         CustomImage(width: Get.width, height: 120,
           image: serviceDetailsController.serviceDetailsModel?.content?.coverImageFullPath ?? "",
+          placeholder: Images.servicePlaceholder,
         ),
 
         discount != null && discount!.discountAmount! > 0.0?
@@ -288,7 +290,7 @@ class TabBarDelegate extends SliverPersistentHeaderDelegate {
                   border: Border(
                     bottom: BorderSide(
                         width: 1,
-                        color: Theme.of(context).primaryColor.withValues(alpha:0.3)
+                        color: context.adaptivePrimaryColor.withValues(alpha:0.3)
                     ),
                   ),
                 ),
@@ -298,12 +300,12 @@ class TabBarDelegate extends SliverPersistentHeaderDelegate {
                   isScrollable: true,
                   unselectedLabelColor: Theme.of(context).hintColor,
                   controller: serviceTabController.controller,
-                  indicatorColor: Theme.of(context).primaryColor,
+                  indicatorColor: context.tabIndicatorColor,
                   indicatorWeight: 4,
                   labelPadding: const EdgeInsets.symmetric(
                       horizontal: Dimensions.paddingSizeLarge
                   ),
-                  labelColor: Theme.of(context).primaryColor,
+                  labelColor: context.tabSelectedColor,
                   unselectedLabelStyle: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault),
                   labelStyle: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault),
                   onTap: (int? index) {

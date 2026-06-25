@@ -65,7 +65,7 @@ class CashOverflowDialog extends StatelessWidget {
                       );
                     },
                     child: Text("pay_the_due".tr,
-                      style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).primaryColor.withValues(alpha:0.9),),
+                      style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: context.adaptivePrimaryColor.withValues(alpha:0.9),),
                     ),
                   ) : const SizedBox(),
 

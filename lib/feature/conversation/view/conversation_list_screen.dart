@@ -50,7 +50,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> with Si
         },
       ),
       body: RefreshIndicator(
-        color: Theme.of(context).primaryColor,
+        color: context.adaptivePrimaryColor,
         backgroundColor: Theme.of(context).cardColor,
         onRefresh: () async=> Get.find<ConversationController>().getChannelList(1, reload: true),
 

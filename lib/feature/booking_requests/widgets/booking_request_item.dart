@@ -68,7 +68,7 @@ class BookingRequestItem extends StatelessWidget {
 
           Container(height: 2,width: double.infinity,
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withValues(alpha:0.1),
+              color: context.adaptivePrimaryColor.withValues(alpha:0.1),
             ),
           ),
           Padding(
@@ -128,7 +128,7 @@ class BookingRequestItem extends StatelessWidget {
                     Text(PriceConverter.convertPrice(booking.displayGrandTotal),
                       style: robotoMedium.copyWith(
                         fontSize: Dimensions.fontSizeLarge,
-                        color: Theme.of(context).primaryColor,
+                        color: context.adaptivePrimaryColor,
                       ),
                     ),
                   ],

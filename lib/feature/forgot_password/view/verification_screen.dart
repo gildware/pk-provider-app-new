@@ -155,7 +155,7 @@ class VerificationScreenState extends State<VerificationScreen> {
                   style: TextButton.styleFrom(
                     minimumSize: const Size(1, 40),
                     backgroundColor: Theme.of(context).colorScheme.surface,
-                    textStyle: TextStyle(color: Theme.of(context).primaryColor)
+                    textStyle: TextStyle(color: context.adaptivePrimaryColor)
                   ),
                   onPressed: _seconds! < 1 ? () async {
                     if (widget.fromPage == 'profile-phone-change') {
@@ -200,7 +200,7 @@ class VerificationScreenState extends State<VerificationScreen> {
 
                   } : null,
                   child: Text('${'resend'.tr}${_seconds! > 0 ? ' ($_seconds)' : ''}',style: robotoRegular.copyWith(
-                    fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).primaryColor,)),
+                    fontSize: Dimensions.fontSizeDefault, color: context.adaptivePrimaryColor,)),
                 ),
               ]) : const SizedBox(),
 

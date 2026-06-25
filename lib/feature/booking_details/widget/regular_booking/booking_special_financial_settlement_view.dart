@@ -13,7 +13,7 @@ class BookingSpecialFinancialSettlementView extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final primaryColor = Theme.of(context).primaryColor;
+    final primaryColor = context.adaptivePrimaryColor;
     final scenarioLabel = _scenarioLabel(settlement.scenarioLabelKey);
 
     return BookingOverviewSectionCard(

@@ -22,7 +22,7 @@ class ReviewHeading extends StatelessWidget {
             const SizedBox(width: Dimensions.paddingSizeExtraSmall,),
             CustomToolTip(
               message: "avg_review_tooltip_hint_text".tr,
-              iconColor: Theme.of(context).primaryColor,
+              iconColor: context.adaptivePrimaryColor,
               preferredDirection: AxisDirection.down,
             ),
          ]),

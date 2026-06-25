@@ -56,12 +56,12 @@ class BookingServiceLocation extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                    border: Border.all(color: Theme.of(context).primaryColor, width: 0.6),
+                    border: Border.all(color: context.adaptivePrimaryColor, width: 0.6),
                     color: Theme.of(context).cardColor,
                   ),
                   margin: EdgeInsets.symmetric(horizontal: 2),
                   padding: EdgeInsets.all(Dimensions.paddingSizeExtraSmall),
-                  child: Icon(Icons.edit, color: Theme.of(context).primaryColor, size: 16,),
+                  child: Icon(Icons.edit, color: context.adaptivePrimaryColor, size: 16,),
                 ),
               )
             ]),
@@ -71,7 +71,7 @@ class BookingServiceLocation extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
+                color: context.adaptivePrimaryColor.withValues(alpha: 0.05),
               ),
               padding: EdgeInsets.all(Dimensions.paddingSizeSmall),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: Dimensions.paddingSizeSmall, children: [
@@ -146,11 +146,11 @@ class BookingServiceLocation extends StatelessWidget {
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                        border: Border.all(color: Theme.of(context).primaryColor, width: 0.6),
+                        border: Border.all(color: context.adaptivePrimaryColor, width: 0.6),
                         color: Theme.of(context).cardColor,
                       ),
                       padding: EdgeInsets.all(Dimensions.paddingSizeExtraSmall),
-                      child: Icon(Icons.location_on_rounded, color: Theme.of(context).primaryColor, size: 18,),
+                      child: Icon(Icons.location_on_rounded, color: context.adaptivePrimaryColor, size: 18,),
                     ),
                   )
                 ])

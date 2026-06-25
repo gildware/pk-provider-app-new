@@ -141,7 +141,7 @@ class SubscriptionItem extends StatelessWidget {
               children: [
                 Expanded(
                   child: InfoCard(
-                    color: Theme.of(context).primaryColor,
+                    color: context.adaptivePrimaryColor,
                     title: 'ongoing'.tr,
                     count: subscriptionModelData.ongoingBookingCount,
                   ),

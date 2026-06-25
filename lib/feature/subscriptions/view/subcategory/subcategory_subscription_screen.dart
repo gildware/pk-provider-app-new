@@ -118,8 +118,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                         child: Text("+ ${"subscribe_subcategory".tr}",
                           style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault,
                             decoration: TextDecoration.underline,
-                            color: Theme.of(context).primaryColor,
-                            decorationColor: Theme.of(context).primaryColor,
+                            color: context.adaptivePrimaryColor,
+                            decorationColor: context.tabSelectedColor,
                           ),
                         ),
                       ),
@@ -178,7 +178,7 @@ class SubscriptionHeaderWidget extends StatelessWidget {
                           text: mySubscriptionController.totalSubscription.toString(),
                           style: robotoBold.copyWith(
                             fontSize: Dimensions.fontSizeDefault,
-                            color: Theme.of(context).primaryColor,
+                            color: context.adaptivePrimaryColor,
                           ),
                         ),
                         TextSpan(

@@ -143,7 +143,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 BoxShadow(
                   offset: const Offset(0, 2),
                   blurRadius: 5,
-                  color: Theme.of(context).primaryColor.withValues(alpha:0.3),
+                  color: context.adaptivePrimaryColor.withValues(alpha:0.3),
                 )],
             ),
           ),
@@ -198,7 +198,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                    child: Icon(themeController.darkTheme ?
                                      Icons.dark_mode_outlined : Icons.light_mode_outlined,
                                      size: 16,
-                                     color: Theme.of(context).primaryColor,
+                                     color: context.adaptivePrimaryColor,
                                    ),
                                  ),
                                ],

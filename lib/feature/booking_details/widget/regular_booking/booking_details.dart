@@ -203,7 +203,7 @@ class BookingEmptyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,children: [
-      Image.asset(Images.noResults, height: Get.height * 0.1, color: Theme.of(context).primaryColor,),
+      Image.asset(Images.noResults, height: Get.height * 0.1, color: context.adaptivePrimaryColor,),
       const SizedBox(height: Dimensions.paddingSizeLarge,),
       Text("information_not_found".tr, style: robotoRegular,),
       const SizedBox(height: Dimensions.paddingSizeLarge,),

@@ -113,7 +113,7 @@ class _CalendarOrderScreenState extends State<CalendarOrderScreen> {
                   ),
                   headerStyle: CalendarHeaderStyle(
                     textStyle: robotoBold.copyWith(
-                      color: Theme.of(context).primaryColor,
+                      color: context.adaptivePrimaryColor,
                       fontSize: Dimensions.fontSizeLarge,
                     ),
                     backgroundColor: Theme.of(context).cardColor,
@@ -128,11 +128,11 @@ class _CalendarOrderScreenState extends State<CalendarOrderScreen> {
                       fontSize: Dimensions.fontSizeSmall,
                     ),
                   ),
-                  todayHighlightColor: Theme.of(context).primaryColor,
+                  todayHighlightColor: context.tabSelectedColor,
                   selectionDecoration: BoxDecoration(
                     color: Colors.transparent,
                     border: Border.all(
-                      color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+                      color: context.adaptivePrimaryColor.withValues(alpha: 0.5),
                       width: 2,
                     ),
                   ),

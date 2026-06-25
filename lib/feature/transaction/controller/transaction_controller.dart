@@ -1,5 +1,6 @@
 import 'package:demandium_provider/common/model/api_response_model.dart';
 import 'package:demandium_provider/feature/payement_information/controller/payment_info_controller.dart';
+import 'package:demandium_provider/feature/payments/controller/payments_controller.dart';
 import 'package:demandium_provider/feature/transaction/model/dropdown_method_method.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
@@ -91,20 +92,47 @@ class TransactionController extends GetxController implements GetxService{
 
     if(response.statusCode == 200 && response.body["response_code"] == 'default_200' ){
       await Get.find<UserProfileController>().getProviderInfo(reload: true);
+      if (Get.isRegistered<PaymentsController>()) {
+        await Get.find<PaymentsController>().loadOverview();
+      }
 
       Get.back();
       Get.back();
       showCustomSnackBar('withdraw_request_send_successful'.tr,  type: ToasterMessageType.success);
-    } else if (response.statusCode == 400){
+    } else {
       Get.back();
-      showCustomSnackBar(response.body['errors'][0]['message']);
-    }else{
-      Get.back();
-      showCustomSnackBar(response.statusText);
-
+      final message = _extractWithdrawErrorMessage(response);
+      showCustomSnackBar(message, type: ToasterMessageType.error);
     }
     _isLoading = false;
     update();
+  }
+
+  String _extractWithdrawErrorMessage(Response response) {
+    try {
+      final body = response.body;
+      if (body is Map) {
+        final errors = body['errors'];
+        if (errors is List && errors.isNotEmpty) {
+          final first = errors.first;
+          if (first is Map && first['message'] != null) {
+            return first['message'].toString();
+          }
+        }
+        final apiMessage = body['message']?.toString();
+        if (apiMessage != null && apiMessage.isNotEmpty) {
+          return apiMessage;
+        }
+      }
+    } catch (_) {
+      //
+    }
+    if (response.statusText != null &&
+        response.statusText!.isNotEmpty &&
+        response.statusText != 'OK') {
+      return response.statusText!;
+    }
+    return 'something_went_wrong'.tr;
   }
 
 

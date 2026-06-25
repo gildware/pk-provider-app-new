@@ -71,7 +71,7 @@ class _SignUpAppbarState extends State<SignUpAppbar> {
                       child: FittedBox(
                         child: Text(
                           '$currentStep ${'of'.tr} $totalStep',
-                          style: robotoBold.copyWith(color: Theme.of(context).primaryColor),
+                          style: robotoBold.copyWith(color: context.adaptivePrimaryColor),
                         ),
                       ),
                     ),

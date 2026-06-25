@@ -47,14 +47,14 @@ class _CustomerPostDetailsScreenState extends State<CustomerPostDetailsScreen> {
                                 onTap: (){
                                   postController.changeVisibilityInfoWidgetStatus();
                                 },
-                                child: Icon(Icons.info_outline,size: 18 , color: Theme.of(context).primaryColor,)),
+                                child: Icon(Icons.info_outline,size: 18 , color: context.adaptivePrimaryColor,)),
                             if(postController.showInfoWidget)
                               Positioned(
                                 top: 25,
                                 child: Transform.rotate(
                                   angle:  45 * pi/180,
                                   child: Container(
-                                    height: 15, width: 15, color: Theme.of(context).primaryColor,
+                                    height: 15, width: 15, color: context.adaptivePrimaryColor,
                                   ),
                                 ),
                               )
@@ -138,12 +138,12 @@ class _CustomerPostDetailsScreenState extends State<CustomerPostDetailsScreen> {
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                      border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha:0.2)),
-                      color: Theme.of(context).primaryColor.withValues(alpha:0.05),
+                      border: Border.all(color: context.adaptivePrimaryColor.withValues(alpha:0.2)),
+                      color: context.adaptivePrimaryColor.withValues(alpha:0.05),
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault,vertical: Dimensions.paddingSizeSmall),
 
-                    child: Text(widget.postData.additionInstructions![index].details??"",style: robotoRegular.copyWith(color: Theme.of(context).primaryColor,fontSize: Dimensions.fontSizeDefault),),
+                    child: Text(widget.postData.additionInstructions![index].details??"",style: robotoRegular.copyWith(color: context.adaptivePrimaryColor,fontSize: Dimensions.fontSizeDefault),),
                   ),
                 );
               },itemCount: widget.postData.additionInstructions!.length,

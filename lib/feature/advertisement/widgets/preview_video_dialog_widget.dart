@@ -140,7 +140,7 @@ class PreviewVideoDialogWidget extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall + 5, vertical: Dimensions.paddingSizeSmall),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                                  color: Theme.of(context).primaryColor,
+                                  color: context.adaptivePrimaryColor,
                                 ),
                                 child:  Icon(Icons.arrow_forward_rounded, size: 20, color: Colors.white.withValues(alpha:0.8),),
                               ),

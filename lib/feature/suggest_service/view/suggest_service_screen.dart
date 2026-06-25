@@ -37,7 +37,7 @@ class _SuggestServiceScreenState extends State<SuggestServiceScreen> {
           onPressed: (){
             Get.to(()=> const SuggestedServiceListScreen());
           },
-          icon: Icon(Icons.list, color: Theme.of(context).primaryColor,),
+          icon: Icon(Icons.list, color: context.adaptivePrimaryColor,),
         ),
       ),
       body: GetBuilder<SuggestServiceController>(builder: (suggestServiceController){

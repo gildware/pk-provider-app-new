@@ -33,7 +33,7 @@ class BookingFilterTabChip extends StatelessWidget {
         color: !isSelected && Get.isDarkMode
             ? Colors.grey.withValues(alpha: 0.2)
             : isSelected
-                ? Theme.of(context).primaryColor
+                 ? context.tabSelectedColor
                 : Theme.of(context).primaryColor.withValues(alpha: 0.08),
         borderRadius: const BorderRadius.all(Radius.circular(20)),
       ),

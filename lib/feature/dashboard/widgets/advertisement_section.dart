@@ -56,7 +56,7 @@ class AdvertisementSection extends StatelessWidget {
                 vertical: Dimensions.paddingSizeSmall,
               ),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
               ),
               child: InkWell(
@@ -72,7 +72,7 @@ class AdvertisementSection extends StatelessWidget {
                 },
                 child: Text('create_ads'.tr, style: robotoBold.copyWith(
                   fontSize: Dimensions.fontSizeDefault,
-                  color: Theme.of(context).primaryColor,
+                  color: context.adaptivePrimaryColor,
                 )),
               ),
             ),

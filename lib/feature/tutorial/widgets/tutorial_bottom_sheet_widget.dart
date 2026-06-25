@@ -8,6 +8,7 @@ import 'package:demandium_provider/feature/tutorial/controller/tutorial_controll
 import 'package:demandium_provider/feature/tutorial/widgets/tutorial_item_widget.dart' show TutorialItemWidget;
 import 'package:demandium_provider/feature/tutorial/widgets/tutorial_progressbar_widget.dart' show TutorialProgressbarWidget;
 import 'package:demandium_provider/helper/route_helper.dart';
+import 'package:demandium_provider/helper/extension_helper.dart';
 import 'package:demandium_provider/util/dimensions.dart';
 import 'package:demandium_provider/util/styles.dart';
 import 'package:flutter/material.dart';
@@ -124,7 +125,7 @@ class TutorialBottomSheetWidget extends StatelessWidget {
                       child: Container(
                         height: 40, width: 120,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor,
+                          color: context.adaptivePrimaryColor,
                           borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                         ),
                         child: Center(child: Row(mainAxisSize: MainAxisSize.min, children: [

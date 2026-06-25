@@ -39,7 +39,7 @@ class _BusinessSettingScreenState extends State<BusinessSettingScreen> {
                 isScrollable: true,
                 indicator: BoxDecoration(
                   borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
-                  color: Theme.of(context).primaryColor,
+                  color: context.adaptivePrimaryColor,
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
                 labelColor: Colors.white,
@@ -53,7 +53,7 @@ class _BusinessSettingScreenState extends State<BusinessSettingScreen> {
                   Tab(child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
-                      color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                      color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
                     ),
                     alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
@@ -63,7 +63,7 @@ class _BusinessSettingScreenState extends State<BusinessSettingScreen> {
                   Tab(child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
-                      color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                      color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
                     ),
                     alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
@@ -73,7 +73,7 @@ class _BusinessSettingScreenState extends State<BusinessSettingScreen> {
                   Tab(child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
-                      color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                      color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
                     ),
                     alignment: Alignment.center,
                     child: Padding(
@@ -85,7 +85,7 @@ class _BusinessSettingScreenState extends State<BusinessSettingScreen> {
                   Tab(child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
-                      color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                      color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
                     ),
                     alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
@@ -128,7 +128,7 @@ class SwitchButton extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault,vertical: Dimensions.paddingSizeSmall),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-        border: showOutSideBorder ? Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.7)) : null,
+        border: showOutSideBorder ? Border.all(color: context.adaptivePrimaryColor.withValues(alpha: 0.7)) : null,
         boxShadow: context.customThemeColors.lightShadow,
       ),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,children: [ Row(children: [

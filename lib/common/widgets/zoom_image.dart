@@ -16,30 +16,27 @@ class _ZoomImageState extends State<ZoomImage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: isZoomed ? null : CustomAppBar(
         title: widget.appbarTitle,
         subtitle: widget.appbarSubtitle,
       ),
       body: Stack(children: [
-
-          PhotoView(
-
-            scaleStateChangedCallback: (value) {
-              if (value != PhotoViewScaleState.initial) {
-                isZoomed = true;
-              } else {
-                isZoomed = false;
-              }
-              setState(() {});
-            },
-            minScale: PhotoViewComputedScale.contained,
-            imageProvider: NetworkImage(widget.imagePath),
+        PhotoView.customChild(
+          scaleStateChangedCallback: (value) {
+            setState(() {
+              isZoomed = value != PhotoViewScaleState.initial;
+            });
+          },
+          minScale: PhotoViewComputedScale.contained,
+          child: CachedNetworkImage(
+            imageUrl: widget.imagePath,
+            fit: BoxFit.contain,
+            placeholder: (_, __) => const Center(child: CircularProgressIndicator()),
+            errorWidget: (_, __, ___) => MediaPlaceholder(fit: BoxFit.contain),
           ),
-
-        ],
-      ),
+        ),
+      ]),
     );
   }
 }

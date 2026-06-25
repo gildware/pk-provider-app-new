@@ -96,7 +96,7 @@ class _ProfileInformationScreenState extends State<ProfileInformationScreen>
                   isScrollable: true,
                   indicator: BoxDecoration(
                     borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
-                    color: Theme.of(context).primaryColor,
+                    color: context.adaptivePrimaryColor,
                   ),
                   indicatorSize: TabBarIndicatorSize.tab,
                   labelColor: Colors.white,
@@ -111,7 +111,7 @@ class _ProfileInformationScreenState extends State<ProfileInformationScreen>
                             child: Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
-                                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                                color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
                               ),
                               alignment: Alignment.center,
                               padding: const EdgeInsets.symmetric(horizontal: 10),

@@ -45,9 +45,7 @@ class BookingNotificationActionHandler {
       return;
     }
 
-    if (!BookingNotificationConstants.isIncomingBookingRequest(
-      data['type']?.toString(),
-    )) {
+    if (!BookingNotificationConstants.isPendingBookingAcceptance(data)) {
       return;
     }
 
@@ -89,6 +87,10 @@ class BookingNotificationActionHandler {
   }
 
   static void showBookingAlert(Map<String, dynamic> data) {
+    if (!BookingNotificationConstants.isPendingBookingAcceptance(data)) {
+      return;
+    }
+
     final bookingId = data['booking_id']?.toString();
     if (bookingId == null || bookingId.isEmpty) {
       return;

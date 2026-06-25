@@ -43,7 +43,7 @@ class AllBookingSummaryWidget extends StatelessWidget {
               onTap: (){
                 tabController?.index = 1;
               },
-              child: Text('view_all_booking'.tr, style: robotoBold.copyWith(color: Theme.of(context).primaryColor)),
+              child: Text('view_all_booking'.tr, style: robotoBold.copyWith(color: context.adaptivePrimaryColor)),
             )
           ]),
 

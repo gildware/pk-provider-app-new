@@ -30,7 +30,7 @@ class BookingSummeryView extends StatelessWidget{
               const SizedBox(height: Dimensions.paddingSizeDefault,),
 
               Container(
-                color: Theme.of(context).primaryColor.withValues(alpha:0.05),
+                color: context.adaptivePrimaryColor.withValues(alpha:0.05),
                 padding: const EdgeInsets.symmetric(horizontal: 7),
                 margin:  const EdgeInsets.symmetric(horizontal: 8),
                 height: 40,

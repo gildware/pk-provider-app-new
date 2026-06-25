@@ -35,7 +35,7 @@ class MethodPopupButtonWidget extends StatelessWidget {
             borderRadius: BorderRadius.circular(Dimensions.paddingSizeEight),
             border: Border.all(color: Theme.of(context).primaryColorDark, width: 0.8),
           ),
-          child: Icon(Icons.more_vert, color: Theme.of(context).primaryColor, size: Dimensions.paddingSizeLarge),
+          child: Icon(Icons.more_vert, color: context.adaptivePrimaryColor, size: Dimensions.paddingSizeLarge),
         ),
       ),
       onSelected: (value) async {
@@ -103,7 +103,7 @@ class MethodPopupButtonWidget extends StatelessWidget {
                 builder: (paymentInfoController) {
                   return CustomSwitchWidget(
                     value: paymentInfoController.paymentMethodListModel?.content?[index!].isActive ?? false,
-                    activeColor: (paymentMethod?.isDefault ?? false) ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : Theme.of(context).primaryColor,
+                    activeColor: (paymentMethod?.isDefault ?? false) ? Theme.of(context).primaryColor.withValues(alpha: 0.5) : context.tabSelectedColor,
                     onChanged: (value) async {
                       if((paymentMethod?.isDefault ?? false)){
                         showCustomSnackBar('can_not_change_default_method_status'.tr);
@@ -140,7 +140,7 @@ class MethodPopupButtonWidget extends StatelessWidget {
             title: 'edit'.tr,
             child: Container(
               padding: EdgeInsets.all(Dimensions.paddingSizeTini),
-              decoration: BoxDecoration(shape: BoxShape.circle, color: Theme.of(context).primaryColor),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: context.adaptivePrimaryColor),
               child: Icon(Icons.edit_outlined, color: Theme.of(context).cardColor, size: Dimensions.paddingSizeDefault),
             ),
           ),

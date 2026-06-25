@@ -82,7 +82,7 @@ class _UpdateServiceLocationWidgetState extends State<UpdateServiceLocationWidge
                   Container(
                     decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                        color: Theme.of(context).primaryColor.withValues(alpha: 0.05)
+                        color: context.adaptivePrimaryColor.withValues(alpha: 0.05)
                     ),
                     padding: EdgeInsets.all(Dimensions.paddingSizeDefault),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -124,7 +124,7 @@ class _UpdateServiceLocationWidgetState extends State<UpdateServiceLocationWidge
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                      color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
+                      color: context.adaptivePrimaryColor.withValues(alpha: 0.05),
                     ),
                     padding: EdgeInsets.all(Dimensions.paddingSizeDefault),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing : Dimensions.paddingSizeSmall , children: [
@@ -176,12 +176,12 @@ class _UpdateServiceLocationWidgetState extends State<UpdateServiceLocationWidge
                                      child: Container(
                                        decoration: BoxDecoration(
                                          borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                                         border: Border.all(color: Theme.of(context).primaryColor, width: 0.6),
+                                         border: Border.all(color: context.adaptivePrimaryColor, width: 0.6),
                                          color: Theme.of(context).cardColor,
                                        ),
                                        margin: EdgeInsets.symmetric(horizontal: 2),
                                        padding: EdgeInsets.all(Dimensions.paddingSizeExtraSmall),
-                                       child: Icon(Icons.edit, color: Theme.of(context).primaryColor, size: 16,),
+                                       child: Icon(Icons.edit, color: context.adaptivePrimaryColor, size: 16,),
                                      ),
                                    )
                                  ]),
@@ -327,7 +327,7 @@ class _RadioButtonWidget extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
+                color: isSelected ? context.tabSelectedColor : Colors.grey,
                 width: 1.8,
               ),
             ),
@@ -337,7 +337,7 @@ class _RadioButtonWidget extends StatelessWidget {
                 width: 12, height: 12,
                 decoration:  BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Theme.of(context).primaryColor,
+                  color: context.adaptivePrimaryColor,
                 ),
               ),
             )

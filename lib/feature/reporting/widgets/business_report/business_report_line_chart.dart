@@ -51,7 +51,7 @@ class BusinessReportLineChartState extends State<BusinessReportLineChart> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.circle,size: 12,color: Theme.of(context).primaryColor,),
+                  Icon(Icons.circle,size: 12,color: context.adaptivePrimaryColor,),
                   const SizedBox(width: Dimensions.paddingSizeSmall,),
                   Text(
                     'earning'.tr,
@@ -120,7 +120,7 @@ class BusinessReportLineChartState extends State<BusinessReportLineChart> {
                       ),
                       if(widget.fromPage=='overview')
                       SplineSeries<ChartDataModel, String>(
-                          color: Theme.of(context).primaryColor,
+                          color: context.adaptivePrimaryColor,
                           width: 3,
                           enableTooltip: true,
                           name: "earning".tr,

@@ -33,7 +33,7 @@ class ReviewItem extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           highlightColor:  Theme.of(context).primaryColor.withValues(alpha:0.05),
-          hoverColor: Theme.of(context).primaryColor,
+          hoverColor: context.tabSelectedColor,
           borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
           onTap: () => Get.toNamed(RouteHelper.getBookingDetailsRoute( bookingId : review.bookingId!, fromPage : "others")),
           child: Padding(
@@ -46,7 +46,7 @@ class ReviewItem extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('review_id'.tr, style: robotoRegular.copyWith(color: Theme.of(context).primaryColor),),
+                        Text('review_id'.tr, style: robotoRegular.copyWith(color: context.adaptivePrimaryColor),),
                         const SizedBox(width: Dimensions.paddingSizeExtraSmall,),
                         Expanded(child: Text('${(review.readableId !=null && review.readableId !=0) ? review.readableId  : "N/A"}', style: robotoRegular.copyWith(color: Theme.of(context).textTheme.bodyLarge?.color), overflow: TextOverflow.ellipsis,)),
                       ],
@@ -164,13 +164,13 @@ class ReviewItem extends StatelessWidget {
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                        border: Border.all(color: Theme.of(context).primaryColor, width: 0.6),
+                        border: Border.all(color: context.adaptivePrimaryColor, width: 0.6),
                         color: review.isActive == 0 ? Theme.of(context).disabledColor.withValues(alpha:0.01) : Theme.of(context).cardColor
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeLarge, vertical: 6),
                       child: Text(
                         config?.providerCanReplyReview == 0 ? "view".tr : review.reviewReply != null ? "edit_reply".tr : "reply".tr,
-                        style: robotoMedium.copyWith(color: Theme.of(context).primaryColor),
+                        style: robotoMedium.copyWith(color: context.adaptivePrimaryColor),
                       ),
                     ),
                   ),

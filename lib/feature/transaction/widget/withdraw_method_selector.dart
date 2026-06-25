@@ -30,7 +30,7 @@ class WithdrawMethodSelector extends StatelessWidget {
             'my_methods'.tr,
             style: robotoMedium.copyWith(
               fontSize: Dimensions.fontSizeDefault,
-              color: Theme.of(context).primaryColor,
+              color: context.adaptivePrimaryColor,
             ),
           ),
           const SizedBox(height: Dimensions.paddingSizeSmall),
@@ -47,7 +47,7 @@ class WithdrawMethodSelector extends StatelessWidget {
             'others'.tr,
             style: robotoMedium.copyWith(
               fontSize: Dimensions.fontSizeDefault,
-              color: Theme.of(context).primaryColor,
+              color: context.adaptivePrimaryColor,
             ),
           ),
           const SizedBox(height: Dimensions.paddingSizeSmall),
@@ -127,7 +127,7 @@ class _MethodTile extends StatelessWidget {
                 : Theme.of(context).hintColor.withValues(alpha: 0.06),
             border: Border.all(
               color: isSelected
-                  ? Theme.of(context).primaryColor
+                   ? context.tabSelectedColor
                   : Theme.of(context).hintColor.withValues(alpha: 0.25),
               width: isSelected ? 1.5 : 1,
             ),
@@ -136,7 +136,7 @@ class _MethodTile extends StatelessWidget {
             children: [
               Icon(
                 isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-                color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).hintColor,
+                color: isSelected ? context.tabSelectedColor : Theme.of(context).hintColor,
                 size: 22,
               ),
               const SizedBox(width: Dimensions.paddingSizeSmall),
@@ -191,20 +191,20 @@ class _AddNewMethodButton extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
           border: Border.all(
-            color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
+            color: context.adaptivePrimaryColor.withValues(alpha: 0.5),
             style: BorderStyle.solid,
           ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_circle_outline, color: Theme.of(context).primaryColor, size: 22),
+            Icon(Icons.add_circle_outline, color: context.adaptivePrimaryColor, size: 22),
             const SizedBox(width: Dimensions.paddingSizeSmall),
             Text(
               'add_new_withdraw_method'.tr,
               style: robotoMedium.copyWith(
                 fontSize: Dimensions.fontSizeDefault,
-                color: Theme.of(context).primaryColor,
+                color: context.adaptivePrimaryColor,
               ),
             ),
           ],

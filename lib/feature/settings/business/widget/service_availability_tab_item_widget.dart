@@ -71,7 +71,7 @@ class ServiceAvailabilityTabItemWidget extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.fromLTRB(Dimensions.paddingSizeDefault, Dimensions.paddingSizeLarge, Dimensions.paddingSizeDefault, Dimensions.paddingSizeSmall),
                           child: Row(children: [
-                            Image.asset(Images.customCalender, height: 20, width: 20, color: Theme.of(context).primaryColor,),
+                            Image.asset(Images.customCalender, height: 20, width: 20, color: context.adaptivePrimaryColor,),
                             const SizedBox(width: Dimensions.paddingSizeExtraSmall,),
                             Text("availability_schedule".tr, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge),),
                             const SizedBox(width: Dimensions.paddingSizeExtraSmall,),

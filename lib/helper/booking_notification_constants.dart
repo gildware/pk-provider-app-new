@@ -7,6 +7,13 @@ class BookingNotificationConstants {
 
   static bool isIncomingBookingRequest(String? type) => type == 'booking';
 
+  static bool isPendingBookingAcceptance(Map<String, dynamic> data) {
+    if (data['type']?.toString() != 'booking') {
+      return false;
+    }
+    return data['booking_status']?.toString().toLowerCase() == 'pending';
+  }
+
   static int notificationIdFor(String bookingId) =>
       bookingId.hashCode & 0x7FFFFFFF;
 }

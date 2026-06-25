@@ -199,7 +199,7 @@ class ShowcaseGridItem extends StatelessWidget {
                         : CustomImage(
                             image: item.displayMediaUrl ?? '',
                             fit: BoxFit.cover,
-                            placeholder: Images.placeholder,
+                            placeholder: Images.servicePlaceholder,
                           ),
                   ),
                   if (item.isPendingApproval)

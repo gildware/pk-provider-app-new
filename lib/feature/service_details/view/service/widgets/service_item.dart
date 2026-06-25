@@ -44,6 +44,7 @@ class ServiceItem extends StatelessWidget {
                         width: double.infinity,
                         fit: BoxFit.cover,
                         image: service.thumbnailFullPath ?? "",
+                        placeholder: Images.servicePlaceholder,
                       ),
                     ),
                     discount.discountAmount! > 0.0?
@@ -121,7 +122,7 @@ class ServiceItem extends StatelessWidget {
                         textDirection: TextDirection.ltr,
                         child: Text( PriceConverter.convertPrice(lowestPrice.toDouble()),
                           style: robotoMedium.copyWith(fontSize:Dimensions.fontSizeDefault,
-                            color: Get.isDarkMode? Theme.of(context).primaryColorLight: Theme.of(context).primaryColor,
+                            color: Get.isDarkMode? Theme.of(context).primaryColorLight: context.tabSelectedColor,
                           ),
                         ),
                       ),

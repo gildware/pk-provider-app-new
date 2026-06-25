@@ -28,7 +28,7 @@ class TimeCellOrderCountWidget extends StatelessWidget {
         child: Text(
           int.tryParse(appointment.eventName).toString().padLeft(2, '0'),
           style: robotoMedium.copyWith(
-            color: Colors.black,
+            color: context.adaptiveBlack,
             fontSize: Dimensions.fontSizeDefault,
           ),
         ),

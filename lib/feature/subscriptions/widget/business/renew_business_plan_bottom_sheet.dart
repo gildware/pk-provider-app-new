@@ -84,7 +84,7 @@ class _RenewSubscriptionPlanBottomSheetState extends State<RenewSubscriptionPlan
                               child: Container(
                                 height: 80, alignment: Alignment.center,
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).primaryColor.withValues(alpha:0.07),
+                                  color: context.adaptivePrimaryColor.withValues(alpha:0.07),
                                   borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
                                 ),
                               ),
@@ -123,7 +123,7 @@ class _RenewSubscriptionPlanBottomSheetState extends State<RenewSubscriptionPlan
                             child: Container(
                               height: 125, width: 170,
                               decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor,
+                                color: context.adaptivePrimaryColor,
                                 borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
                                 boxShadow:  const [BoxShadow(color: Colors.black12, spreadRadius: 1, blurRadius: 5)],
                               ),
@@ -135,7 +135,7 @@ class _RenewSubscriptionPlanBottomSheetState extends State<RenewSubscriptionPlan
                             child: Container(
                               height: 80, alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor.withValues(alpha:0.07),
+                                color: context.adaptivePrimaryColor.withValues(alpha:0.07),
                                 borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
                               ),
                             ),
@@ -167,7 +167,7 @@ class _RenewSubscriptionPlanBottomSheetState extends State<RenewSubscriptionPlan
                               child: Container(
                                 height: 125,
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).primaryColor,
+                                  color: context.adaptivePrimaryColor,
                                   borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
                                   boxShadow:  const [BoxShadow(color: Colors.black12, spreadRadius: 1, blurRadius: 5)],
                                 ),

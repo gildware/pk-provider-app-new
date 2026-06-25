@@ -31,7 +31,7 @@ class _CustomerRequestListScreenState extends State<CustomerRequestListScreen> {
 
     return Scaffold(
       appBar: widget.embeddedInBottomNav
-          ? MainAppBar(title: 'post', color: Theme.of(context).primaryColor)
+          ? MainAppBar(title: 'post', color: context.adaptivePrimaryColor)
           : CustomAppBar(
         title: "custom_booking_request".tr,
         onBackPressed: (){
@@ -58,9 +58,9 @@ class _CustomerRequestListScreenState extends State<CustomerRequestListScreen> {
                 ),
                 child: TabBar(
                   unselectedLabelColor: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.5),
-                  indicatorColor: Theme.of(context).primaryColor,
+                  indicatorColor: context.tabIndicatorColor,
                   controller: postController.tabController,
-                  labelColor: Theme.of(context).primaryColor,
+                  labelColor: context.tabSelectedColor,
                   labelStyle: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge),
                   unselectedLabelStyle: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge),
                   labelPadding: EdgeInsets.zero,

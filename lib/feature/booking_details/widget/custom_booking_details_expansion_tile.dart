@@ -176,7 +176,7 @@ class _CustomBookingDetailsExpansionTileState extends State<CustomBookingDetails
                       widget.bookingType ?? "",
                       style: robotoMedium.copyWith(
                         fontSize: Dimensions.fontSizeDefault + 1,
-                        color: Theme.of(context).primaryColor,
+                        color: context.adaptivePrimaryColor,
                       ),
                     ),
                   ],),

@@ -19,7 +19,7 @@ class BusinessPlanCard extends StatelessWidget {
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-            border: showBorder? Border.all(color: isSelected !=null && isSelected! ? Theme.of(context).primaryColor : Theme.of(context).hintColor.withValues(alpha:0.5), width: 0.6) : null,
+            border: showBorder? Border.all(color: isSelected !=null && isSelected! ? context.tabSelectedColor : Theme.of(context).hintColor.withValues(alpha:0.5), width: 0.6) : null,
             color: cardColor ?? Theme.of(context).cardColor,
             boxShadow: cardColor == null ? context.customThemeColors.cardShadow : null
           ),
@@ -40,7 +40,7 @@ class BusinessPlanCard extends StatelessWidget {
               ]),
             ),
              SizedBox(width: Get.width * 0.15,),
-            isSelected !=null ? Icon(isSelected! ? Icons.check_circle : Icons.circle_outlined, color: Theme.of(context).primaryColor, size: 27,) : const SizedBox(),
+            isSelected !=null ? Icon(isSelected! ? Icons.check_circle : Icons.circle_outlined, color: context.adaptivePrimaryColor, size: 27,) : const SizedBox(),
           ],),
 
         ),

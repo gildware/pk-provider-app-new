@@ -23,7 +23,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
     return Column(crossAxisAlignment: CrossAxisAlignment.start,children: [
       RichText(
         text: TextSpan(
-          text: widget.title, style: robotoRegular.copyWith(color: Theme.of(context).primaryColor),
+          text: widget.title, style: robotoRegular.copyWith(color: context.adaptivePrimaryColor),
           children: <TextSpan>[
             widget.requiredField ? TextSpan(text: '  *', style: robotoBold.copyWith(color: Colors.red)) : const TextSpan(),
           ],
@@ -36,7 +36,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
         height: 50,
         padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
         decoration: BoxDecoration(
-          border: Border.all(color: Theme.of(context).primaryColor,width: 1),
+          border: Border.all(color: context.adaptivePrimaryColor,width: 1),
           borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
         ),
         child:

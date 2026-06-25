@@ -26,7 +26,7 @@ class _BookingRequestScreenState extends State<BookingRequestScreen>{
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: MainAppBar(title: 'booking_requests'.tr,color: Theme.of(context).primaryColor,fromBookingRequest: true,),
+      appBar: MainAppBar(title: 'booking_requests'.tr,color: context.adaptivePrimaryColor,fromBookingRequest: true,),
       body: GetBuilder<UserProfileController>(builder: (userController){
         return Column(children: [
           const ProviderPendingApprovalBanner(),
@@ -103,9 +103,9 @@ class TurnOnServiceAvailability extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
-                border: Border.all(color: Theme.of(context).primaryColor),
+                border: Border.all(color: context.adaptivePrimaryColor),
               ), padding:  const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeSmall-3),
-                child: Text("go_to_business_settings".tr, style: robotoRegular.copyWith(color: Theme.of(context).primaryColor),)),
+                child: Text("go_to_business_settings".tr, style: robotoRegular.copyWith(color: context.adaptivePrimaryColor),)),
           )
 
         ],),

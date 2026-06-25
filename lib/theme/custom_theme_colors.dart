@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:demandium_provider/theme/theme_palette.dart';
 
 class CustomThemeColors extends ThemeExtension<CustomThemeColors> {
   final Map<String, Color> buttonBackgroundColorMap;
@@ -162,7 +163,7 @@ class CustomThemeColors extends ThemeExtension<CustomThemeColors> {
     lightShadow: null,
     cardBottomShadow: [BoxShadow()],
     cardShadow: [BoxShadow()],
-    earningStatisticBorderColor: Color(0xff252d39)
+    earningStatisticBorderColor: ThemePalette.darkBorder,
 
   );
 

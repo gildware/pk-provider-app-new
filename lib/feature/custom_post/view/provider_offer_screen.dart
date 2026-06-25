@@ -50,14 +50,14 @@ class _ProviderOfferScreenState extends State<ProviderOfferScreen> {
                                   onTap: (){
                                     postController.changeVisibilityInfoWidgetStatus();
                                   },
-                                    child: Icon(Icons.info_outline,size: 18 , color: Theme.of(context).primaryColor,)),
+                                    child: Icon(Icons.info_outline,size: 18 , color: context.adaptivePrimaryColor,)),
                                 if(postController.showInfoWidget)
                                 Positioned(
                                   top: 25,
                                   child: Transform.rotate(
                                     angle:  45 * pi/180,
                                     child: Container(
-                                      height: 15, width: 15, color: Theme.of(context).primaryColor,
+                                      height: 15, width: 15, color: context.adaptivePrimaryColor,
                                     ),
                                   ),
                                 )
@@ -144,14 +144,14 @@ class _ProviderOfferScreenState extends State<ProviderOfferScreen> {
                                 onTap: (){
                                  postController.changeNoteWidgetStatus();
                                 },
-                                  child: Icon(Icons.info_outline,size: 15 , color: Theme.of(context).primaryColor,)),
+                                  child: Icon(Icons.info_outline,size: 15 , color: context.adaptivePrimaryColor,)),
                               if(postController.showNoteInfoWidget)
                                 Positioned(
                                   top: -19,
                                   child: Transform.rotate(
                                     angle:  45 * pi/180,
                                     child: Container(
-                                      height: 15, width: 15, color: Theme.of(context).primaryColor,
+                                      height: 15, width: 15, color: context.adaptivePrimaryColor,
                                     ),
                                   ),
                                 ),
@@ -200,7 +200,7 @@ class _ProviderOfferScreenState extends State<ProviderOfferScreen> {
 
                 Container(height: 5,width: 50,decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
-                  color: Theme.of(context).primaryColor.withValues(alpha:0.2),
+                  color: context.adaptivePrimaryColor.withValues(alpha:0.2),
                 ),margin: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),),
 
                 !postController.isLoading?

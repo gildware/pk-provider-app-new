@@ -163,7 +163,7 @@ class _RepeatBookingHistoryExpansionTileState extends State<RepeatBookingHistory
           child: Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Theme.of(context).primaryColor,
+              color: context.adaptivePrimaryColor,
             ),
             padding: const EdgeInsets.all(4),
             margin: const EdgeInsets.symmetric(vertical: 10),

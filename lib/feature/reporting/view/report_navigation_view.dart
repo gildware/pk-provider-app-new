@@ -76,7 +76,7 @@ class ReportItem extends StatelessWidget {
                 title.tr,
                 style: robotoBold.copyWith(
                   fontSize: Dimensions.fontSizeLarge,
-                  color: Theme.of(context).primaryColor,
+                  color: context.adaptivePrimaryColor,
                 ),
               ),
             ],

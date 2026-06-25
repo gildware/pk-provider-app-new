@@ -175,7 +175,7 @@ class RegistrationIconField extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-            borderSide: BorderSide(color: Theme.of(context).primaryColor),
+            borderSide: BorderSide(color: context.adaptivePrimaryColor),
           ),
         ),
       ),
@@ -221,7 +221,7 @@ class RegistrationUploadBox extends StatelessWidget {
             child: preview ??
                 Column(
                   children: [
-                    Icon(Icons.cloud_upload_outlined, size: 40, color: Theme.of(context).primaryColor),
+                    Icon(Icons.cloud_upload_outlined, size: 40, color: context.adaptivePrimaryColor),
                     const SizedBox(height: 8),
                     Text(trLabel(titleKey), style: robotoMedium),
                     const SizedBox(height: 4),

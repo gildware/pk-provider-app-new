@@ -28,12 +28,12 @@ class CustomButton extends StatelessWidget {
     final ButtonStyle flatButtonStyle = TextButton.styleFrom(
       elevation: 0,
       backgroundColor: onPressed == null ? Theme.of(context).disabledColor : transparent!
-          ? Colors.transparent :color ?? Theme.of(context).primaryColor,
+          ? Colors.transparent : color ?? Theme.of(context).primaryColor,
       minimumSize: Size(width != null ? width! : Dimensions.webMaxWidth, height != null ? height! : 45),
       padding: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(radius!),
-        side: showBorder ? BorderSide(color: Theme.of(context).primaryColor.withValues(alpha:0.6)) : BorderSide.none,
+        side: showBorder ? BorderSide(color: context.adaptivePrimaryColor.withValues(alpha:0.6)) : BorderSide.none,
       ),
     );
 
@@ -50,18 +50,18 @@ class CustomButton extends StatelessWidget {
             isShowLoadingButton ? isLoading ?
             Padding( padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
               child: SizedBox(height: fontSize ?? Dimensions.fontSizeDefault , width: fontSize ?? Dimensions.fontSizeDefault,
-                child: CircularProgressIndicator(color: transparent! ? Theme.of(context).primaryColor : textColor ?? Colors.white, strokeWidth: 2,),
+                child: CircularProgressIndicator(color: transparent! ? context.adaptivePrimaryColor : textColor ?? Colors.white, strokeWidth: 2,),
               ),
             ): const SizedBox() : const SizedBox(),
 
             icon != null && !isLoading ? Padding(
               padding: const EdgeInsets.only(right: Dimensions.paddingSizeExtraSmall),
-              child: Icon(icon, color: transparent! ? Theme.of(context).primaryColor : textColor ?? Colors.white, size: fontSize ?? Dimensions.fontSizeLarge,),
+              child: Icon(icon, color: transparent! ? context.adaptivePrimaryColor : textColor ?? Colors.white, size: fontSize ?? Dimensions.fontSizeLarge,),
             ) : const SizedBox(),
 
             Flexible(
               child: Text( isLoading ? "loading".tr : btnTxt, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis, style: robotoMedium.copyWith(
-                color: transparent! ? Theme.of(context).primaryColor : textColor ?? Colors.white, fontSize: fontSize ?? Dimensions.fontSizeLarge,
+                color: transparent! ? context.adaptivePrimaryColor : textColor ?? Colors.white, fontSize: fontSize ?? Dimensions.fontSizeLarge,
               )),
             ),
           ]),

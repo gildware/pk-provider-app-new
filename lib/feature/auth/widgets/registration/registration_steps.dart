@@ -347,7 +347,7 @@ class _LogoPicker extends StatelessWidget {
                   Positioned(
                     bottom: 6,
                     right: 6,
-                    child: Icon(Icons.camera_alt, size: 20, color: Theme.of(context).primaryColor),
+                    child: Icon(Icons.camera_alt, size: 20, color: context.adaptivePrimaryColor),
                   ),
                 ],
               ),
@@ -700,7 +700,7 @@ class RegistrationReviewStep extends StatelessWidget {
               ],
             ),
           ),
-          TextButton(onPressed: () => onEdit(step), child: Text(trLabel('edit'), style: robotoMedium.copyWith(color: Theme.of(context).primaryColor))),
+          TextButton(onPressed: () => onEdit(step), child: Text(trLabel('edit'), style: robotoMedium.copyWith(color: context.adaptivePrimaryColor))),
         ],
       ),
     );

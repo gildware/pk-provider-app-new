@@ -85,7 +85,7 @@ class BusinessReportStatisticsCard2 extends StatelessWidget {
               SubTitleView(
                 amount: subtitleAmount2,
                 subTitle: subtitle2,
-                titleColor: Theme.of(context).primaryColor,
+                titleColor: context.tabSelectedColor,
                 withCurrencySymbol: withCurrencySymbol,
               ),
               if(subtitle3!=null)

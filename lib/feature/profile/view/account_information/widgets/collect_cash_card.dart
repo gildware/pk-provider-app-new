@@ -94,7 +94,7 @@ class CollectCashCard extends StatelessWidget {
                   Text(PriceConverter.convertPrice(transactionAmount),
                     style: robotoBold.copyWith(
                       fontSize: Dimensions.fontSizeOverLarge * 1.2,
-                      color: Theme.of(context).primaryColor,
+                      color: context.adaptivePrimaryColor,
                     ),
                   ),
                   const SizedBox(height: Dimensions.paddingSizeSmall),

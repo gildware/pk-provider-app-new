@@ -53,6 +53,7 @@ class AppConstants {
   static const String ignoreBookingRequestUrl = '/api/v1/provider/booking/request-ignore';
   static const String cancelSubBookingUrl = '/api/v1/provider/booking/single-repeat-cancel/';
   static const String changeBookingStatus = '/api/v1/provider/booking/status-update';
+  static const String providerCancellationReasonsUrl = '/api/v1/provider/booking/provider-cancellation-reasons';
   static const String changeSubBookingStatus = '/api/v1/provider/booking/single-repeat-status-update';
   static const String recordBookingPaymentUrl = '/api/v1/provider/booking/record-payment';
   static const String bookingOTPNotificationUri = '/api/v1/provider/booking/opt/notification-send';
@@ -175,6 +176,9 @@ class AppConstants {
   static const String initialLanguage = 'initial-language';
   static const String topic = 'provider-admin';
   static const String localizationKey = 'X-localization';
+
+  /// When false, language selection is hidden and the app stays on English.
+  static const bool enableLanguageSelection = false;
 
   static List<LanguageModel> languages = [
 

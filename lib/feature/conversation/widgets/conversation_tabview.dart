@@ -16,8 +16,8 @@ class ConversationListTabview extends StatelessWidget {
               unselectedLabelColor: Colors.grey,
               isScrollable: true,
               dividerColor: Colors.transparent,
-              indicatorColor: Theme.of(context).primaryColor,
-              labelColor:  Theme.of(context).primaryColor,
+              indicatorColor: context.tabIndicatorColor,
+              labelColor: context.tabSelectedColor,
               labelStyle: robotoMedium,
               indicatorWeight: 1,
               tabAlignment: TabAlignment.start,
@@ -36,7 +36,7 @@ class ConversationListTabview extends StatelessWidget {
                         conversationController.isActiveSuffixIcon && conversationController.isSearchComplete  && conversationController.searchedCustomerChannelList.isNotEmpty?
                         Container(height: 15 , width: 15,
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle, color: Theme.of(context).primaryColor,
+                            shape: BoxShape.circle, color: context.adaptivePrimaryColor,
                           ),
                           margin: const EdgeInsets.symmetric(horizontal: 5),
                           padding: const EdgeInsets.all(2),
@@ -61,7 +61,7 @@ class ConversationListTabview extends StatelessWidget {
                         conversationController.isActiveSuffixIcon && conversationController.isSearchComplete  && conversationController.searchedServicemanChannelList.isNotEmpty?
                         Container(height: 15 , width: 15,
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle, color: Theme.of(context).primaryColor,
+                            shape: BoxShape.circle, color: context.adaptivePrimaryColor,
                           ),
                           margin: const EdgeInsets.symmetric(horizontal: 5),
                           padding: const EdgeInsets.all(2),

@@ -11,79 +11,101 @@ class NetworkVideoPreviewWidget extends StatefulWidget {
 }
 
 class _NetworkVideoPreviewWidgetState extends State<NetworkVideoPreviewWidget> {
-  late VideoPlayerController _controller;
-  late ChewieController _chewieController;
-
+  VideoPlayerController? _controller;
+  ChewieController? _chewieController;
+  bool _loadFailed = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.networkUrl(Uri.parse(
-      widget.videoFile
-    ))
-      ..initialize().then(
-            (_) => setState(
-              () => _chewieController = ChewieController(
-                  videoPlayerController: _controller,
-                  autoInitialize: true,
-                  aspectRatio: _controller.value.aspectRatio,
-          ),
-        ),
-      );
+    final url = widget.videoFile.trim();
+    if (url.isEmpty) {
+      _loadFailed = true;
+      return;
+    }
+
+    final controller = VideoPlayerController.networkUrl(Uri.parse(url));
+    _controller = controller;
+    controller.initialize().then((_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _chewieController = ChewieController(
+          videoPlayerController: controller,
+          autoInitialize: true,
+          aspectRatio: controller.value.aspectRatio,
+        );
+      });
+    }).catchError((_) {
+      controller.dispose();
+      if (mounted) {
+        setState(() {
+          _controller = null;
+          _loadFailed = true;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
-    _controller.dispose();
-    _chewieController.dispose();
+    _chewieController?.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return  _controller.value.isInitialized ?
-    SizedBox(
+    if (_loadFailed) {
+      return SizedBox(
+        height: 220,
+        child: MediaPlaceholder.video(fit: BoxFit.cover),
+      );
+    }
+
+    if (_controller == null || !_controller!.value.isInitialized || _chewieController == null) {
+      return SizedBox(
+        height: 220,
+        child: Shimmer(
+          duration: const Duration(seconds: 2),
+          child: Container(
+            width: Get.width,
+            decoration: BoxDecoration(
+              color: Get.isDarkMode ? Colors.grey.shade700 : Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(Dimensions.paddingSizeDefault),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
       height: 220,
       child: Stack(
         alignment: Alignment.center,
         children: [
-
           AspectRatio(
-            aspectRatio: 16/9,
+            aspectRatio: 16 / 9,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-              child: VideoPlayer(_controller),
+              child: VideoPlayer(_controller!),
             ),
           ),
-
           ClipRect(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
               child: Container(
-                color: Colors.black.withValues(alpha:0.85),
+                color: Colors.black.withValues(alpha: 0.85),
               ),
             ),
           ),
-
-
-          
           ClipRRect(
             borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-            child: Chewie(controller: _chewieController),
+            child: Chewie(controller: _chewieController!),
           ),
         ],
       ),
-    ) : SizedBox(
-      height: 220, child: Shimmer(
-        duration: const Duration(seconds: 2),
-        child:  Container(
-          width: Get.width, decoration: BoxDecoration(
-            color: Get.isDarkMode? Colors.grey.shade700 : Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(Dimensions.paddingSizeDefault),
-          ),
-        ),
-    ));
+    );
   }
 }
-
-

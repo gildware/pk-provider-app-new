@@ -1,4 +1,5 @@
 import 'package:demandium_provider/util/dimensions.dart';
+import 'package:demandium_provider/helper/extension_helper.dart';
 import 'package:flutter/material.dart';
 
 /// A reusable circular icon button with optional indicator dot
@@ -34,16 +35,16 @@ class CircularIconButtonWidget extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: backgroundColor ?? Colors.white,
+              color: backgroundColor ?? context.adaptiveWhite,
               border: Border.all(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
               ),
             ),
             padding: const EdgeInsets.all(5),
             child: Icon(
               icon,
               size: iconSize,
-              color: iconColor ?? Theme.of(context).primaryColor,
+              color: iconColor ?? context.adaptivePrimaryColor,
             ),
           ),
         ),

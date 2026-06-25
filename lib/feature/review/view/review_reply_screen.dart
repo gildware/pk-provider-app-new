@@ -116,8 +116,8 @@ class _ReviewReplyScreenState extends State<ReviewReplyScreen> {
                             color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha:0.8),
                           ),
                           textAlign: TextAlign.justify,
-                          moreStyle: robotoMedium.copyWith(color: Theme.of(context).primaryColor),
-                          lessStyle: robotoMedium.copyWith(color: Theme.of(context).primaryColor),
+                          moreStyle: robotoMedium.copyWith(color: context.adaptivePrimaryColor),
+                          lessStyle: robotoMedium.copyWith(color: context.adaptivePrimaryColor),
                         ),
                       ),
                       CustomTextFormField(

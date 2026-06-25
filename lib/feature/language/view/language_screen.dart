@@ -49,7 +49,7 @@ class _ChooseLanguageScreenState extends State<ChooseLanguageScreen> {
                                 children: [
                                   const SizedBox(width: Dimensions.paddingSizeExtraSmall,),
                                   Text("select_language".tr,style: robotoMedium.copyWith(
-                                      color: Theme.of(context).primaryColor,
+                                      color: context.adaptivePrimaryColor,
                                       fontSize: Dimensions.fontSizeDefault),),
                                   const SizedBox(width: Dimensions.paddingSizeExtraSmall,),
                                 ],

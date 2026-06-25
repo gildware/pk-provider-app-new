@@ -28,12 +28,12 @@ class _AddNewServicemanScreenState extends State<AddNewServicemanScreen> {
               margin: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
               decoration: BoxDecoration(
                 border:  Border(
-                  bottom: BorderSide(color: Theme.of(context).primaryColor.withValues(alpha:0.7), width: 1),
+                  bottom: BorderSide(color: context.adaptivePrimaryColor.withValues(alpha:0.7), width: 1),
                 ),
               ),
               child: TabBar(
                 unselectedLabelColor:Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha:0.5),
-                indicatorColor: Theme.of(context).primaryColor,
+                indicatorColor: context.tabIndicatorColor,
                 controller: serviceManSetupController.controller,
                 labelColor: Theme.of(context).primaryColorLight,
                 labelStyle:  robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge),

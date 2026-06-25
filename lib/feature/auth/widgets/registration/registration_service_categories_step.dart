@@ -116,7 +116,7 @@ class _CategorySelectCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
           border: Border.all(
             color: selected
-                ? Theme.of(context).primaryColor
+                 ? context.tabSelectedColor
                 : Theme.of(context).dividerColor.withValues(alpha: 0.4),
             width: selected ? 1.5 : 1,
           ),
@@ -130,13 +130,14 @@ class _CategorySelectCard extends StatelessWidget {
                 width: 56,
                 fit: BoxFit.cover,
                 image: category.imageFullPath ?? '',
+                placeholder: Images.categoryPlaceholder,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(child: Text(category.name ?? '', style: robotoMedium)),
             Icon(
               selected ? Icons.check_circle : Icons.circle_outlined,
-              color: selected ? Theme.of(context).primaryColor : Theme.of(context).hintColor,
+              color: selected ? context.tabSelectedColor : Theme.of(context).hintColor,
             ),
           ],
         ),

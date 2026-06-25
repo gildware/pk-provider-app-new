@@ -125,7 +125,7 @@ class BookingSetupTabItemWidget extends StatelessWidget {
 
                       Container(
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
+                          color: context.adaptivePrimaryColor.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                         ),
 
@@ -210,7 +210,7 @@ class _CheckBoxWidget extends StatelessWidget {
           side: WidgetStateBorderSide.resolveWith((states) => BorderSide(
             width: 1,
             color: states.contains(WidgetState.selected)
-                ? Theme.of(context).primaryColor
+                 ? context.tabSelectedColor
                 : Colors.grey, // Use your desired border color
           )),
         ),

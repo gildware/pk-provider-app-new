@@ -23,12 +23,12 @@ class ViewTypeButtonWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
         decoration: BoxDecoration(
           color: isSelected
-              ? Theme.of(context).primaryColor
+               ? context.tabSelectedColor
               : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
           border: Border.all(
             color: isSelected
-                ? Theme.of(context).primaryColor
+                 ? context.tabSelectedColor
                 : Theme.of(context).hintColor.withValues(alpha: 0.3),
             width: 1,
           ),

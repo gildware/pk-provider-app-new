@@ -224,8 +224,8 @@ class CalenderHeaderWidget extends StatelessWidget {
     final controller = Get.find<BookingCalendarController>();
     final bool isSelected = controller.currentViewType == value;
     final Color color = isSelected
-        ? Theme.of(context).primaryColor
-        : Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
+         ? context.tabSelectedColor
+        : Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface;
 
     return PopupMenuItem<CalendarViewType>(
       value: value,

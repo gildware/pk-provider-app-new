@@ -15,20 +15,26 @@ class CustomImage extends StatelessWidget {
     this.height,
     this.width,
     this.fit = BoxFit.cover,
-    this.placeholder = Images.placeholder,
+    this.placeholder,
     this.errorWidget,
   });
+
+  String get _placeholderAsset => placeholder ?? Images.placeholder;
+
+  Widget _placeholderWidget() {
+    return Image.asset(
+      _placeholderAsset,
+      height: height,
+      width: width,
+      fit: fit,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final url = image?.trim() ?? '';
     if (url.isEmpty) {
-      return Image.asset(
-        placeholder!,
-        height: height,
-        width: width,
-        fit: fit,
-      );
+      return _placeholderWidget();
     }
 
     return CachedNetworkImage(
@@ -36,20 +42,9 @@ class CustomImage extends StatelessWidget {
       height: height,
       width: width,
       fit: fit,
-      placeholder: (context, _) => Image.asset(
-        placeholder!,
-        height: height,
-        width: width,
-        fit: fit,
-      ),
+      placeholder: (context, _) => _placeholderWidget(),
       errorWidget: (context, url, error) =>
-          errorWidget ??
-          Image.asset(
-            placeholder!,
-            height: height,
-            width: width,
-            fit: fit,
-          ),
+          errorWidget ?? _placeholderWidget(),
     );
   }
 }

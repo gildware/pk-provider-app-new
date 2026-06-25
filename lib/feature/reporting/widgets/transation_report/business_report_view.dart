@@ -65,7 +65,7 @@ class _BusinessReportViewState extends State<BusinessReportView> {
         }
 
         return RefreshIndicator(
-          color: Theme.of(context).primaryColor,
+          color: context.adaptivePrimaryColor,
           onRefresh: () => reportController.getBusinessReportEarningData(
             1,
             reload: true,

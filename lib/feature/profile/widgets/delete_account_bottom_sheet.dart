@@ -81,7 +81,7 @@ class DeleteAccountBottomSheet extends StatelessWidget {
 
           CustomButton(
             btnTxt: 'cancel'.tr,
-            color: Theme.of(context).primaryColor.withValues(alpha:0.1),
+            color: context.adaptivePrimaryColor.withValues(alpha:0.1),
             onPressed: () => Get.back(),
             textColor: Theme.of(context).textTheme.bodySmall?.color,
             width: 130,

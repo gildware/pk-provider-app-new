@@ -83,16 +83,16 @@ class _RepeatBookingDetailsScreenState extends State<RepeatBookingDetailsScreen>
                         margin: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
                         decoration: BoxDecoration(
                           border:  Border(
-                            bottom: BorderSide(color: Theme.of(context).primaryColor.withValues(alpha:0.7), width: 1),
+                            bottom: BorderSide(color: context.adaptivePrimaryColor.withValues(alpha:0.7), width: 1),
                           ),
                         ),
                         child: TabBar(
                           isScrollable: true,
                           tabAlignment: TabAlignment.start,
                           unselectedLabelColor:Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha:0.5),
-                          indicatorColor: Theme.of(context).primaryColor,
+                          indicatorColor: context.tabIndicatorColor,
                           controller: tabController,
-                          labelColor: Theme.of(context).primaryColor,
+                          labelColor: context.tabSelectedColor,
                           labelStyle:  robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge),
                           labelPadding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
                           onTap: (int? index) {

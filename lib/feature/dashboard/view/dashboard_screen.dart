@@ -68,7 +68,7 @@ class _DashBoardScreenState extends State<DashBoardScreen>{
       return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
         appBar:  MainAppBar(
-          color: Theme.of(context).primaryColor,
+          color: context.adaptivePrimaryColor,
           title: AppConstants.appName,
           titleFontSize: Dimensions.fontSizeExtraLarge + 4,
         ),

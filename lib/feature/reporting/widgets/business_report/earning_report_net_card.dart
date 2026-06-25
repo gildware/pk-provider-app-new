@@ -22,7 +22,7 @@ class EarningReportNetCard extends StatelessWidget {
         color: Theme.of(context).cardColor,
         boxShadow: context.customThemeColors.lightShadow,
         border: Border.all(
-          color: Theme.of(context).primaryColor.withValues(alpha: 0.12),
+          color: context.adaptivePrimaryColor.withValues(alpha: 0.12),
         ),
       ),
       child: Column(
@@ -33,7 +33,7 @@ class EarningReportNetCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
                 ),
                 child: Image.asset(

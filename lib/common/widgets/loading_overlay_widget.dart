@@ -54,7 +54,7 @@ class LoadingOverlayWidget extends StatelessWidget {
                 child: customLoadingWidget ??
                     LoadingAnimationWidget.fourRotatingDots(
 
-                      size: loaderSize, color: Theme.of(context).primaryColor,
+                      size: loaderSize, color: context.adaptivePrimaryColor,
                     ),
               ),
             ),

@@ -128,7 +128,7 @@ class PieChart2State extends State {
             padding: const EdgeInsets.only(bottom: 50.0),
             child: Text(
               "$totalBookingRequest\n${'booking'.tr}",
-              textAlign: TextAlign.center,style: robotoBold.copyWith(color: Theme.of(context).primaryColor,fontSize: 14),
+              textAlign: TextAlign.center,style: robotoBold.copyWith(color: context.adaptivePrimaryColor,fontSize: 14),
             ),
           )
         ],

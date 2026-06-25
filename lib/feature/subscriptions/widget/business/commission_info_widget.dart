@@ -29,7 +29,7 @@ class CommissionInfoWidget extends StatelessWidget {
                       parent: ClampingScrollPhysics()
                     ),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text("commission_base".tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).primaryColor),),
+                      Text("commission_base".tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge, color: context.adaptivePrimaryColor),),
 
                       const SizedBox(height: Dimensions.paddingSizeDefault,),
 

@@ -70,7 +70,7 @@ class _BusinessPlanScreenState extends State<BusinessPlanScreen> {
                   ),
                   child: TabBar(
                     unselectedLabelColor:Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha:0.5),
-                    indicatorColor: Theme.of(context).primaryColor,
+                    indicatorColor: context.tabIndicatorColor,
                     labelColor: Theme.of(context).colorScheme.onSurface,
                     labelStyle:  robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge),
                     labelPadding: EdgeInsets.zero,

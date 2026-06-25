@@ -61,9 +61,9 @@ class _PaymentsScreenState extends State<PaymentsScreen> with TickerProviderStat
                     color: Theme.of(context).scaffoldBackgroundColor,
                     child: TabBar(
                       controller: _pageTabController,
-                      labelColor: Theme.of(context).primaryColor,
+                      labelColor: context.tabSelectedColor,
                       unselectedLabelColor: Theme.of(context).hintColor,
-                      indicatorColor: Theme.of(context).primaryColor,
+                      indicatorColor: context.tabIndicatorColor,
                       labelStyle: robotoMedium,
                       unselectedLabelStyle: robotoRegular,
                       dividerColor: Colors.transparent,
@@ -186,8 +186,8 @@ class _TotalsFooter extends StatelessWidget {
       padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.08),
-        border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.2)),
+        color: context.adaptivePrimaryColor.withValues(alpha: 0.08),
+        border: Border.all(color: context.adaptivePrimaryColor.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

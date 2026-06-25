@@ -32,7 +32,7 @@ class NextUpcomingServiceWidget extends StatelessWidget {
             onTap: (){
               Get.toNamed(RouteHelper.getBookingDetailsRoute( subBookingId : booking.id!));
             },
-            child: Text('view_details'.tr, style: robotoBold.copyWith(color: Theme.of(context).primaryColor)),
+            child: Text('view_details'.tr, style: robotoBold.copyWith(color: context.adaptivePrimaryColor)),
           )
         ]),
         const SizedBox(height: Dimensions.paddingSizeExtraSmall),

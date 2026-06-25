@@ -103,7 +103,7 @@ class _UpdateCustomerAddressState extends State<UpdateCustomerAddress> {
                         width: MediaQuery.of(context).size.width,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                          border: Border.all(width: 0.5, color: Theme.of(context).primaryColor.withValues(alpha: 0.5)),
+                          border: Border.all(width: 0.5, color: context.adaptivePrimaryColor.withValues(alpha: 0.5)),
                         ),
                         padding: const EdgeInsets.all(1),
                         child: ClipRRect(
@@ -153,7 +153,7 @@ class _UpdateCustomerAddressState extends State<UpdateCustomerAddress> {
                                   width: 30, height: 30,
                                   margin: const EdgeInsets.only(right: Dimensions.paddingSizeLarge),
                                   decoration: BoxDecoration(borderRadius: BorderRadius.circular(Dimensions.radiusSmall), color:Theme.of(context).primaryColorLight.withValues(alpha: .5)),
-                                  child: Icon(Icons.my_location, color: Theme.of(context).primaryColor, size: 20),
+                                  child: Icon(Icons.my_location, color: context.adaptivePrimaryColor, size: 20),
                                 ),
                               ),
                             ),
@@ -173,7 +173,7 @@ class _UpdateCustomerAddressState extends State<UpdateCustomerAddress> {
                                   margin: const EdgeInsets.only(right: Dimensions.paddingSizeLarge),
                                   decoration: BoxDecoration(borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                                       color: Colors.white.withValues()),
-                                  child: Icon(Icons.fullscreen, color: Theme.of(context).primaryColor, size: 20),
+                                  child: Icon(Icons.fullscreen, color: context.adaptivePrimaryColor, size: 20),
                                 ),
                               ),
                             ),

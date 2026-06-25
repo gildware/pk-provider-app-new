@@ -26,13 +26,13 @@ class ServiceCompletedPhotoEvidence extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
               const SizedBox(height: Dimensions.paddingSizeDefault,),
-              Text('completed_service_picture'.tr,  style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).primaryColor),),
+              Text('completed_service_picture'.tr,  style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: context.adaptivePrimaryColor),),
               const SizedBox(height: Dimensions.paddingSizeSmall),
 
               Container(
                 height: 90,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withValues(alpha:0.05),
+                  color: context.adaptivePrimaryColor.withValues(alpha:0.05),
                   borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
                 ),
                 padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
@@ -76,13 +76,13 @@ class ServiceCompletedPhotoEvidence extends StatelessWidget {
           Get.find<SplashController>().configModel.content?.bookingImageVerification == 1 && showDeliveryConfirmImage && bookingDetails.bookingStatus != 'completed' ? Padding(
             padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('completed_service_picture'.tr,  style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).primaryColor),),
+              Text('completed_service_picture'.tr,  style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: context.adaptivePrimaryColor),),
               const SizedBox(height: Dimensions.paddingSizeSmall),
 
               Container(
                 height: 90,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withValues(alpha:0.05),
+                  color: context.adaptivePrimaryColor.withValues(alpha:0.05),
                   borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
                 ),
                 padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
@@ -101,9 +101,9 @@ class ServiceCompletedPhotoEvidence extends StatelessWidget {
                         child: Container(
                           height: 60, width: 70, alignment: Alignment.center, decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                          color: Theme.of(context).primaryColor.withValues(alpha:0.1),
+                          color: context.adaptivePrimaryColor.withValues(alpha:0.1),
                         ),
-                          child:  Icon(Icons.camera_alt_outlined, color: Theme.of(context).primaryColor, size: 30),
+                          child:  Icon(Icons.camera_alt_outlined, color: context.adaptivePrimaryColor, size: 30),
                         ),
                       );
                     }

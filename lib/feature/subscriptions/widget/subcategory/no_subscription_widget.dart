@@ -28,7 +28,7 @@ class NoSubscriptionWidget extends StatelessWidget {
                 text: TextSpan(
                   text: 'you_have'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).textTheme.bodySmall?.color),
                   children: <TextSpan>[
-                    TextSpan(text: '0' , style: robotoBold.copyWith(color: Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeDefault)),
+                    TextSpan(text: '0' , style: robotoBold.copyWith(color: context.adaptivePrimaryColor, fontSize: Dimensions.fontSizeDefault)),
                     TextSpan(text: 'subscription'.tr , style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault)),
                   ],
                 ),
@@ -69,8 +69,8 @@ class NoSubscriptionWidget extends StatelessWidget {
                 child: Text("+ ${"subscribe_subcategory".tr}",
                   style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault,
                     decoration: TextDecoration.underline,
-                    color: Theme.of(context).primaryColor,
-                    decorationColor: Theme.of(context).primaryColor,
+                    color: context.adaptivePrimaryColor,
+                    decorationColor: context.tabSelectedColor,
                   ),
                 ),
               ),
@@ -81,7 +81,7 @@ class NoSubscriptionWidget extends StatelessWidget {
                   margin: EdgeInsets.all(Dimensions.paddingSizeDefault),
                   padding: EdgeInsets.all(Dimensions.paddingSizeDefault),
                   decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
+                      color: context.adaptivePrimaryColor.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(Dimensions.radiusLarge)
                   ),
                   child: Column(
@@ -99,7 +99,7 @@ class NoSubscriptionWidget extends StatelessWidget {
                         child: Container(
                           padding: EdgeInsets.all(Dimensions.paddingSizeSmall),
                           decoration: BoxDecoration(
-                              color: Theme.of(context).primaryColor,
+                              color: context.adaptivePrimaryColor,
                               borderRadius: BorderRadius.circular(Dimensions.radiusDefault)
                           ),
                           child: Row(
@@ -114,7 +114,7 @@ class NoSubscriptionWidget extends StatelessWidget {
                                   shape: BoxShape.circle,
                                   color: Theme.of(context).cardColor
                                 ),
-                                child: Icon(Icons.add, color: Theme.of(context).primaryColor, size: 20),
+                                child: Icon(Icons.add, color: context.adaptivePrimaryColor, size: 20),
                               ),
                               SizedBox(width: Dimensions.paddingSizeEight),
 

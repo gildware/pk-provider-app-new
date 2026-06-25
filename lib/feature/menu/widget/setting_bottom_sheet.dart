@@ -35,47 +35,48 @@ class SettingBottomSheet extends StatelessWidget {
               const SizedBox(height: Dimensions.paddingSizeDefault,),
               Text(
                 'notification_sound'.tr,
-                style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeLarge),
+                style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeLarge, color: context.onSurfaceText),
                 textAlign: TextAlign.center,
 
               ),
             ],
           ),
         ),),
-      InkWell(
-        onTap: (){
-          Get.back();
-          showCustomBottomSheet(child: const ChooseLanguageBottomSheet());
-        },
-        child: Stack(
-          alignment: Alignment.topRight,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                  color: Get.isDarkMode?Colors.grey.withValues(alpha:0.2): Theme.of(context).cardColor,
-                  boxShadow: context.customThemeColors.shadow,
-                  borderRadius: const BorderRadius.all(Radius.circular(Dimensions.radiusSmall))
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(Images.translate,width: 40,height: 40,),
-                    const SizedBox(height: Dimensions.paddingSizeDefault,),
-                    Text('language'.tr,style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeLarge),),
-                  ],
+      if (AppConstants.enableLanguageSelection)
+        InkWell(
+          onTap: (){
+            Get.back();
+            showCustomBottomSheet(child: const ChooseLanguageBottomSheet());
+          },
+          child: Stack(
+            alignment: Alignment.topRight,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                    color: Get.isDarkMode?Colors.grey.withValues(alpha:0.2): Theme.of(context).cardColor,
+                    boxShadow: context.customThemeColors.shadow,
+                    borderRadius: const BorderRadius.all(Radius.circular(Dimensions.radiusSmall))
                 ),
-              ),),
-            Padding(
-              padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
-              child: Image.asset(Images.editPen,
-                width: 20,
-                height:20,
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(Images.translate,width: 40,height: 40,),
+                      const SizedBox(height: Dimensions.paddingSizeDefault,),
+                      Text('language'.tr,style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeLarge, color: context.onSurfaceText),),
+                    ],
+                  ),
+                ),),
+              Padding(
+                padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
+                child: Image.asset(Images.editPen,
+                  width: 20,
+                  height:20,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
     ];
 
     return Container(

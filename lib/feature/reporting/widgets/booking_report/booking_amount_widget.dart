@@ -1,4 +1,5 @@
 import 'package:demandium_provider/helper/price_converter.dart';
+import 'package:demandium_provider/helper/extension_helper.dart';
 import 'package:demandium_provider/util/dimensions.dart';
 import 'package:demandium_provider/util/styles.dart';
 import 'package:flutter/material.dart';
@@ -46,7 +47,7 @@ class BookingAmountWidget extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                      border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.10)),
+                      border: Border.all(color: context.adaptivePrimaryColor.withValues(alpha: 0.10)),
                       color: Get.isDarkMode ? Colors.grey.withValues(alpha: 0.05) : Theme.of(context).cardColor,
                     ),
                     padding: EdgeInsets.symmetric(
@@ -88,7 +89,7 @@ class BookingAmountWidget extends StatelessWidget {
                         tooltipMessage: "this_total_amount_settled".tr,
                         label: '${'already_settled'.tr} : ',
                         amount: settledAmount,
-                        textColor: Theme.of(context).primaryColor,
+                        textColor: context.adaptivePrimaryColor,
                         tooltipController: settledTooltipController,
                       ),
                     ],
@@ -129,7 +130,7 @@ class AmountRowWidget extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical :Dimensions.paddingSizeSmall, horizontal: Dimensions.paddingSizeEight),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-              border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.10)),
+              border: Border.all(color: context.adaptivePrimaryColor.withValues(alpha: 0.10)),
               color: Get.isDarkMode ? Colors.grey.withValues(alpha: 0.05) : Theme.of(context).cardColor,
             ),
             child: Row(

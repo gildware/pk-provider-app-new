@@ -201,7 +201,7 @@ class CustomTextFieldState extends State<CustomTextField> {
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
-                  child: Image.asset(widget.suffixIcon!, height: 22, width: 22,color: Theme.of(context).primaryColor,),
+                  child: Image.asset(widget.suffixIcon!, height: 22, width: 22,color: context.adaptivePrimaryColor,),
                 ),
               ],
             ),

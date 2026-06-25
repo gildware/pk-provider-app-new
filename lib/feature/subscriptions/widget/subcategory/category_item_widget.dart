@@ -1,3 +1,4 @@
+import 'package:demandium_provider/helper/extension_helper.dart';
 import 'package:demandium_provider/util/dimensions.dart';
 import 'package:demandium_provider/util/styles.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +26,7 @@ class CategoryItemWidget extends StatelessWidget {
           Text(
             categoryName,
             style: robotoMedium.copyWith(
-              color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).textTheme.bodyLarge!.color?.withValues(alpha:0.7),
+              color: isSelected ? context.tabSelectedColor : Theme.of(context).textTheme.bodyLarge!.color?.withValues(alpha:0.7),
               fontSize: Dimensions.fontSizeDefault,
             ),
           ),
@@ -36,7 +37,7 @@ class CategoryItemWidget extends StatelessWidget {
           Container(
             height: 1,
             width: textWidth,
-            color: isSelected ? Theme.of(context).primaryColor : Colors.white,
+            color: isSelected ? context.tabSelectedColor : Colors.white,
           ) : const SizedBox(),
         ],
         ),

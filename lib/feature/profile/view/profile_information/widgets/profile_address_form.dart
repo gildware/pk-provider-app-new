@@ -48,16 +48,16 @@ class _ProfileAddressFormState extends State<ProfileAddressForm> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withValues(alpha: 0.08),
+                    color: context.adaptivePrimaryColor.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
                     border: Border.all(
-                      color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
+                      color: context.adaptivePrimaryColor.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.place_outlined, color: Theme.of(context).primaryColor, size: 20),
+                      Icon(Icons.place_outlined, color: context.adaptivePrimaryColor, size: 20),
                       const SizedBox(width: Dimensions.paddingSizeSmall),
                       Expanded(
                         child: Text(savedAddress, style: robotoRegular),

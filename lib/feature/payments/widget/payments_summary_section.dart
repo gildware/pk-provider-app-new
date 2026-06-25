@@ -50,7 +50,7 @@ class PaymentsSummarySection extends StatelessWidget {
             context,
             title: 'provider_payment_total_received'.tr,
             amount: PriceConverter.convertPrice(overview!.receipts?.total ?? 0),
-            amountColor: Theme.of(context).primaryColor,
+            amountColor: context.tabSelectedColor,
           ),
         ],
       ),

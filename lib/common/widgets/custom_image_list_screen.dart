@@ -68,7 +68,7 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> {
             },
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withValues(alpha:0.2),
+                color: context.adaptivePrimaryColor.withValues(alpha:0.2),
 
               ),
               padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),

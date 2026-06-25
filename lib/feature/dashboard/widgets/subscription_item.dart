@@ -13,7 +13,7 @@ class SubscriptionCardItem extends StatelessWidget {
       width: ResponsiveHelper.isDesktop(context)? Get.width*.2:ResponsiveHelper.isTab(context)?Get.width*.4:Get.width*.7,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
+        color: context.adaptivePrimaryColor.withValues(alpha: 0.05),
       ),
       margin:  EdgeInsets.only(top: 4,bottom:4,right: Dimensions.paddingSizeDefault, left: index == 0 ? Dimensions.paddingSizeDefault : 0),
       child: Stack(

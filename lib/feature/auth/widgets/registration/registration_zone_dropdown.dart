@@ -164,13 +164,13 @@ class _ZoneSuggestionTile extends StatelessWidget {
               height: 36,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
               ),
               child: Icon(
                 zone.isParent ? Icons.map_outlined : Icons.location_on_outlined,
                 size: 20,
-                color: Theme.of(context).primaryColor,
+                color: context.adaptivePrimaryColor,
               ),
             ),
             const SizedBox(width: 12),
@@ -191,7 +191,7 @@ class _ZoneSuggestionTile extends StatelessWidget {
                       trLabel('zone_parent_includes_children'),
                       style: robotoRegular.copyWith(
                         fontSize: Dimensions.fontSizeSmall,
-                        color: Theme.of(context).primaryColor,
+                        color: context.adaptivePrimaryColor,
                       ),
                     ),
                   ],
@@ -222,7 +222,7 @@ class _ZoneSuggestionTile extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.add_circle_outline, color: Theme.of(context).primaryColor, size: 22),
+            Icon(Icons.add_circle_outline, color: context.adaptivePrimaryColor, size: 22),
           ],
         ),
       ),
@@ -247,14 +247,14 @@ class _SelectedZoneCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.06),
+        color: context.adaptivePrimaryColor.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-        border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.35)),
+        border: Border.all(color: context.adaptivePrimaryColor.withValues(alpha: 0.35)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.check_circle, color: Theme.of(context).primaryColor, size: 22),
+          Icon(Icons.check_circle, color: context.adaptivePrimaryColor, size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -270,7 +270,7 @@ class _SelectedZoneCard extends StatelessWidget {
                     trLabel('zone_sub_areas_included').replaceAll('{count}', '$descendantCount'),
                     style: robotoMedium.copyWith(
                       fontSize: Dimensions.fontSizeSmall,
-                      color: Theme.of(context).primaryColor,
+                      color: context.adaptivePrimaryColor,
                     ),
                   ),
                 ],

@@ -2,6 +2,7 @@ class NotificationBody {
   String? title;
   String? body;
   String? bookingId;
+  String? bookingStatus;
   String? repeatBookingType;
   String? bookingType;
   String? channelId;
@@ -15,12 +16,13 @@ class NotificationBody {
   String? userType;
 
   NotificationBody(
-      {this.title, this.body, this.bookingId, this.notificationType, this.notificationImage,this.userProfileImage,this.channelId,this.userName,this.userPhone,this.userType, this.bookingType, this.repeatBookingType});
+      {this.title, this.body, this.bookingId, this.notificationType, this.notificationImage,this.userProfileImage,this.channelId,this.userName,this.userPhone,this.userType, this.bookingType, this.repeatBookingType, this.bookingStatus});
 
   NotificationBody.fromJson(Map<String, dynamic> json) {
     title = json['title'];
     body = json['body'];
     bookingId = json['booking_id'];
+    bookingStatus = json['booking_status'];
     repeatBookingType = json['repeat_type'];
     bookingType = json['booking_type'];
     channelId = json['channel_id'];
@@ -39,6 +41,7 @@ class NotificationBody {
     data['title'] = title;
     data['body'] = body;
     data['booking_id'] = bookingId;
+    data['booking_status'] = bookingStatus;
     data['repeat_type'] = repeatBookingType;
     data['booking_type'] = bookingType;
     data['channel_id'] = channelId;

@@ -87,7 +87,7 @@ class _BookingEventHistoryWidgetState extends State<BookingEventHistoryWidget> {
                   connectionDirection: ConnectionDirection.before,
                   itemCount: events.length,
                   contentsBuilder: (_, index) => _EventTile(event: events[index]),
-                  connectorBuilder: (_, __, ___) => SolidLineConnector(color: Theme.of(context).primaryColor),
+                  connectorBuilder: (_, __, ___) => SolidLineConnector(color: context.adaptivePrimaryColor),
                   indicatorBuilder: (_, index) => DotIndicator(
                     color: _indicatorColor(context, events[index].eventType),
                     child: Center(

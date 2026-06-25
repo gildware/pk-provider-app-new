@@ -3,6 +3,8 @@ class Images {
   static String get logo => 'logo'.png;
   static String get appbarLogo => 'appbar_logo'.png;
   static const String placeholder = 'assets/images/placeholder.png';
+  static const String categoryPlaceholder = 'assets/images/placeholder.png';
+  static const String servicePlaceholder = categoryPlaceholder;
   static String get dashboard => 'dashboard'.png;
   static String get requests => 'requests'.png;
   static String get service => 'services'.png;

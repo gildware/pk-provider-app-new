@@ -132,7 +132,7 @@ class BottomNavScreenState extends State<BottomNavScreen> {
                 BoxShadow(
                   offset: const Offset(0, 1),
                   blurRadius: 5,
-                  color: Theme.of(context).primaryColor.withValues(alpha:0.5),
+                  color: context.adaptivePrimaryColor.withValues(alpha:0.5),
                 )]
           ),
           child: SafeArea(
@@ -255,7 +255,7 @@ class BottomNavScreenState extends State<BottomNavScreen> {
     bool showBadge = false,
   }) {
     final bool isSelected = _pageIndex == index;
-    final Color selectedColor = Get.isDarkMode ? Theme.of(context).primaryColor : Colors.white;
+    final Color selectedColor = Colors.white;
     final Color unselectedColor = Colors.grey.shade400;
 
     Widget iconWidget = MobileAppIconHelper.icon(

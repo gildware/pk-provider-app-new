@@ -12,6 +12,9 @@ AndroidNotificationChannel? channel2;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (GetPlatform.isMobile) {
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  }
   if (GetPlatform.isMobile && AppConstants.sslPinSha256.isNotEmpty) {
     HttpOverrides.global = CertificatePinningHttpOverrides(
       expectedPinSha256: AppConstants.sslPinSha256,

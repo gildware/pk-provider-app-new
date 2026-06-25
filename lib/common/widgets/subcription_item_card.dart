@@ -18,7 +18,7 @@ class SubscriptionItemCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-        border:  Border.all(color: Theme.of(context).primaryColor),
+        border:  Border.all(color: context.adaptivePrimaryColor),
         color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).cardColor,
       ),
       width: ResponsiveHelper.isMobile(context) ? 270 : 350,
@@ -48,7 +48,7 @@ class SubscriptionItemCard extends StatelessWidget {
 
                 Flexible(
                   child: Text(selectedPackage.name?.tr ?? "" , style: robotoMedium.copyWith(
-                      color: isSelected ? Colors.white : Theme.of(context).primaryColor,
+                      color: isSelected ? Colors.white : context.tabSelectedColor,
                   ), maxLines: 1, overflow: TextOverflow.ellipsis,textAlign: TextAlign.center,),
                 ),
               ]),
@@ -57,10 +57,10 @@ class SubscriptionItemCard extends StatelessWidget {
             const SizedBox(height: Dimensions.paddingSizeExtraMoreLarge,),
 
             Text( selectedPackage.id == "0" ? "${selectedPackage.price?.toStringAsFixed(0)} %" : PriceConverter.convertPrice(selectedPackage.price ?? 0), style: robotoBold.copyWith(
-              color: isSelected ? Colors.white : Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeLarge,
+              color: isSelected ? Colors.white : context.tabSelectedColor, fontSize: Dimensions.fontSizeLarge,
             )),
             Text(selectedPackage.duration !=null ? "${selectedPackage.duration ?? ""} ${"days".tr}" : "", style: robotoRegular.copyWith(
-              color: isSelected ? Colors.white.withValues(alpha:0.8) : Theme.of(context).primaryColor.withValues(alpha:0.8),
+              color: isSelected ? Colors.white.withValues(alpha:0.8) : context.tabSelectedColor.withValues(alpha:0.8),
             )),
           ],),
 
@@ -77,7 +77,7 @@ class SubscriptionItemCard extends StatelessWidget {
         selectedPackage.id == "0"  ? Padding(
           padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeDefault, horizontal: Dimensions.paddingSizeLarge ),
           child: Text(selectedPackage.description ?? "",
-            style: robotoRegular.copyWith(color: isSelected ? Colors.white : Theme.of(context).primaryColor,),
+            style: robotoRegular.copyWith(color: isSelected ? Colors.white : context.tabSelectedColor,),
             textAlign: TextAlign.center,),
         ) :
         selectedPackage.featureList != null && selectedPackage.featureList!.isNotEmpty ? Column(
@@ -90,7 +90,7 @@ class SubscriptionItemCard extends StatelessWidget {
             return Padding(padding: const EdgeInsets.symmetric(vertical: 3, horizontal: Dimensions.paddingSizeLarge),
               child: Text("• ${(element == "booking" || element == "category") && limit == null ? "unlimited".tr : limit ?? ""} "
                   "${(element == "category") ? "subcategory's_subscription".tr : element.tr}", style: robotoRegular.copyWith(
-                color: isSelected ? Colors.white : Theme.of(context).primaryColor,
+                color: isSelected ? Colors.white : context.tabSelectedColor,
               ),
                 textAlign: TextAlign.center,
               ),
@@ -104,7 +104,7 @@ class SubscriptionItemCard extends StatelessWidget {
         
         onPressed != null ? Padding(padding:  EdgeInsets.symmetric(horizontal: packageStatus == "renew" ? Dimensions.paddingSizeLarge * 3 : Dimensions.paddingSizeLarge , vertical: Dimensions.paddingSizeDefault),
           child: CustomButton(
-            color: isSelected ?  Theme.of(context).colorScheme.tertiary : Theme.of(context).primaryColor,
+            color: isSelected ?  Theme.of(context).colorScheme.tertiary : context.tabSelectedColor,
             btnTxt: packageStatus == "renew" && Get.find<UserProfileController>().providerModel?.content?.subscriptionInfo?.subscribedPackageDetails?.isPaid == 0 ? "pay_now".tr : packageStatus == "renew" ? "renew".tr : packageStatus == "shift" ? "shift_in_this_plan".tr : packageStatus == "purchase" ? "purchase".tr : "NULL".tr,
             fontSize: Dimensions.fontSizeDefault,
             onPressed: onPressed,

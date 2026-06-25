@@ -35,7 +35,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
                   icon: Icon(
                     Icons.arrow_back_ios,
                     size: 20,
-                    color: Theme.of(context).primaryColor,
+                    color: context.adaptivePrimaryColor,
                   ),
                 )
               : Padding(
@@ -49,7 +49,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
           title: title!=null?
           Text(title!.tr,
             style: robotoBold.copyWith(
-              color: Theme.of(context).primaryColor,
+              color: context.adaptivePrimaryColor,
               fontSize: titleFontSize ?? Dimensions.fontSizeExtraLarge,
             ),
           ):MobileAppIconHelper.homeLogo(width: 110),
@@ -62,8 +62,8 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
               child: Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white,
-                  border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha:0.1)),
+                  color: Get.isDarkMode ? Theme.of(context).cardColor : Colors.white,
+                  border: Border.all(color: context.adaptivePrimaryColor.withValues(alpha:0.1)),
                 ),
                 padding: const EdgeInsets.all(5),
                 child: Icon(Icons.calendar_month_rounded, size: 22, color: Theme.of(context).hintColor),
@@ -98,12 +98,12 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
                           Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(5),
-                              color: Theme.of(context).primaryColor.withValues(alpha:Get.isDarkMode ? 0.2 : 0.08),
+                              color: context.adaptivePrimaryColor.withValues(alpha:Get.isDarkMode ? 0.2 : 0.08),
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: 12),
                             child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(option.tr, style: robotoRegular.copyWith(color: Theme.of(context).primaryColor)),
+                                Text(option.tr, style: robotoRegular.copyWith(color: context.adaptivePrimaryColor)),
                               ],
                             ),
                           ) : Padding(padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
@@ -202,7 +202,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
                     width: 20,
                     decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Theme.of(context).primaryColor
+                        color: context.adaptivePrimaryColor
                     ),
                     child: FittedBox(
                         child: Text(

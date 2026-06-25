@@ -99,7 +99,7 @@ class CustomTextFieldWidgetState extends State<CustomTextFieldWidget> {
           style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeLarge),
           textInputAction: widget.inputAction,
           keyboardType: widget.isAmount ? TextInputType.number : widget.inputType,
-          cursorColor: Theme.of(context).primaryColor,
+          cursorColor: context.tabSelectedColor,
           textCapitalization: widget.capitalization,
           enabled: widget.isEnabled,
           autofocus: false,
@@ -115,11 +115,11 @@ class CustomTextFieldWidgetState extends State<CustomTextFieldWidget> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-              borderSide: BorderSide(style: widget.showBorder ? BorderStyle.solid : BorderStyle.none, width: 1, color: Theme.of(context).primaryColor),
+              borderSide: BorderSide(style: widget.showBorder ? BorderStyle.solid : BorderStyle.none, width: 1, color: context.adaptivePrimaryColor),
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-              borderSide: BorderSide(style: widget.showBorder ? BorderStyle.solid : BorderStyle.none, width: 0.3, color: Theme.of(context).primaryColor),
+              borderSide: BorderSide(style: widget.showBorder ? BorderStyle.solid : BorderStyle.none, width: 0.3, color: context.adaptivePrimaryColor),
             ),
             isDense: true,
             hintText: widget.hintText.isEmpty ? widget.titleText : widget.hintText,

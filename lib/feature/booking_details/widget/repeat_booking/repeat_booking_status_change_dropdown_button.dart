@@ -65,8 +65,8 @@ class RepeatBookingChangeStatusDropdownButton extends StatelessWidget {
             Expanded(
               child: CustomButton(
                 btnTxt: "accept".tr,
-                color: Theme.of(context).primaryColor.withValues(alpha:0.1),
-                textColor: Theme.of(context).primaryColor,
+                color: context.adaptivePrimaryColor.withValues(alpha:0.1),
+                textColor: context.adaptivePrimaryColor,
                 fontSize: Dimensions.fontSizeDefault,
                 isLoading: bookingDetailsController.isAcceptButtonLoading,
                 onPressed: bookingDetailsController.isIgnoreButtonLoading ? (){} :   (){
@@ -134,14 +134,14 @@ class RepeatBookingChangeStatusDropdownButton extends StatelessWidget {
                       padding: EdgeInsets.zero,
                       child:  bookingDetailsController.dropDownValue.tr.toLowerCase() == items ?
                       Container(
-                        color: Theme.of(context).primaryColor.withValues(alpha:0.08),
+                        color: context.adaptivePrimaryColor.withValues(alpha:0.08),
                         padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: 10),
                         child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(items.tr, style: robotoMedium.copyWith(
-                                color: Theme.of(context).primaryColor
+                                color: context.adaptivePrimaryColor
                             ),),
-                            Icon(Icons.done, color: Theme.of(context).primaryColor),
+                            Icon(Icons.done, color: context.adaptivePrimaryColor),
                           ],
                         ),
                       ) : Padding(padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
@@ -174,7 +174,7 @@ class RepeatBookingChangeStatusDropdownButton extends StatelessWidget {
                     )
                 ),
               ) : CustomButton(
-                color: Theme.of(context).primaryColor, height: 45, width: 112, btnTxt: "change".tr,
+                color: context.adaptivePrimaryColor, height: 45, width: 112, btnTxt: "change".tr,
                 onPressed:  null
               )
             ],

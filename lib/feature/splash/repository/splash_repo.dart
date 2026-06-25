@@ -43,7 +43,12 @@ class SplashRepo {
       sharedPreferences.setInt(AppConstants.notificationCount, 0);
     }
     if (!sharedPreferences.containsKey(AppConstants.initialLanguage)) {
-      sharedPreferences.setBool(AppConstants.initialLanguage, true);
+      sharedPreferences.setBool(AppConstants.initialLanguage, AppConstants.enableLanguageSelection);
+    }
+    if (!AppConstants.enableLanguageSelection) {
+      sharedPreferences.setBool(AppConstants.initialLanguage, false);
+      sharedPreferences.setString(AppConstants.languageCode, AppConstants.languages[0].languageCode!);
+      sharedPreferences.setString(AppConstants.countryCode, AppConstants.languages[0].countryCode!);
     }
 
     return true;

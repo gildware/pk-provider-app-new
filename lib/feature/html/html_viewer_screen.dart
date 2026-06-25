@@ -48,7 +48,7 @@ class _HtmlViewerScreenState extends State<HtmlViewerScreen> {
               child: Container(
                 width: Dimensions.webMaxWidth,
                 height: MediaQuery.of(context).size.height,
-                color: GetPlatform.isWeb ? Colors.white : Theme.of(context).cardColor.withValues(alpha:Get.isDarkMode?0.5:1),
+                color: GetPlatform.isWeb ? context.adaptiveWhite : Theme.of(context).cardColor,
                 child:SingleChildScrollView(
                   padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
                   physics: const BouncingScrollPhysics(),
@@ -77,7 +77,7 @@ class _HtmlViewerScreenState extends State<HtmlViewerScreen> {
                           boxShadow:  [ BoxShadow(
                             offset: const Offset(1, 1),
                             blurRadius: 5,
-                            color: Theme.of(context).primaryColor.withValues(alpha: 0.12),
+                            color: context.adaptivePrimaryColor.withValues(alpha: 0.12),
                           )],
                         ),
                         child: HtmlWidget(

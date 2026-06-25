@@ -57,7 +57,7 @@ class BookingRevenueSettlementView extends StatelessWidget {
           title: companyShare < -0.009 ? 'company_loss_net'.tr : 'company_share_commission'.tr,
           value: PriceConverter.convertPrice(companyShare, isShowLongPrice: true),
           valueStyle: robotoBold.copyWith(
-            color: companyShare < -0.009 ? Theme.of(context).colorScheme.error : Theme.of(context).primaryColor,
+            color: companyShare < -0.009 ? Theme.of(context).colorScheme.error : context.tabSelectedColor,
           ),
         ),
         BookingOverviewKvRow(

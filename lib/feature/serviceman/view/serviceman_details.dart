@@ -219,7 +219,7 @@ class Appbar extends StatelessWidget implements PreferredSizeWidget{
                     child: Icon( Icons.person,
                       size: 15,
                       color: servicemanDetailsController.servicemanModel?.user?.isActive == 0 ?
-                      Theme.of(context).colorScheme.error:Theme.of(context).primaryColor,
+                      Theme.of(context).colorScheme.error:context.adaptivePrimaryColor,
                     ),
                   ),
                 ],

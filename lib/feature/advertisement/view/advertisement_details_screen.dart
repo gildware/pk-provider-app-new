@@ -352,7 +352,7 @@ class _AdvertisementDetailsScreenState extends State<AdvertisementDetailsScreen>
                   advertisementController.advertisementDetailsModel?.advertisementData?.status == 'pending' ? Expanded(
                     child: CustomButton(btnTxt: "cancel_ads".tr,
                       isShowLoadingButton: false,
-                      color: Theme.of(context).primaryColor.withValues(alpha:0.07),
+                      color: context.adaptivePrimaryColor.withValues(alpha:0.07),
                       fontSize: Dimensions.fontSizeDefault,
                       onPressed: (){
                         Get.find<AdvertisementController>().resetNoteController();
@@ -391,7 +391,7 @@ class AdvertisementDetailsEmptyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,children: [
-      Image.asset(Images.noResults, height: Get.height * 0.1, color: Theme.of(context).primaryColor,),
+      Image.asset(Images.noResults, height: Get.height * 0.1, color: context.adaptivePrimaryColor,),
       const SizedBox(height: Dimensions.paddingSizeLarge,),
       Text("information_not_found".tr, style: robotoRegular,),
       const SizedBox(height: Dimensions.paddingSizeLarge,),

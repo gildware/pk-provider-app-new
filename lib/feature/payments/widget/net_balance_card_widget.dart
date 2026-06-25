@@ -33,7 +33,7 @@ class NetBalanceCardWidget extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
         color: Theme.of(context).cardColor,
-        border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha: 0.35)),
+        border: Border.all(color: context.adaptivePrimaryColor.withValues(alpha: 0.35)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,

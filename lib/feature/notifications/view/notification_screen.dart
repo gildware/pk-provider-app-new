@@ -34,7 +34,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           return controller.notificationModel == null ? const NotificationShimmer(): controller.dateList.isEmpty ?
           Center(child: NoDataScreen(text: 'empty_notifications'.tr,type: NoDataType.notification,)):
           RefreshIndicator(
-            color: Theme.of(context).primaryColor,
+            color: context.adaptivePrimaryColor,
             backgroundColor: Theme.of(context).cardColor,
             onRefresh: () async {
               controller.getNotifications(1);

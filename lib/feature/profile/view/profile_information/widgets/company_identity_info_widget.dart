@@ -196,7 +196,7 @@ class CompanyIdentityInfoWidget extends StatelessWidget {
               },
               icon: Icon(
                 picked ? Icons.close : Icons.edit,
-                color: Theme.of(context).primaryColor,
+                color: context.adaptivePrimaryColor,
               ),
             ),
           ],

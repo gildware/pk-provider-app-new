@@ -38,7 +38,7 @@ List<PopupMenuItem<DateTime>> buildMonthPickerItems({
                 color: isDisabled
                     ? Theme.of(context).disabledColor
                     : isSelected
-                    ? Theme.of(context).primaryColor
+                     ? context.tabSelectedColor
                     : Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.7),
               ),
             ),

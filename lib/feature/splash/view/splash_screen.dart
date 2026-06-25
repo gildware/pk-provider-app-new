@@ -78,7 +78,7 @@ class SplashScreenState extends State<SplashScreen> {
           await Get.find<AuthController>().updateToken();
           if (!mounted) return;
           Get.offNamed(RouteHelper.getInitialRoute());
-        } else if (Get.find<SplashController>().showInitialLanguageScreen()) {
+        } else if (AppConstants.enableLanguageSelection && Get.find<SplashController>().showInitialLanguageScreen()) {
           Get.toNamed(RouteHelper.getLanguageScreenRoute());
         } else {
           Get.offNamed(RouteHelper.getSignInRoute('LogIn'));
@@ -102,7 +102,7 @@ class SplashScreenState extends State<SplashScreen> {
                     AppConstants.appUser,
                     style: robotoBold.copyWith(
                       fontSize: 20,
-                      color: Theme.of(context).primaryColor,
+                      color: context.adaptivePrimaryColor,
                     ),
                   ),
                 ]
@@ -143,9 +143,11 @@ class SplashScreenState extends State<SplashScreen> {
         case "booking": {
           if (notificationBody.bookingId != null && notificationBody.bookingId != "") {
             Get.offNamed(RouteHelper.getInitialRoute());
-            Future.delayed(const Duration(milliseconds: 600), () {
-              BookingNotificationActionHandler.showBookingAlertFromBody(notificationBody);
-            });
+            if (notificationBody.bookingStatus?.toLowerCase() == 'pending') {
+              Future.delayed(const Duration(milliseconds: 600), () {
+                BookingNotificationActionHandler.showBookingAlertFromBody(notificationBody);
+              });
+            }
           } else {
             Get.offNamed(RouteHelper.getInitialRoute());
           }

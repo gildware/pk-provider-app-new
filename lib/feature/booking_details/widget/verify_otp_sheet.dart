@@ -66,7 +66,7 @@ class _OtpVerificationBottomSheetState extends State<OtpVerificationBottomSheet>
                     fieldWidth: 30,
                     borderWidth: 2,
                     borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                    selectedColor: bookingDetailsController.isWrongOtpSubmitted ? Theme.of(context).colorScheme.error : Theme.of(context).primaryColor,
+                    selectedColor: bookingDetailsController.isWrongOtpSubmitted ? Theme.of(context).colorScheme.error : context.tabSelectedColor,
                     selectedFillColor: Theme.of(context).cardColor,
                     inactiveFillColor: Theme.of(context).cardColor,
                     inactiveColor: Theme.of(context).primaryColor.withValues(alpha:0.2),
@@ -120,7 +120,7 @@ class _OtpVerificationBottomSheetState extends State<OtpVerificationBottomSheet>
                   },
                 child: Text(
                   'resend_it'.tr,
-                  style: robotoMedium.copyWith(color: Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeDefault),
+                  style: robotoMedium.copyWith(color: context.adaptivePrimaryColor, fontSize: Dimensions.fontSizeDefault),
                 ),
               )
             ]),

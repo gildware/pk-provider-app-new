@@ -72,31 +72,46 @@ class _TransactionScreenState extends State<TransactionScreen> {
                             ),
                             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-                                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                  Text('withdrawn_amount'.tr,
-                                    style: robotoMedium.copyWith(
-                                      fontSize: Dimensions.fontSizeLarge,
-                                      color: Theme.of(context).primaryColor,
-                                    ),
-                                  ),
-                                  SizedBox(width: Dimensions.paddingSizeSmall),
-
-                                  Flexible(child: Wrap(alignment: WrapAlignment.end,children: [
-                                      Text(PriceConverter.convertPrice(double.tryParse(transactionsList[index].amount ?? '0')),
-                                        style: robotoBold.copyWith(
-                                            fontSize: Dimensions.fontSizeLarge,
-                                            color: Theme.of(context).primaryColorLight),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'withdrawn_amount'.tr,
+                                        style: robotoMedium.copyWith(
+                                          fontSize: Dimensions.fontSizeLarge,
+                                          color: context.adaptivePrimaryColor,
+                                        ),
                                       ),
-                                      const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-                                    
-                                      Text(transactionsList[index].isPaid == 1 ? "(${'paid'.tr})" : "(${'unpaid'.tr})", style: robotoMedium.copyWith(
-                                          fontSize: Dimensions.fontSizeSmall,
-                                          color: transactionsList[index].isPaid == 1
-                                              ? Colors.green
-                                              : Theme.of(context).colorScheme.error
-                                      )),
-                                    ])),
-                                ]),
+                                    ),
+                                    const SizedBox(width: Dimensions.paddingSizeSmall),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          PriceConverter.convertPrice(
+                                            double.tryParse(transactionsList[index].amount ?? '0'),
+                                          ),
+                                          style: robotoBold.copyWith(
+                                            fontSize: Dimensions.fontSizeLarge,
+                                            color: Theme.of(context).colorScheme.onSurface,
+                                          ),
+                                          textAlign: TextAlign.end,
+                                        ),
+                                        if (transactionsList[index].requestStatus == 'settled') ...[
+                                          const SizedBox(height: Dimensions.paddingSizeExtraSmall),
+                                          Text(
+                                            "(${ 'settled'.tr })",
+                                            style: robotoMedium.copyWith(
+                                              fontSize: Dimensions.fontSizeSmall,
+                                              color: context.customThemeColors.success,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
                                 const SizedBox(height: Dimensions.paddingSizeExtraSmall),
 
 
@@ -160,13 +175,13 @@ class _TransactionScreenState extends State<TransactionScreen> {
                                   const SizedBox(height: Dimensions.paddingSizeSmall,),
 
 
-                                transactionsList[index].providerNote !=null || transactionsList[index].adminNote != null?
+                                transactionsList[index].providerNote !=null || transactionsList[index].adminNote != null || transactionsList[index].transactionId != null?
                                 Container(margin: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraSmall),
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).primaryColor.withValues(alpha:0.08),
+                                    color: context.adaptivePrimaryColor.withValues(alpha:0.08),
                                     borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
                                     border: Border.all(
-                                        color: Theme.of(context).primaryColor.withValues(alpha:0.08)
+                                        color: context.adaptivePrimaryColor.withValues(alpha:0.08)
                                     ),
                                   ),
                                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -196,7 +211,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
 
                                             const SizedBox(height: Dimensions.paddingSizeExtraSmall),
                                             Divider(height: 1, thickness: 1,
-                                                color: Theme.of(context).primaryColor.withValues(alpha: 0.08)
+                                                color: context.adaptivePrimaryColor.withValues(alpha: 0.08)
                                             ),
 
 
@@ -252,7 +267,33 @@ class _TransactionScreenState extends State<TransactionScreen> {
                                                 ),
                                               ),
 
-                                            if( transactionsList[index].adminNote !=null )
+                                            if( transactionsList[index].transactionId != null && transactionsList[index].transactionId!.isNotEmpty )
+                                              Padding(padding: const EdgeInsets.symmetric(
+                                                horizontal: Dimensions.paddingSizeSmall,
+                                                vertical: Dimensions.paddingSizeExtraSmall,
+                                              ),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      "transaction_id".tr,
+                                                      style: robotoMedium.copyWith(
+                                                        fontSize: Dimensions.fontSizeDefault,
+                                                        color: Theme.of(context).textTheme.bodyLarge!.color,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      transactionsList[index].transactionId ?? "",
+                                                      style: robotoRegular.copyWith(
+                                                        fontSize: Dimensions.fontSizeDefault,
+                                                        color: Theme.of(context).textTheme.bodyLarge!.color!.withValues(alpha:0.6),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+
+                                            if( transactionsList[index].adminNote !=null || transactionsList[index].transactionId != null)
                                             const SizedBox(height: Dimensions.paddingSizeSmall,)
 
 

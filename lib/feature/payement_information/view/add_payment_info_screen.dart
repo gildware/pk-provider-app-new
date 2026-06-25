@@ -275,7 +275,7 @@ class _AddPaymentInfoScreenState extends State<AddPaymentInfoScreen> {
                                               : Theme.of(context).hintColor.withValues(alpha: 0.06),
                                           border: Border.all(
                                             color: isSelected
-                                                ? Theme.of(context).primaryColor
+                                                 ? context.tabSelectedColor
                                                 : Theme.of(context).hintColor.withValues(alpha: 0.25),
                                             width: isSelected ? 1.5 : 1,
                                           ),
@@ -285,7 +285,7 @@ class _AddPaymentInfoScreenState extends State<AddPaymentInfoScreen> {
                                             Icon(
                                               isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
                                               color: isSelected
-                                                  ? Theme.of(context).primaryColor
+                                                   ? context.tabSelectedColor
                                                   : Theme.of(context).hintColor,
                                               size: 22,
                                             ),
@@ -332,7 +332,7 @@ class _AddPaymentInfoScreenState extends State<AddPaymentInfoScreen> {
                                     ignoring: widget.isDefault,
                                     child: CustomSwitchWidget(
                                       value: paymentInfoController.status == 1,
-                                      activeColor: widget.isDefault ? Theme.of(context).disabledColor : Theme.of(context).primaryColor,
+                                      activeColor: widget.isDefault ? Theme.of(context).disabledColor : context.tabSelectedColor,
                                       onChanged: (value){
                                         paymentInfoController.updateStatus(value ? 1 : 0, isUpdate: true);
                                       },

@@ -42,6 +42,12 @@ class BookingDetailsController extends GetxController implements GetxService{
   bool _hideResendButton = false;
   bool get hideResendButton => _hideResendButton;
 
+  List<BookingReasonModel> _providerCancellationReasons = [];
+  List<BookingReasonModel> get providerCancellationReasons => _providerCancellationReasons;
+
+  bool _isLoadingCancellationReasons = false;
+  bool get isLoadingCancellationReasons => _isLoadingCancellationReasons;
+
 
   BookingDetailsModel? _bookingDetails;
   BookingDetailsModel? get bookingDetails => _bookingDetails;
@@ -155,13 +161,21 @@ class BookingDetailsController extends GetxController implements GetxService{
 
 
 
-   Future<void> changeBookingStatus(String bookingId,{String? bookingStatus, bool isBack = false, required  bool isSubBooking}) async {
+   Future<bool> changeBookingStatus(
+    String bookingId, {
+    String? bookingStatus,
+    bool isBack = false,
+    required bool isSubBooking,
+    int? providerCancellationReasonId,
+    String? statusChangeRemarks,
+    int? holdReopenReasonId,
+  }) async {
     final targetStatus = isSubBooking ? subBookingDropDownValue : dropDownValue;
     final bookingContent = isSubBooking ? subBookingDetails?.content : bookingDetails?.content;
 
     if (targetStatus == 'completed' && bookingContent != null && !BookingHelper.canCompleteBooking(bookingContent)) {
       showCustomSnackBar('complete_booking_after_due_cleared'.tr, type: ToasterMessageType.info);
-      return;
+      return false;
     }
 
     _isStatusUpdateLoading = true;
@@ -173,10 +187,25 @@ class BookingDetailsController extends GetxController implements GetxService{
     }
     if(bookingStatus != null && bookingStatus == 'ongoing' && targetStatus == 'canceled'){
       showCustomSnackBar('service_ongoing_can_not_cancel_booking'.tr, type : ToasterMessageType.info);
+      _isStatusUpdateLoading = false;
+      update();
+      return false;
     }else if(bookingStatus != null && bookingStatus == 'ongoing' && targetStatus == 'accepted'){
       showCustomSnackBar('service_is_already_ongoing'.tr, type : ToasterMessageType.info);
+      _isStatusUpdateLoading = false;
+      update();
+      return false;
     }else{
-      Response response = await bookingDetailsRepo.changeBookingStatus( bookingId, targetStatus, otp ,multiParts, isSubBooking);
+      Response response = await bookingDetailsRepo.changeBookingStatus(
+        bookingId,
+        targetStatus,
+        otp,
+        multiParts,
+        isSubBooking,
+        providerCancellationReasonId: providerCancellationReasonId,
+        statusChangeRemarks: statusChangeRemarks,
+        holdReopenReasonId: holdReopenReasonId,
+      );
       if(response.statusCode==200 && response.body["response_code"]=="status_update_success_200"){
 
         if(isSubBooking){
@@ -191,6 +220,9 @@ class BookingDetailsController extends GetxController implements GetxService{
           Get.back();
         }
         showCustomSnackBar(response.body['message'].toString().capitalizeFirst,  type: ToasterMessageType.success);
+        _isStatusUpdateLoading = false;
+        update();
+        return true;
       }
       else if(response.statusCode==200 && response.body["response_code"] == "default_403"){
         if(dropDownValue == "completed" && otp.isNotEmpty){
@@ -202,6 +234,7 @@ class BookingDetailsController extends GetxController implements GetxService{
     }
     _isStatusUpdateLoading = false;
     update();
+    return false;
   }
 
   bool _isRecordPaymentLoading = false;
@@ -276,6 +309,23 @@ class BookingDetailsController extends GetxController implements GetxService{
     if(shouldUpdate){
       update();
     }
+  }
+
+  Future<void> getProviderCancellationReasons({bool forceReload = false}) async {
+    if (_providerCancellationReasons.isNotEmpty && !forceReload) {
+      return;
+    }
+    _isLoadingCancellationReasons = true;
+    update();
+    final response = await bookingDetailsRepo.getProviderCancellationReasons();
+    if (response.statusCode == 200 && response.body['response_code'] == 'default_200') {
+      final List<dynamic> raw = response.body['content'] is List ? response.body['content'] : [];
+      _providerCancellationReasons = raw.map((item) => BookingReasonModel.fromJson(item)).toList();
+    } else {
+      ApiChecker.checkApi(response);
+    }
+    _isLoadingCancellationReasons = false;
+    update();
   }
 
   void changeBookingStatusDropDownValue(String status, bool isSubBooking){

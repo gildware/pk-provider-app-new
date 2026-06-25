@@ -103,13 +103,13 @@ class _SubscriptionTrailEndWidgetState extends State<SubscriptionTrailEndWidget>
                           child: Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                              color: Colors.white,
+                              color: context.adaptiveWhite,
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeSmall - 2),
                             child: Row(children: [
-                              Text( "choose_plan".tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor)),
+                              Text( "choose_plan".tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: context.adaptivePrimaryColor)),
                               const SizedBox(width: Dimensions.paddingSizeExtraSmall,),
-                              Icon(Icons.arrow_forward_outlined, size: 15, color: Theme.of(context).primaryColor,)
+                              Icon(Icons.arrow_forward_outlined, size: 15, color: context.adaptivePrimaryColor,)
                             ],
                             ),),
                         ),

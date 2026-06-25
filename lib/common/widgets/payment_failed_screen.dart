@@ -85,8 +85,8 @@ class _PaymentFailedScreenState extends State<PaymentFailedScreen> {
                           },
                           child: Text(
                             'try_again'.tr,
-                            style: robotoMedium.copyWith(color: Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeDefault,
-                                decoration: TextDecoration.underline, decorationColor: Theme.of(context).primaryColor),
+                            style: robotoMedium.copyWith(color: context.adaptivePrimaryColor, fontSize: Dimensions.fontSizeDefault,
+                                decoration: TextDecoration.underline, decorationColor: context.tabSelectedColor),
                           ),
                         ),
 

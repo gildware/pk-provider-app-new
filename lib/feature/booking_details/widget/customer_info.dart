@@ -22,7 +22,7 @@ class BookingDetailsCustomerInfo extends StatelessWidget {
         child: Column( crossAxisAlignment: CrossAxisAlignment.start ,children: [
 
           Text("Customer_Info".tr,
-            style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).primaryColor),
+            style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: context.adaptivePrimaryColor),
           ),
           const SizedBox(height:Dimensions.paddingSizeDefault),
 

@@ -158,7 +158,7 @@ class ServicemanCardView extends StatelessWidget {
                               child: Icon( Icons.person,
                                 size: 15,
                                 color: servicemanController.servicemanList?[index].isActive==0?
-                                Theme.of(context).colorScheme.error:Theme.of(context).primaryColor,
+                                Theme.of(context).colorScheme.error:context.adaptivePrimaryColor,
                               ),
                             ),
                           ],

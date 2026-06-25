@@ -47,7 +47,7 @@ class CustomerBookingAcceptView extends StatelessWidget {
 
           child: Container(decoration: BoxDecoration(color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-            border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha:0.15)),
+            border: Border.all(color: context.adaptivePrimaryColor.withValues(alpha:0.15)),
           ),
             child: Column(
               children: [
@@ -71,7 +71,7 @@ class CustomerBookingAcceptView extends StatelessWidget {
                     ],)
                   ],),
                 ),
-                Divider(color: Theme.of(context).primaryColor.withValues(alpha:0.2),height: 1,),
+                Divider(color: context.adaptivePrimaryColor.withValues(alpha:0.2),height: 1,),
 
                 Padding(padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeDefault,
                     horizontal: Dimensions.paddingSizeDefault),
@@ -130,7 +130,7 @@ class CustomerBookingAcceptView extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault,vertical: 8),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                          color: Theme.of(context).primaryColor
+                          color: context.adaptivePrimaryColor
                         ),
                         child: Center(child: Text(
                           postController.tabController!.index==0?'place_offer'.tr:'withdraw_request'.tr, style: robotoRegular.copyWith(

@@ -118,6 +118,7 @@ class TransactionData {
   int? isPaid;
   String? providerNote;
   String? adminNote;
+  String? transactionId;
   TransactionUser? user;
   RequestUpdater? requestUpdater;
 
@@ -132,6 +133,7 @@ class TransactionData {
         this.isPaid,
         this.providerNote,
         this.adminNote,
+        this.transactionId,
         this.user,
         this.requestUpdater
       });
@@ -147,6 +149,7 @@ class TransactionData {
     isPaid = json['is_paid'];
     providerNote = json['note'];
     adminNote = json['admin_note'];
+    transactionId = json['transaction_id'];
     user = json['user'] != null ? TransactionUser.fromJson(json['user']) : null;
     requestUpdater = json['request_updater'] != null ? RequestUpdater.fromJson(json['request_updater']) : null;
   }
@@ -163,6 +166,7 @@ class TransactionData {
     data['is_paid'] = isPaid;
     data['note'] = providerNote;
     data['admin_note'] = adminNote;
+    data['transaction_id'] = transactionId;
     if (user != null) {
       data['user'] = user!.toJson();
     }

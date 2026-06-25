@@ -272,11 +272,11 @@ class Timeline1 extends StatelessWidget {
           ),
         );},
 
-        connectorBuilder: (_, index, _) => SolidLineConnector(color: Theme.of(context).primaryColor),
+        connectorBuilder: (_, index, _) => SolidLineConnector(color: context.adaptivePrimaryColor),
 
         indicatorBuilder: (_, index) {
           return DotIndicator(
-            color: Theme.of(context).primaryColor,
+            color: context.adaptivePrimaryColor,
             child: Center(child : Icon(Icons.check,color:light.cardColor)),
           );
         },

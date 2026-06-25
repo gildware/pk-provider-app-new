@@ -25,7 +25,7 @@ class ServicemanSetupScreen extends StatelessWidget {
                                 style: robotoMedium.copyWith(color: Theme.of(context).textTheme.bodyLarge!.color),
                               ),
                               Text(" ${servicemanSetUpController.totalServiceman} ",
-                                style: robotoBold.copyWith(color: Theme.of(context).primaryColor),
+                                style: robotoBold.copyWith(color: context.adaptivePrimaryColor),
                               ),
                               Text(servicemanSetUpController.totalServiceman>1?"service_men".tr:"service_man".tr,
                                 style: robotoMedium.copyWith(color: Theme.of(context).textTheme.bodyLarge!.color),

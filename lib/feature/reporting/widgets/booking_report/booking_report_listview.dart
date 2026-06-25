@@ -126,11 +126,11 @@ class BookingReportListItem extends StatelessWidget {
                         child: Row(
                           children: [
                             Text('booking_id'.tr,
-                              style: robotoMedium.copyWith(color: Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeSmall),
+                              style: robotoMedium.copyWith(color: context.adaptivePrimaryColor, fontSize: Dimensions.fontSizeSmall),
                             ),
                             Flexible(
                               child: Text(" #${bookingFilterData.readableId.toString()}",
-                                style: robotoMedium.copyWith(color: Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeSmall),
+                                style: robotoMedium.copyWith(color: context.adaptivePrimaryColor, fontSize: Dimensions.fontSizeSmall),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -207,7 +207,7 @@ class BookingReportListItem extends StatelessWidget {
                 padding: EdgeInsets.all(Dimensions.paddingSizeSmall),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                  color: Theme.of(context).primaryColor.withValues(alpha: 0.05)
+                  color: context.adaptivePrimaryColor.withValues(alpha: 0.05)
                 ),
                 child: Column(children: [
                 
@@ -235,7 +235,7 @@ class BookingReportListItem extends StatelessWidget {
                       Text(PriceConverter.convertPrice(double.tryParse(bookingFilterData.totalBookingAmount.toString())),
                         style: robotoBold.copyWith(
                           fontSize: Dimensions.fontSizeSmall,
-                          color: Theme.of(context).primaryColor,
+                          color: context.adaptivePrimaryColor,
                         ),
                       )
                     ],

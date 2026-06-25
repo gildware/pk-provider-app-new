@@ -85,6 +85,7 @@ class SubCategoryView extends StatelessWidget {
                                   width: 70,
                                   fit: BoxFit.cover,
                                   image: '${subCategoryList[index].imageFullPath}',
+                                  placeholder: Images.categoryPlaceholder,
                                 ),
                               ),
 
@@ -140,7 +141,7 @@ class SubCategoryView extends StatelessWidget {
                                         fontSize: Get.width < 350 ? Dimensions.fontSizeSmall - 2 : Dimensions.fontSizeDefault,
                                         color: Get.isDarkMode
                                             ? Theme.of(context).primaryColorLight
-                                            : Theme.of(context).primaryColor,
+                                            : context.tabSelectedColor,
                                     ),
                                   ),
                                 ),
@@ -167,7 +168,7 @@ class SubCategoryView extends StatelessWidget {
                                             disabledBackgroundColor: Theme.of(context).colorScheme.onSecondaryContainer.withValues(alpha:0.3),
                                             backgroundColor: subCategoryList[index].isSubscribed == 1
                                                 ? Theme.of(context).colorScheme.onSecondaryContainer.withValues(alpha:0.3)
-                                                : Theme.of(context).primaryColor,
+                                                : context.tabSelectedColor,
                                           ),
                                           onPressed: subCategoryList[index].isSubscribed == 1 ? null : () {
 
@@ -242,7 +243,7 @@ class CustomShowCaseWidget extends StatelessWidget {
         TooltipActionButton(
           type: TooltipDefaultActionType.next, name: 'got_it'.tr.toUpperCase(),
           backgroundColor: Colors.transparent,
-          textStyle: robotoBold.copyWith(color: Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeLarge),
+          textStyle: robotoBold.copyWith(color: context.adaptivePrimaryColor, fontSize: Dimensions.fontSizeLarge),
         ),
 
         TooltipActionButton(type: null, backgroundColor: Colors.transparent),

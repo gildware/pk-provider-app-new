@@ -37,7 +37,7 @@ class _AdvertisementListScreenState extends State<AdvertisementListScreen>{
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: widget.embeddedInBottomNav
-          ? MainAppBar(title: 'advertisements'.tr, color: Theme.of(context).primaryColor)
+          ? MainAppBar(title: 'advertisements'.tr, color: context.adaptivePrimaryColor)
           : CustomAppBar(title: 'advertisement_list'.tr),
       body: GetBuilder<AdvertisementController>(
         builder:(advertisementController){
@@ -111,9 +111,9 @@ class TurnOnServiceAvailability extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
-                border: Border.all(color: Theme.of(context).primaryColor),
+                border: Border.all(color: context.adaptivePrimaryColor),
               ), padding:  const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeSmall-3),
-                child: Text("go_to_business_settings".tr, style: robotoRegular.copyWith(color: Theme.of(context).primaryColor),)),
+                child: Text("go_to_business_settings".tr, style: robotoRegular.copyWith(color: context.adaptivePrimaryColor),)),
           )
 
         ],),

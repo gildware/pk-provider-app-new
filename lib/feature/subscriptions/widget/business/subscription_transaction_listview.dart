@@ -134,7 +134,7 @@ class SubscriptionTransactionListview extends StatelessWidget {
 
                   Container(height: 1,width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor.withValues(alpha:0.1),
+                      color: context.adaptivePrimaryColor.withValues(alpha:0.1),
                     ),
                   ),
                   Padding(

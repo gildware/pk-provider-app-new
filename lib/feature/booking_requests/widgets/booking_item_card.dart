@@ -163,7 +163,7 @@ class _BookingCardServiceLocation extends StatelessWidget {
                   vertical: Dimensions.paddingSizeExtraSmall,
                 ),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
                 ),
                 child: Row(
@@ -172,7 +172,7 @@ class _BookingCardServiceLocation extends StatelessWidget {
                     Icon(
                       Icons.location_on,
                       size: Dimensions.paddingSizeDefault,
-                      color: Theme.of(context).primaryColor,
+                      color: context.adaptivePrimaryColor,
                     ),
                     const SizedBox(width: Dimensions.paddingSizeTini),
                     Text(
@@ -181,7 +181,7 @@ class _BookingCardServiceLocation extends StatelessWidget {
                           : 'at_customer_location'.tr,
                       style: robotoMedium.copyWith(
                         fontSize: Dimensions.fontSizeSmall,
-                        color: Theme.of(context).primaryColor,
+                        color: context.adaptivePrimaryColor,
                       ),
                     ),
                   ],
@@ -228,7 +228,7 @@ class _BookingCardFooter extends StatelessWidget {
             PriceConverter.convertPrice(booking.displayGrandTotal),
             style: robotoBold.copyWith(
               fontSize: Dimensions.fontSizeExtraLarge,
-              color: Theme.of(context).primaryColor,
+              color: context.adaptivePrimaryColor,
             ),
           ),
         ],

@@ -48,12 +48,12 @@ class BookingLossMakingSettlementView extends StatelessWidget {
           _priceRow(
             'net_company_share_after_loss'.tr,
             settlement.netCompanyShareAfterLoss,
-            valueStyle: robotoBold.copyWith(color: Theme.of(context).primaryColor),
+            valueStyle: robotoBold.copyWith(color: context.adaptivePrimaryColor),
           ),
           _priceRow(
             'net_provider_share_after_loss'.tr,
             settlement.netProviderShareAfterLoss,
-            valueStyle: robotoBold.copyWith(color: Theme.of(context).primaryColor),
+            valueStyle: robotoBold.copyWith(color: context.adaptivePrimaryColor),
           ),
           if (settlement.notes != null && settlement.notes!.trim().isNotEmpty)
             BookingOverviewKvRow(

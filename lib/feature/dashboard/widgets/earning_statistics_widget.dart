@@ -48,7 +48,7 @@ class EarningStatisticsWidget extends StatelessWidget {
                           'view_all'.tr,
                           style: robotoRegular.copyWith(
                             fontSize: Dimensions.fontSizeDefault,
-                            color: Theme.of(context).primaryColor,
+                            color: context.adaptivePrimaryColor,
                           ),
                         ),
                       ),
@@ -143,7 +143,7 @@ class _EarningCard extends StatelessWidget {
             PriceConverter.convertPrice(amount, isShowLongPrice: true),
             style: robotoBold.copyWith(
               fontSize: Dimensions.fontSizeLarge,
-              color: Theme.of(context).primaryColor,
+              color: context.adaptivePrimaryColor,
             ),
           ),
           const SizedBox(height: Dimensions.paddingSizeSmall),

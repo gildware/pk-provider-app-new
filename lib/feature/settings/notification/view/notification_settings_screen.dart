@@ -47,7 +47,7 @@ class _NotificationSettingScreenState extends State<NotificationSettingScreen> {
             ),
             child: TabBar(
               unselectedLabelColor:Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha:0.5),
-              indicatorColor: Theme.of(context).primaryColor,
+              indicatorColor: context.tabIndicatorColor,
               labelColor: Theme.of(context).primaryColorLight,
               labelStyle:  robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge),
               labelPadding: EdgeInsets.zero,
@@ -110,7 +110,7 @@ class SwitchButton extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault,vertical: Dimensions.paddingSizeSmall),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-        border: showOutSideBorder ? Border.all(color: Theme.of(context).primaryColor) : null
+        border: showOutSideBorder ? Border.all(color: context.adaptivePrimaryColor) : null
       ),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,children: [ Row(children: [
 

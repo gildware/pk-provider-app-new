@@ -51,7 +51,7 @@ class BusinessReportOverviewListView extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
                       decoration:  BoxDecoration(
-                        color: Theme.of(context).primaryColor.withValues(alpha:0.05),
+                        color: context.adaptivePrimaryColor.withValues(alpha:0.05),
                         borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(Dimensions.radiusSmall),
                             topRight: Radius.circular(Dimensions.radiusSmall),
@@ -62,11 +62,11 @@ class BusinessReportOverviewListView extends StatelessWidget {
 
                           Text('net_profit_rate'.tr,
                             style: robotoMedium.copyWith(
-                              color: Theme.of(context).primaryColor,
+                              color: context.adaptivePrimaryColor,
                             ),
                           ),
                           Text("${netProfitRate.toStringAsFixed(2)} % ",
-                            style: robotoBold.copyWith(color: Theme.of(context).primaryColor),
+                            style: robotoBold.copyWith(color: context.adaptivePrimaryColor),
                             overflow: TextOverflow.ellipsis,
                           )
                         ],
@@ -154,7 +154,7 @@ class BusinessReportOverviewListView extends StatelessWidget {
                             Text(PriceConverter.convertPrice(netProfit),
                               style: robotoBold.copyWith(
                                 fontSize: Dimensions.fontSizeDefault,
-                                color: Theme.of(context).primaryColor,
+                                color: context.adaptivePrimaryColor,
                               ),
                             )
                           ],

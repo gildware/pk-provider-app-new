@@ -122,7 +122,7 @@ class PreviewProviderPromotionWidget extends StatelessWidget {
                                 padding: const EdgeInsets.all(Dimensions.paddingSizeExtraSmall),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
-                                  color: Theme.of(context).primaryColor,
+                                  color: context.adaptivePrimaryColor,
                                 ),
                                 child: const Icon(Icons.photo_library_outlined, color: Colors.white, size: 18),
                               ),

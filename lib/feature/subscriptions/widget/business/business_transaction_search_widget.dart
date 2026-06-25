@@ -39,20 +39,20 @@ class BusinessTransactionSearchWidget extends StatelessWidget {
                         fillColor: Theme.of(context).cardColor,
                         border:  OutlineInputBorder(
                           borderRadius: const BorderRadius.horizontal(right: Radius.circular(10,),left: Radius.circular(10)),
-                          borderSide: BorderSide( width: 0.5, color: Theme.of(context).primaryColor.withValues(alpha:0.0)),
+                          borderSide: BorderSide( width: 0.5, color: context.adaptivePrimaryColor.withValues(alpha:0.0)),
                         ),
                         errorBorder:  OutlineInputBorder(
                           borderRadius: const BorderRadius.horizontal(right: Radius.circular(10,),left: Radius.circular(10)),
-                          borderSide: BorderSide( width: 0.5, color: Theme.of(context).primaryColor.withValues(alpha:0.0)),
+                          borderSide: BorderSide( width: 0.5, color: context.adaptivePrimaryColor.withValues(alpha:0.0)),
                         ),
 
                         focusedBorder:  OutlineInputBorder(
                           borderRadius: const BorderRadius.horizontal(right: Radius.circular(10,),left: Radius.circular(10)),
-                          borderSide: BorderSide( width: 0.5, color: Theme.of(context).primaryColor.withValues(alpha:0.0)),
+                          borderSide: BorderSide( width: 0.5, color: context.adaptivePrimaryColor.withValues(alpha:0.0)),
                         ),
                         enabledBorder :  OutlineInputBorder(
                           borderRadius: const BorderRadius.horizontal(right: Radius.circular(10,),left: Radius.circular(10)),
-                          borderSide: BorderSide( width: 0.5, color: Theme.of(context).primaryColor.withValues(alpha:0.0)),
+                          borderSide: BorderSide( width: 0.5, color: context.adaptivePrimaryColor.withValues(alpha:0.0)),
                         ),
 
                         isDense: true,

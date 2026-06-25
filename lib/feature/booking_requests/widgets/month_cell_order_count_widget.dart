@@ -52,7 +52,7 @@ class MonthCellOrderCountWidget extends StatelessWidget {
               height: 28,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isToday ? Theme.of(context).primaryColor : Colors.transparent,
+                color: isToday ? context.tabSelectedColor : Colors.transparent,
               ),
               alignment: Alignment.center,
               child: Text(
@@ -82,7 +82,7 @@ class MonthCellOrderCountWidget extends StatelessWidget {
                   child: Text(
                     count.toString().padLeft(2, '0'),
                     style: robotoMedium.copyWith(
-                      color: Colors.black,
+                      color: context.adaptiveBlack,
                       fontSize: Dimensions.fontSizeDefault,
                     ),
                   ),

@@ -77,7 +77,7 @@ class BookingOverviewSectionCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 18, color: Theme.of(context).primaryColor),
+              Icon(icon, size: 18, color: context.adaptivePrimaryColor),
               const SizedBox(width: Dimensions.paddingSizeExtraSmall),
               Expanded(
                 child: Text(

@@ -63,7 +63,7 @@ class BookingRequestItemShimmer extends StatelessWidget {
             ),
 
 
-            Divider(height: 1, thickness: 3, color: Theme.of(context).primaryColor.withValues(alpha:0.04)),
+            Divider(height: 1, thickness: 3, color: context.adaptivePrimaryColor.withValues(alpha:0.04)),
 
             const SizedBox(height: Dimensions.paddingSizeExtraSmall,),
 

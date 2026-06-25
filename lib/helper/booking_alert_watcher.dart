@@ -144,6 +144,7 @@ class BookingAlertWatcher extends GetxService with WidgetsBindingObserver {
     final data = <String, dynamic>{
       'type': 'booking',
       'booking_id': bookingId,
+      'booking_status': 'pending',
       'title': title,
       'body': body,
       'booking_type': booking['is_repeat_booking'] == 1 ? 'repeat' : 'regular',

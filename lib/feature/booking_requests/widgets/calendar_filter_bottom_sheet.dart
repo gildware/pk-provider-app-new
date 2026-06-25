@@ -384,7 +384,7 @@ class CheckboxItemWidget extends StatelessWidget {
             side: WidgetStateBorderSide.resolveWith((states) => BorderSide(
               width: 1,
               color: states.contains(WidgetState.selected)
-                  ? Theme.of(context).primaryColor
+                   ? context.tabSelectedColor
                   : Colors.grey,
             )),
           ),

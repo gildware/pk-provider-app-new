@@ -22,7 +22,7 @@ class _AccountInformationState extends State<AccountInformation> {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      color: Theme.of(context).primaryColor,
+      color: context.adaptivePrimaryColor,
       backgroundColor: Theme.of(context).cardColor,
       onRefresh: ()async => Get.find<UserProfileController>().getProviderInfo(reload: true),
       child: Scaffold(

@@ -51,10 +51,10 @@ class CategoryItem extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(50),
-                    color: Theme.of(context).primaryColor.withValues(alpha:0.07),
+                    color: context.adaptivePrimaryColor.withValues(alpha:0.07),
                   ),
                   padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
-                  child: CustomImage(height: 30, width: 30, image: image),
+                  child: CustomImage(height: 30, width: 30, image: image, placeholder: Images.categoryPlaceholder),
                 ),
                 const SizedBox(height:Dimensions.paddingSizeExtraSmall),
                 Container(
@@ -65,7 +65,7 @@ class CategoryItem extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style:robotoMedium.copyWith(
                       fontSize: Dimensions.fontSizeSmall,
-                      color:  selectedCategory == title ? Theme.of(context).primaryColor : Theme.of(context).hintColor,
+                      color:  selectedCategory == title ? context.tabSelectedColor : Theme.of(context).hintColor,
                       overflow: TextOverflow.ellipsis,
                     ),
                     maxLines: 2,

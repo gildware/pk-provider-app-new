@@ -173,7 +173,7 @@ class _CreateAdvertisementScreenState extends State<CreateAdvertisementScreen> {
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                        color: Theme.of(context).primaryColor.withValues(alpha:0.04)
+                        color: context.adaptivePrimaryColor.withValues(alpha:0.04)
                       ),
                       padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeDefault, horizontal: Dimensions.paddingSizeSmall),
 
@@ -212,7 +212,7 @@ class _CreateAdvertisementScreenState extends State<CreateAdvertisementScreen> {
                         vertical: Dimensions.paddingSizeExtraSmall
                       ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withValues(alpha:0.05),
+                        color: context.adaptivePrimaryColor.withValues(alpha:0.05),
                         borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall),
                       ),
                       child: Wrap(

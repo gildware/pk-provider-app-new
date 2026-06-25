@@ -10,7 +10,7 @@ class PaymentStatusButton extends StatelessWidget {
       return Container(
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-            border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha:0.2))
+            border: Border.all(color: context.adaptivePrimaryColor.withValues(alpha:0.2))
         ),
         padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault,vertical: Dimensions.paddingSizeExtraSmall+2),
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,children: [

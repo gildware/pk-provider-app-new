@@ -15,7 +15,7 @@ class CustomInkWell extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(radius ?? Dimensions.radiusDefault),
         highlightColor: highlightColor ?? Theme.of(context).primaryColor.withValues(alpha:0.05),
-        hoverColor: Theme.of(context).primaryColor,
+        hoverColor: context.tabSelectedColor,
         child: child,
       ),
     );

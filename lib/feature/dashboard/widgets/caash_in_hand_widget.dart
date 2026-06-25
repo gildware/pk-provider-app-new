@@ -33,7 +33,7 @@ class TotalCashInHandWidget extends StatelessWidget {
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                   Row(mainAxisSize: MainAxisSize.min, children: [
                     Text(PriceConverter.convertPrice(transactionAmount),
-                      style: robotoBold.copyWith(fontSize: Dimensions.fontSizeOverLarge - 3, color: Theme.of(context).primaryColor),
+                      style: robotoBold.copyWith(fontSize: Dimensions.fontSizeOverLarge - 3, color: context.adaptivePrimaryColor),
                     ),
                     const SizedBox(width: Dimensions.paddingSizeExtraSmall),
 

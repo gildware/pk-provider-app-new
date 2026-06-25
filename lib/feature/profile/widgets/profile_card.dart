@@ -25,7 +25,7 @@ class ProfileCardItem extends StatelessWidget {
         child: ListTile(
           horizontalTitleGap: Dimensions.paddingSizeExtraSmall,
           title: Text(title.tr),
-          trailing: Icon(trailingIcon,size: 15,color: Theme.of(context).primaryColor,),
+          trailing: Icon(trailingIcon,size: 15,color: context.adaptivePrimaryColor,),
           leading: Image.asset(leadingIcon,height: 20,width: 20,fit:BoxFit.cover),
         ),
       ),

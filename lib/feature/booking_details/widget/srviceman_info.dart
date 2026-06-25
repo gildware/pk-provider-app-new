@@ -21,7 +21,7 @@ class BookingDetailsServicemanInfo extends StatelessWidget {
             Text("Service_Man_Info".tr,
               style: robotoMedium.copyWith(
                   fontSize: Dimensions.fontSizeDefault,
-                  color: Theme.of(context).primaryColor
+                  color: context.adaptivePrimaryColor
               ),
             ),
 

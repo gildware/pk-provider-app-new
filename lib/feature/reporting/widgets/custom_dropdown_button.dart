@@ -73,7 +73,7 @@ class _ReportCustomDropdownButtonState extends State<ReportCustomDropdownButton>
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-            borderSide:  BorderSide(color: Theme.of(context).primaryColor, width: 0.5),
+            borderSide:  BorderSide(color: context.adaptivePrimaryColor, width: 0.5),
           ),
 
           contentPadding: const EdgeInsets.symmetric(

@@ -126,7 +126,7 @@ class _SubcategoryServiceViewState extends State<SubcategoryServiceView>  with S
                                           textDirection: TextDirection.ltr,
                                           child: Text( PriceConverter.convertPrice(lowestPrice.toDouble()),
                                             style: robotoMedium.copyWith(fontSize:Dimensions.fontSizeLarge,
-                                              color: Get.isDarkMode? Theme.of(context).primaryColorLight: Theme.of(context).primaryColor,
+                                              color: Get.isDarkMode? Theme.of(context).primaryColorLight: context.tabSelectedColor,
                                             ),
                                           ),
                                         ),

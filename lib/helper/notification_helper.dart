@@ -46,13 +46,14 @@ class NotificationHelper {
           }
 
           final data = Map<String, dynamic>.from(jsonDecode(payload));
-          if (BookingNotificationConstants.isIncomingBookingRequest(
-            data['type']?.toString(),
-          )) {
-            await BookingNotificationActionHandler.handleResponse(
-              notificationResponse,
-              fromBackground: false,
-            );
+          if (BookingNotificationConstants.isPendingBookingAcceptance(data)) {
+            BookingNotificationActionHandler.showBookingAlert(data);
+            return;
+          }
+          if (data['type']?.toString() == 'booking' &&
+              data['booking_id'] != null &&
+              data['booking_id'].toString().isNotEmpty) {
+            _openBookingFromNotificationData(data);
             return;
           }
 
@@ -195,13 +196,13 @@ class NotificationHelper {
           Get.dialog(const DemoResetDialogWidget(), barrierDismissible: false);
         }
       }
-      else if (BookingNotificationConstants.isIncomingBookingRequest(
-        message.data['type']?.toString(),
+      else if (BookingNotificationConstants.isPendingBookingAcceptance(
+        message.data,
       )) {
-        unawaited(_handleIncomingBookingMessage(
-          message,
-          flutterLocalNotificationsPlugin,
-        ));
+        unawaited(_handlePendingBookingAcceptance(message));
+      }
+      else if (message.data['type'] == 'booking') {
+        NotificationHelper.showNotification(message, false, flutterLocalNotificationsPlugin);
       }
       else{
         NotificationHelper.showNotification(message, false,flutterLocalNotificationsPlugin);
@@ -212,10 +213,16 @@ class NotificationHelper {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage? message) {
       try{
         if(message!=null && message.data.isNotEmpty) {
-          if (BookingNotificationConstants.isIncomingBookingRequest(
-            message.data['type']?.toString(),
+          if (BookingNotificationConstants.isPendingBookingAcceptance(
+            message.data,
           )) {
             BookingNotificationActionHandler.showBookingAlert(message.data);
+            return;
+          }
+          if (message.data['type'] == 'booking' &&
+              message.data['booking_id'] != null &&
+              message.data['booking_id'].toString().isNotEmpty) {
+            _openBookingFromNotificationData(message.data);
             return;
           }
 
@@ -293,12 +300,10 @@ class NotificationHelper {
 
 
 
-  static Future<void> _handleIncomingBookingMessage(
+  static Future<void> _handlePendingBookingAcceptance(
     RemoteMessage message,
-    FlutterLocalNotificationsPlugin fln,
   ) async {
     try {
-      await showBookingNotification(message, fln);
       final bookingId = message.data['booking_id']?.toString();
       if (bookingId != null && bookingId.isNotEmpty) {
         BookingAlertWatcher.markBookingHandled(bookingId);
@@ -318,9 +323,43 @@ class NotificationHelper {
       }
     } catch (e, stack) {
       if (kDebugMode) {
-        print('handleIncomingBookingMessage failed: $e\n$stack');
+        print('handlePendingBookingAcceptance failed: $e\n$stack');
       }
     }
+  }
+
+  static void _openBookingFromNotificationData(Map<String, dynamic> data) {
+    final bookingId = data['booking_id']?.toString();
+    if (bookingId == null || bookingId.isEmpty) {
+      return;
+    }
+
+    final bookingType = data['booking_type']?.toString();
+    final repeatBookingType = data['repeat_type']?.toString();
+    if (bookingType == 'repeat' && repeatBookingType == 'single') {
+      Get.toNamed(
+        RouteHelper.getBookingDetailsRoute(
+          subBookingId: bookingId,
+          fromPage: 'fromNotification',
+        ),
+      );
+      return;
+    }
+    if (bookingType == 'repeat' && repeatBookingType != 'single') {
+      Get.toNamed(
+        RouteHelper.getRepeatBookingDetailsRoute(
+          bookingId: bookingId,
+          fromPage: 'fromNotification',
+        ),
+      );
+      return;
+    }
+    Get.toNamed(
+      RouteHelper.getBookingDetailsRoute(
+        bookingId: bookingId,
+        fromPage: 'fromNotification',
+      ),
+    );
   }
 
   static Future<void> showNotification(RemoteMessage message,bool data,FlutterLocalNotificationsPlugin fln) async {
@@ -330,8 +369,7 @@ class NotificationHelper {
     if (title == null || title.isEmpty) return;
 
     final notificationType = message.data['type']?.toString();
-    if (BookingNotificationConstants.isIncomingBookingRequest(notificationType)) {
-      await showBookingNotification(message, fln);
+    if (BookingNotificationConstants.isPendingBookingAcceptance(message.data)) {
       return;
     }
 
@@ -369,64 +407,9 @@ class NotificationHelper {
     }
   }
 
-  static Future<void> showBookingNotification(
-    RemoteMessage message,
-    FlutterLocalNotificationsPlugin fln,
-  ) async {
-    var title = message.data['title'] ?? message.notification?.title;
-    final body = message.data['body'] ?? message.notification?.body ?? '';
-    final payload = jsonEncode(message.data);
-    final bookingId = message.data['booking_id']?.toString();
-    if (bookingId == null || bookingId.isEmpty) {
-      if (kDebugMode) {
-        print('showBookingNotification skipped: missing booking_id');
-      }
-      return;
-    }
-    if (title == null || title.isEmpty) {
-      title = 'new_booking_received'.tr;
-    }
+  static NotificationBody convertNotification(Map<String, dynamic> data){
+    return NotificationBody.fromJson(data);
 
-    final notificationId = BookingNotificationConstants.notificationIdFor(bookingId);
-    final soundEnabled = _notificationSoundEnabled();
-    const notificationType = 'booking';
-
-    if (GetPlatform.isIOS) {
-      final darwinDetails = NotificationSoundUtil.darwinDetailsForType(
-        notificationType,
-        withSound: soundEnabled,
-        urgentBooking: true,
-      );
-      await fln.show(
-        id: notificationId,
-        title: title,
-        body: body,
-        notificationDetails: NotificationDetails(iOS: darwinDetails),
-        payload: payload,
-      );
-      return;
-    }
-
-    final bigTextStyleInformation = BigTextStyleInformation(
-      body,
-      htmlFormatBigText: true,
-      contentTitle: title,
-      htmlFormatContentTitle: true,
-    );
-    final androidDetails = NotificationSoundUtil.androidDetailsForType(
-      notificationType,
-      withSound: soundEnabled,
-      styleInformation: bigTextStyleInformation,
-      actions: NotificationSoundUtil.bookingNotificationActions(),
-      urgentBooking: true,
-    );
-    await fln.show(
-      id: notificationId,
-      title: title,
-      body: body,
-      notificationDetails: NotificationDetails(android: androidDetails),
-      payload: payload,
-    );
   }
 
   static Future<void> showBackgroundNotification(
@@ -488,11 +471,6 @@ class NotificationHelper {
     }
     return true;
   }
-
-  static NotificationBody convertNotification(Map<String, dynamic> data){
-    return NotificationBody.fromJson(data);
-
-  }
 }
 
 @pragma('vm:entry-point')
@@ -503,6 +481,9 @@ Future<dynamic> myBackgroundMessageHandler(RemoteMessage message) async {
   }
 
   final type = message.data['type']?.toString();
+  if (BookingNotificationConstants.isPendingBookingAcceptance(message.data)) {
+    return;
+  }
   if (!BookingNotificationConstants.isIncomingBookingRequest(type) &&
       message.notification != null) {
     return;

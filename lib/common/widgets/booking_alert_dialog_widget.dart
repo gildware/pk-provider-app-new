@@ -47,12 +47,12 @@ class _BookingAlertDialogWidgetState extends State<BookingAlertDialogWidget> {
                 width: 72,
                 height: 72,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withValues(alpha: 0.12),
+                  color: context.adaptivePrimaryColor.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.notifications_active_rounded,
-                  color: Theme.of(context).primaryColor,
+                  color: context.adaptivePrimaryColor,
                   size: 38,
                 ),
               ),

@@ -163,7 +163,7 @@ class AdvertisementItem extends StatelessWidget {
                         else if(option.title == 'resume_ads'){
                           showCustomBottomSheet(child: ConfirmationBottomSheet(
                             image: Images.resumeDialogIcon, title: "resume_dialog_title",
-                            description: "resume_dialog_description", status: option.title, yesTestColor: Theme.of(context).primaryColor,
+                            description: "resume_dialog_description", status: option.title, yesTestColor: context.tabSelectedColor,
                             yesButtonPressed: () async{
                               await Get.find<AdvertisementController>().changeAdvertisementStatus(id: advertisementData.id ?? "", status: 'resumed');
                             },),
@@ -198,7 +198,7 @@ class AdvertisementItem extends StatelessWidget {
 
           Container(height: 2,width: double.infinity,
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withValues(alpha:0.1),
+              color: context.adaptivePrimaryColor.withValues(alpha:0.1),
             ),
           ),
           Padding(
@@ -247,9 +247,9 @@ class AdvertisementItem extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeExtraSmall),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                      color: Theme.of(context).primaryColor.withValues(alpha:0.1),
+                      color: context.adaptivePrimaryColor.withValues(alpha:0.1),
                     ),
-                    child: Icon(Icons.arrow_forward_rounded, color: Theme.of(context).primaryColor.withValues(alpha:0.6),),
+                    child: Icon(Icons.arrow_forward_rounded, color: context.adaptivePrimaryColor.withValues(alpha:0.6),),
                   ),
                 )
               ],

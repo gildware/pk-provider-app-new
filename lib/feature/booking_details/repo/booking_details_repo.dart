@@ -32,7 +32,20 @@ class BookingDetailsRepo{
     return await apiClient.putData("${AppConstants.changeScheduleUrl}/$bookingID",{'schedule': schedule});
   }
 
-  Future<Response> changeBookingStatus(String bookingID,String status, String otp, List<MultipartBody>? photoEvidence, bool isSubBooking) async {
+  Future<Response> getProviderCancellationReasons() async {
+    return await apiClient.getData(AppConstants.providerCancellationReasonsUrl);
+  }
+
+  Future<Response> changeBookingStatus(
+    String bookingID,
+    String status,
+    String otp,
+    List<MultipartBody>? photoEvidence,
+    bool isSubBooking, {
+    int? providerCancellationReasonId,
+    String? statusChangeRemarks,
+    int? holdReopenReasonId,
+  }) async {
     final Map<String, String> body = {
       'booking_status': status,
       '_method': 'put',
@@ -40,6 +53,15 @@ class BookingDetailsRepo{
     };
     if (status == 'completed') {
       body['payment_received_confirmed'] = '1';
+    }
+    if (providerCancellationReasonId != null) {
+      body['booking_provider_cancellation_reason_id'] = '$providerCancellationReasonId';
+    }
+    if (holdReopenReasonId != null) {
+      body['booking_hold_reopen_reason_id'] = '$holdReopenReasonId';
+    }
+    if (statusChangeRemarks != null && statusChangeRemarks.trim().isNotEmpty) {
+      body['status_change_remarks'] = statusChangeRemarks.trim();
     }
     return await apiClient.postMultipartData(
         "${isSubBooking ? AppConstants.changeSubBookingStatus : AppConstants.changeBookingStatus}/$bookingID", body, photoEvidence,null

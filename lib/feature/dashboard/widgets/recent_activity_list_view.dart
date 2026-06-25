@@ -94,7 +94,7 @@ class RecentActivityListView extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall +2,vertical: 6),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                    color: Theme.of(context).primaryColor,
+                    color: context.adaptivePrimaryColor,
                   ),
                   child: Center(child: Text('place_offer'.tr, style: robotoRegular.copyWith(
                     fontSize: Dimensions.fontSizeSmall,color: Colors.white,

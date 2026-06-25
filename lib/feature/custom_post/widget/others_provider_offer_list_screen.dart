@@ -11,7 +11,7 @@ class OtherProviderOfferListItem extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-        border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha:0.15)),
+        border: Border.all(color: context.adaptivePrimaryColor.withValues(alpha:0.15)),
       ),
       padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
       margin: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
@@ -60,7 +60,7 @@ class OtherProviderOfferListItem extends StatelessWidget {
                         color: Theme.of(context).colorScheme.error),),
                     const SizedBox(width: Dimensions.paddingSizeSmall,),
                     Text(PriceConverter.convertPrice(double.tryParse(providerOfferData.offeredPrice?.toString()??"0")),
-                        style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).primaryColor),
+                        style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault, color: context.adaptivePrimaryColor),
                     ),
 
                   ],

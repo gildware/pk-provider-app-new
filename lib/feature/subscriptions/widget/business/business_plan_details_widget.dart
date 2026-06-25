@@ -125,7 +125,7 @@ class BusinessPlanDetailsWidget extends StatelessWidget {
                       child: Column( crossAxisAlignment: CrossAxisAlignment.start , children: [
 
                         ListTile(
-                          title: Text(subscriptionInfo?.renewalPackageDetails?.name ?? "", style: robotoBold.copyWith(color: Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeLarge),),
+                          title: Text(subscriptionInfo?.renewalPackageDetails?.name ?? "", style: robotoBold.copyWith(color: context.adaptivePrimaryColor, fontSize: Dimensions.fontSizeLarge),),
                           subtitle: Text(subscriptionInfo?.renewalPackageDetails?.description ?? "",
                             style: robotoRegular.copyWith(color: Theme.of(context).hintColor, fontSize: Dimensions.fontSizeDefault),
                             maxLines: 5, overflow: TextOverflow.ellipsis,
@@ -250,7 +250,7 @@ class PackageOverviewItemView extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return ListTile(
-      leading: Icon(Icons.check_circle, color: Theme.of(context).primaryColor,),
+      leading: Icon(Icons.check_circle, color: context.adaptivePrimaryColor,),
       visualDensity: VisualDensity.compact, horizontalTitleGap: 20,
       dense: true,
       title: RichText(

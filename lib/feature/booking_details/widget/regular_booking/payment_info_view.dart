@@ -104,7 +104,7 @@ class PaymentInfoView extends StatelessWidget {
               children: [
 
                 bookingDetails.paymentMethod == 'offline_payment' && bookingDetails.bookingOfflinePayment == null || bookingDetails.paymentMethod == 'cash_after_service' ? SizedBox() :
-                Divider(height: 1, thickness: 1, color: Theme.of(context).primaryColor.withValues(alpha:0.2)),
+                Divider(height: 1, thickness: 1, color: context.adaptivePrimaryColor.withValues(alpha:0.2)),
 
                 bookingDetails.paymentMethod == 'offline_payment' && bookingDetails.bookingOfflinePayment != null ? Padding(
                   padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
@@ -114,7 +114,7 @@ class PaymentInfoView extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start, children: [
                           const SizedBox(height: Dimensions.paddingSizeSmall),
                       Text("customer_payment_info".tr, style: robotoRegular.copyWith(
-                           color: Theme.of(context).primaryColor
+                           color: context.adaptivePrimaryColor
                          )),
                          const SizedBox(height: Dimensions.paddingSizeExtraSmall),
 
@@ -165,7 +165,7 @@ class PaymentInfoView extends StatelessWidget {
 
                        Text("Transaction_ID".tr,
                            style: robotoRegular.copyWith(
-                           color: Theme.of(context).primaryColor
+                           color: context.adaptivePrimaryColor
                        )),
                        const SizedBox(width: Dimensions.paddingSizeExtraSmall),
 

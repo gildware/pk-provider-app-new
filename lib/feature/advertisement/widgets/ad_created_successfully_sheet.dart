@@ -48,7 +48,7 @@ class AdCreatedSuccessfullySheet extends StatelessWidget {
               text: 'ad_created_successfully_description_2'.tr,
               style: robotoRegular.copyWith(
                 fontSize: Dimensions.fontSizeDefault,
-                color: Theme.of(context).primaryColor,
+                color: context.adaptivePrimaryColor,
                 decoration: TextDecoration.underline,
               ),
               recognizer: TapGestureRecognizer()..onTap = () {

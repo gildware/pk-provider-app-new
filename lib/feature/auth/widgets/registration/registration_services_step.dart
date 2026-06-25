@@ -87,7 +87,7 @@ class _RegistrationServicesStepState extends State<RegistrationServicesStep> {
                       onSelected: (_) => c.selectRegistrationCategory(index),
                       selectedColor: Theme.of(context).primaryColor.withValues(alpha: 0.15),
                       labelStyle: robotoMedium.copyWith(
-                        color: selected ? Theme.of(context).primaryColor : Theme.of(context).textTheme.bodyLarge?.color,
+                        color: selected ? context.tabSelectedColor : Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     );
                   },
@@ -102,7 +102,7 @@ class _RegistrationServicesStepState extends State<RegistrationServicesStep> {
                       '${c.selectedSubCategoryIds.length} ${trLabel('subscribed')}',
                       style: robotoRegular.copyWith(
                         fontSize: Dimensions.fontSizeSmall,
-                        color: Theme.of(context).primaryColor,
+                        color: context.adaptivePrimaryColor,
                       ),
                     ),
                 ],
@@ -180,6 +180,7 @@ class _RegistrationSubCategoryCard extends StatelessWidget {
               width: 64,
               fit: BoxFit.cover,
               image: subCategory.imageFullPath ?? '',
+              placeholder: Images.servicePlaceholder,
             ),
           ),
           const SizedBox(width: 12),
@@ -205,7 +206,7 @@ class _RegistrationSubCategoryCard extends StatelessWidget {
                   '${trLabel('services')} ($serviceCount)',
                   style: robotoRegular.copyWith(
                     fontSize: Dimensions.fontSizeSmall,
-                    color: Theme.of(context).primaryColor,
+                    color: context.adaptivePrimaryColor,
                   ),
                 ),
               ],
@@ -218,7 +219,7 @@ class _RegistrationSubCategoryCard extends StatelessWidget {
               minimumSize: Size.zero,
               backgroundColor: subscribed
                   ? Theme.of(context).colorScheme.onSecondaryContainer.withValues(alpha: 0.3)
-                  : Theme.of(context).primaryColor,
+                  : context.tabSelectedColor,
               disabledBackgroundColor: Theme.of(context).colorScheme.onSecondaryContainer.withValues(alpha: 0.3),
             ),
             onPressed: onToggle,

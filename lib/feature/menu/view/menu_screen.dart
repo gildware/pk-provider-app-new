@@ -5,10 +5,10 @@ import 'package:demandium_provider/util/core_export.dart';
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
 
-  static const Set<String> _hiddenMenuIconKeys = {
-    'payment_info',
-    'notification_channel',
-    'business_plan',
+  static const Set<String> _hiddenMenuRoutes = {
+    RouteHelper.paymentInformation,
+    RouteHelper.notificationSetup,
+    RouteHelper.businessPlan,
   };
 
   @override
@@ -25,7 +25,7 @@ class MenuScreen extends StatelessWidget {
       MenuModel(iconKey: 'payment_info', icon: Images.paymentInfoIcon, title: 'payment_information'.tr, route: RouteHelper.getPaymentInformationRoute()),
       MenuModel(iconKey: 'notification_channel', icon: Images.notificationSetup, title: 'notification_channel'.tr, route: RouteHelper.getNotificationScreen()),
       MenuModel(iconKey: 'withdraw_list', icon: Images.transaction, title: 'withdraw_list'.tr, route: RouteHelper.transactions),
-      MenuModel(iconKey: 'payments', icon: Images.paymentInfoIcon, title: 'payments'.tr, route: RouteHelper.getPaymentsRoute()),
+      MenuModel(iconKey: 'payment_info', icon: Images.paymentInfoIcon, title: 'payments'.tr, route: RouteHelper.getPaymentsRoute()),
       MenuModel(iconKey: 'reports', icon: Images.reportOverview2, title: 'reports'.tr, routeValidation: "reports_&_analytics", route: RouteHelper.getReportingPageRoute('menu')),
       MenuModel(iconKey: 'business_plan', icon: Images.businessPlanIcon, title: 'business_plan'.tr, route: RouteHelper.getBusinessPlanScreen()),
       MenuModel(iconKey: 'help_support', icon: Images.helpIcon, title: 'help_&_support'.tr, route: RouteHelper.getHelpAndSupportScreen()),
@@ -57,7 +57,7 @@ class MenuScreen extends StatelessWidget {
       )),
 
       MenuModel(iconKey: 'logout', icon: Images.logout, title: isLoggedIn ? 'log_out'.tr : 'sign_in'.tr, route: RouteHelper.getSignInRoute("menu"))
-    ].where((menu) => !_hiddenMenuIconKeys.contains(menu.iconKey)).toList();
+    ].where((menu) => !_hiddenMenuRoutes.contains(menu.route)).toList();
 
 
     return Container(

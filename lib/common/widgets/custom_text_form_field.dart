@@ -99,7 +99,7 @@ class CustomTextFormFieldState extends State<CustomTextFormField> {
         
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(widget.borderRadius),
-          borderSide:  BorderSide(color: Theme.of(context).primaryColor.withValues(alpha:0.5)),
+          borderSide:  BorderSide(color: context.adaptivePrimaryColor.withValues(alpha:0.5)),
         ),
 
         enabledBorder: OutlineInputBorder(
@@ -124,7 +124,7 @@ class CustomTextFormFieldState extends State<CustomTextFormField> {
             decoration: BoxDecoration(
               color:  widget.fillColor !=null ? Colors.transparent : Theme.of(context).primaryColor.withValues(alpha:0.0),
             ),
-            child: Center(child: Image.asset(widget.suffixIcon!, height: 20, width: 20,color: Theme.of(context).primaryColor,)),),
+            child: Center(child: Image.asset(widget.suffixIcon!, height: 20, width: 20,color: context.adaptivePrimaryColor,)),),
         ) : widget.isPassword ?
         IconButton(
           icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility, color: Theme.of(context).hintColor.withValues(alpha:0.5)),
