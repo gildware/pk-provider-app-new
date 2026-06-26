@@ -149,7 +149,7 @@ class ServiceInfoItem extends StatelessWidget {
 
               Text(bookingService?.variantKey?.replaceAll("-", " ").capitalizeFirst ?? "",
                 style: robotoRegular.copyWith(
-                    fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha:0.7)
+                    fontSize: Dimensions.fontSizeSmall, color: _secondaryTextColor(context)
                 ),
               ),
 
@@ -163,7 +163,7 @@ class ServiceInfoItem extends StatelessWidget {
                 Text("${"qty".tr} : ${bookingService?.quantity}",
                   style: robotoRegular.copyWith(
                     fontSize: Dimensions.fontSizeSmall,
-                    color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha:0.7),
+                    color: _secondaryTextColor(context),
                   ),
                 ),
               ]),
@@ -193,17 +193,23 @@ Widget priceText(String title, var amount, context, {String prefix = ''}) {
       children: [
         Text("$title : ",
           style: robotoRegular.copyWith(
-              fontSize: Dimensions.fontSizeSmall,color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha:0.7)
+              fontSize: Dimensions.fontSizeSmall,color: _secondaryTextColor(context)
           ),
         ),
         Text('$prefix${PriceConverter.convertPrice(amount,isShowLongPrice:true)}',
-          style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall,color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha:0.7)),
+          style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall,color: _secondaryTextColor(context)),
         ),
       ],
     ),
     const SizedBox(height:Dimensions.paddingSizeExtraSmall),
     ],
   );
+}
+
+Color _secondaryTextColor(BuildContext context) {
+  return Get.isDarkMode
+      ? Colors.white.withValues(alpha: 0.85)
+      : Theme.of(context).textTheme.bodySmall!.color!.withValues(alpha: 0.7);
 }
 
 List<Widget> extraServiceInfoItems(BuildContext context, List<ProviderExtraServiceLine>? lines) {
@@ -252,17 +258,17 @@ List<Widget> extraServiceInfoItems(BuildContext context, List<ProviderExtraServi
                 padding: const EdgeInsets.only(top: Dimensions.paddingSizeExtraSmall),
                 child: Text(line.details!,
                   style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall,
-                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7))),
+                      color: _secondaryTextColor(context))),
               ),
             Padding(
               padding: const EdgeInsets.only(top: Dimensions.paddingSizeExtraSmall),
               child: Row(children: [
                 Text("${"unit_price".tr} : ",
                   style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall,
-                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7))),
+                      color: _secondaryTextColor(context))),
                 Text(PriceConverter.convertPrice(unitPrice, isShowLongPrice: true),
                   style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall,
-                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7))),
+                      color: _secondaryTextColor(context))),
                 Container(
                   height: 10, width: 0.5,
                   color: Theme.of(context).hintColor,
@@ -270,7 +276,7 @@ List<Widget> extraServiceInfoItems(BuildContext context, List<ProviderExtraServi
                 ),
                 Text("${"qty".tr} : ${qty.toInt()}",
                   style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall,
-                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7))),
+                      color: _secondaryTextColor(context))),
               ]),
             ),
             if ((line.discount ?? 0) > 0)

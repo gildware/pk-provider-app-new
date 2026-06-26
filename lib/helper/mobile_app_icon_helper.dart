@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/feature/splash/controller/splash_controller.dart';
@@ -96,7 +97,19 @@ class MobileAppIconHelper {
       return null;
     }
     final raw = _isDark ? (entry['dark'] ?? entry['light']) : (entry['light'] ?? entry['dark']);
-    return resolveMediaUrl(raw);
+    final resolved = resolveMediaUrl(raw);
+    if (_isBundledDefaultIconPath(resolved)) {
+      return null;
+    }
+    return resolved;
+  }
+
+  /// API default icons live under `mobile-app-defaults` and are already bundled in the app.
+  static bool _isBundledDefaultIconPath(String? url) {
+    if (url == null || url.isEmpty) {
+      return false;
+    }
+    return url.contains('mobile-app-defaults/');
   }
 
   static String? logoUrlForKey(String primaryKey) {
@@ -171,6 +184,66 @@ class MobileAppIconHelper {
       fit: fit,
       color: color,
     );
+  }
+
+  static Set<String> _allIconUrls() {
+    final urls = <String>{};
+    final icons = _icons;
+    if (icons != null) {
+      for (final entry in icons.values) {
+        for (final value in entry.values) {
+          final resolved = resolveMediaUrl(value);
+          if (resolved != null &&
+              resolved.isNotEmpty &&
+              !_isBundledDefaultIconPath(resolved)) {
+            urls.add(resolved);
+          }
+        }
+      }
+    }
+
+    for (final logoKey in [loginLogoKey, homeLogoKey]) {
+      final logo = logoUrlForKey(logoKey);
+      if (logo != null && logo.isNotEmpty) {
+        urls.add(logo);
+      }
+    }
+
+    return urls;
+  }
+
+  /// Downloads menu / branding icons into the image cache so the More sheet opens without flicker.
+  static Future<void>? _readyFuture;
+
+  static void invalidateCache() {
+    _readyFuture = null;
+  }
+
+  static Future<void> ensureReady(BuildContext context) {
+    return _readyFuture ??= _downloadAll(context);
+  }
+
+  static Future<void> precacheAll() {
+    final context = Get.context;
+    if (context == null || !context.mounted) {
+      return Future.value();
+    }
+    return ensureReady(context);
+  }
+
+  static Future<void> _downloadAll(BuildContext context) async {
+    final urls = _allIconUrls();
+    if (urls.isEmpty) {
+      return;
+    }
+
+    await Future.wait(urls.map((url) async {
+      try {
+        await precacheImage(CachedNetworkImageProvider(url), context);
+      } catch (_) {
+        //
+      }
+    }));
   }
 }
 
@@ -284,15 +357,21 @@ class _NetworkOrAssetImage extends StatelessWidget {
       );
     }
 
-    return Image.network(
-      url!,
+    return Image(
       key: ValueKey(url),
+      image: CachedNetworkImageProvider(url!),
       width: width,
       height: height,
       fit: fit,
       color: color,
       gaplessPlayback: true,
       filterQuality: FilterQuality.medium,
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+        if (wasSynchronouslyLoaded || frame != null) {
+          return child;
+        }
+        return SizedBox(width: width, height: height);
+      },
       errorBuilder: (_, error, stack) => Image.asset(
         fallbackAsset,
         width: width,
@@ -300,18 +379,6 @@ class _NetworkOrAssetImage extends StatelessWidget {
         fit: fit,
         color: color,
       ),
-      loadingBuilder: (_, child, progress) {
-        if (progress == null) {
-          return child;
-        }
-        return Image.asset(
-          fallbackAsset,
-          width: width,
-          height: height,
-          fit: fit,
-          color: color,
-        );
-      },
     );
   }
 }

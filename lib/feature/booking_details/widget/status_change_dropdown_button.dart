@@ -80,7 +80,10 @@ class ChangeStatusDropdownButton extends StatelessWidget {
           child: CustomButton(
             btnTxt: 'accept'.tr,
             color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
-            textColor: context.adaptivePrimaryColor,
+            textColor: _actionButtonTextColor(
+              context,
+              context.adaptivePrimaryColor,
+            ),
             fontSize: Dimensions.fontSizeDefault,
             isLoading: controller.isAcceptButtonLoading,
             onPressed: controller.isIgnoreButtonLoading
@@ -93,7 +96,10 @@ class ChangeStatusDropdownButton extends StatelessWidget {
           child: CustomButton(
             btnTxt: 'reject'.tr,
             color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
-            textColor: Theme.of(context).colorScheme.error,
+            textColor: _actionButtonTextColor(
+              context,
+              Theme.of(context).colorScheme.error,
+            ),
             fontSize: Dimensions.fontSizeDefault,
             isLoading: controller.isIgnoreButtonLoading,
             onPressed: controller.isAcceptButtonLoading
@@ -113,11 +119,29 @@ class ChangeStatusDropdownButton extends StatelessWidget {
 
     return Row(
       children: [
+        if (canCancel) ...[
+          Expanded(
+            child: CustomButton(
+              btnTxt: 'cancel'.tr,
+              color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
+              textColor: _actionButtonTextColor(
+                context,
+                Theme.of(context).colorScheme.error,
+              ),
+              fontSize: Dimensions.fontSizeDefault,
+              onPressed: () => _showCancelReasonDialog(context),
+            ),
+          ),
+          const SizedBox(width: Dimensions.paddingSizeDefault),
+        ],
         Expanded(
           child: CustomButton(
             btnTxt: 'start_work'.tr,
             color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
-            textColor: context.adaptivePrimaryColor,
+            textColor: _actionButtonTextColor(
+              context,
+              context.adaptivePrimaryColor,
+            ),
             fontSize: Dimensions.fontSizeDefault,
             onPressed: () => _showStatusChangeConfirmation(
               context: context,
@@ -128,20 +152,12 @@ class ChangeStatusDropdownButton extends StatelessWidget {
             ),
           ),
         ),
-        if (canCancel) ...[
-          const SizedBox(width: Dimensions.paddingSizeDefault),
-          Expanded(
-            child: CustomButton(
-              btnTxt: 'cancel'.tr,
-              color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
-              textColor: Theme.of(context).colorScheme.error,
-              fontSize: Dimensions.fontSizeDefault,
-              onPressed: () => _showCancelReasonDialog(context),
-            ),
-          ),
-        ],
       ],
     );
+  }
+
+  Color _actionButtonTextColor(BuildContext context, Color lightModeColor) {
+    return Get.isDarkMode ? Colors.white : lightModeColor;
   }
 
   Widget _buildOngoingActions(
@@ -156,7 +172,10 @@ class ChangeStatusDropdownButton extends StatelessWidget {
           child: CustomButton(
             btnTxt: 'put_on_hold'.tr,
             color: Theme.of(context).hintColor.withValues(alpha: 0.15),
-            textColor: Theme.of(context).textTheme.bodyLarge?.color,
+            textColor: _actionButtonTextColor(
+              context,
+              Theme.of(context).textTheme.bodyLarge?.color ?? Colors.white,
+            ),
             fontSize: Dimensions.fontSizeDefault,
             onPressed: () => _showStatusChangeConfirmation(
               context: context,

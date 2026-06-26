@@ -62,6 +62,12 @@ class SplashScreenState extends State<SplashScreen> {
       await AppStartup.ensureDeferredReady();
       if (!mounted) return;
 
+      try {
+        await MobileAppIconHelper.ensureReady(context);
+      } catch (_) {
+        //
+      }
+
       final notificationBody = widget.body ?? AppStartup.initialNotificationBody;
 
       if (_checkAvailableUpdate()) {

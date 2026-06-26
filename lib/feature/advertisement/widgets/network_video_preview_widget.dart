@@ -58,9 +58,10 @@ class _NetworkVideoPreviewWidgetState extends State<NetworkVideoPreviewWidget> {
   @override
   Widget build(BuildContext context) {
     if (_loadFailed) {
-      return SizedBox(
+      return const SizedBox(
         height: 220,
-        child: MediaPlaceholder.video(fit: BoxFit.cover),
+        width: double.infinity,
+        child: VideoPlaceholder(),
       );
     }
 

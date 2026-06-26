@@ -85,15 +85,24 @@ class BookingServiceLocation extends StatelessWidget {
                   child: RichText(
                     text: TextSpan(
                       text: serviceLocation == "provider" ? "the_customer_will_come_to".tr : "you_need_to_go_to_the".tr,
-                      style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault,  color: Theme.of(context).textTheme.bodySmall!.color),
+                      style: robotoRegular.copyWith(
+                        fontSize: Dimensions.fontSizeDefault,
+                        color: _locationBannerTextColor(context),
+                      ),
                       children: <TextSpan>[
                         TextSpan(
                           text: " ${serviceLocation == "provider" ? "your_location".tr : 'customer_location'.tr} ",
-                          style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault,  color: Theme.of(context).textTheme.bodyLarge!.color),
+                          style: robotoBold.copyWith(
+                            fontSize: Dimensions.fontSizeDefault,
+                            color: _locationBannerTextColor(context),
+                          ),
                         ),
                         TextSpan(
                           text: " ${serviceLocation == "provider" ? "for_the_service".tr : 'to_provide_the_service'.tr} ",
-                          style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault,  color: Theme.of(context).textTheme.bodySmall!.color),
+                          style: robotoRegular.copyWith(
+                            fontSize: Dimensions.fontSizeDefault,
+                            color: _locationBannerTextColor(context),
+                          ),
                         ),
                       ],
                     ),
@@ -161,6 +170,12 @@ class BookingServiceLocation extends StatelessWidget {
         ),
       );
     });
+  }
+
+  Color _locationBannerTextColor(BuildContext context) {
+    return Get.isDarkMode
+        ? Colors.white
+        : Theme.of(context).textTheme.bodySmall!.color!;
   }
 
   void _checkPermission(Function onTap) async {

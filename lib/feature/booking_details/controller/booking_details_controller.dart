@@ -313,19 +313,34 @@ class BookingDetailsController extends GetxController implements GetxService{
 
   Future<void> getProviderCancellationReasons({bool forceReload = false}) async {
     if (_providerCancellationReasons.isNotEmpty && !forceReload) {
+      _isLoadingCancellationReasons = false;
+      update();
       return;
     }
+
     _isLoadingCancellationReasons = true;
     update();
-    final response = await bookingDetailsRepo.getProviderCancellationReasons();
-    if (response.statusCode == 200 && response.body['response_code'] == 'default_200') {
-      final List<dynamic> raw = response.body['content'] is List ? response.body['content'] : [];
-      _providerCancellationReasons = raw.map((item) => BookingReasonModel.fromJson(item)).toList();
-    } else {
-      ApiChecker.checkApi(response);
+
+    try {
+      final response = await bookingDetailsRepo.getProviderCancellationReasons();
+      final body = response.body;
+      final responseCode = body is Map ? body['response_code']?.toString() : null;
+
+      if (response.statusCode == 200 && responseCode == 'default_200') {
+        final List<dynamic> raw = body is Map && body['content'] is List ? body['content'] : [];
+        _providerCancellationReasons = raw
+            .whereType<Map>()
+            .map((item) => BookingReasonModel.fromJson(Map<String, dynamic>.from(item)))
+            .toList();
+      } else {
+        ApiChecker.checkApi(response);
+      }
+    } catch (_) {
+      showCustomSnackBar('something_went_wrong'.tr, type: ToasterMessageType.error);
+    } finally {
+      _isLoadingCancellationReasons = false;
+      update();
     }
-    _isLoadingCancellationReasons = false;
-    update();
   }
 
   void changeBookingStatusDropDownValue(String status, bool isSubBooking){

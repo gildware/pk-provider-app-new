@@ -47,7 +47,7 @@ class ProfileImagePreviewBox extends StatelessWidget {
                     fit: BoxFit.cover,
                     width: double.infinity,
                     height: double.infinity,
-                    placeholder: Images.placeholder,
+                    placeholder: Images.userPlaceHolder,
                   ),
           ),
           if (overlay != null) overlay!,

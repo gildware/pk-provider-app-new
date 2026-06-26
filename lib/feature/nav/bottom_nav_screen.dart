@@ -74,6 +74,12 @@ class BottomNavScreenState extends State<BottomNavScreen> {
     if (Get.isRegistered<BookingAlertWatcher>()) {
       Get.find<BookingAlertWatcher>().start();
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        unawaited(MobileAppIconHelper.ensureReady(context));
+      }
+    });
   }
 
   @override
@@ -183,9 +189,13 @@ class BottomNavScreenState extends State<BottomNavScreen> {
     );
   }
 
-  void _setPage(int pageIndex) {
+  Future<void> _setPage(int pageIndex) async {
     if(pageIndex == _moreTabIndex) {
       Get.find<UserProfileController>().trialWidgetShow(route: "show-dialog");
+      await MobileAppIconHelper.ensureReady(context);
+      if (!mounted) {
+        return;
+      }
       Get.bottomSheet(
         const MenuScreen(),
         backgroundColor: Colors.transparent, isScrollControlled: true,

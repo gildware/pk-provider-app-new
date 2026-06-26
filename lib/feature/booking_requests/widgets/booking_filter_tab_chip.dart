@@ -19,21 +19,23 @@ class BookingFilterTabChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final selectedBackground = Theme.of(context).primaryColor;
+    final selectedForeground = Colors.white;
     final iconColor = isSelected
-        ? Colors.white
-        : Theme.of(context).colorScheme.primary;
+        ? selectedForeground
+        : context.adaptivePrimaryColor.withValues(alpha: 0.75);
     final textColor = isSelected
-        ? Colors.white
-        : Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.7);
+        ? selectedForeground
+        : context.tabUnselectedColor;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 3),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: !isSelected && Get.isDarkMode
-            ? Colors.grey.withValues(alpha: 0.2)
-            : isSelected
-                 ? context.tabSelectedColor
+        color: isSelected
+            ? selectedBackground
+            : Get.isDarkMode
+                ? Colors.grey.withValues(alpha: 0.2)
                 : Theme.of(context).primaryColor.withValues(alpha: 0.08),
         borderRadius: const BorderRadius.all(Radius.circular(20)),
       ),

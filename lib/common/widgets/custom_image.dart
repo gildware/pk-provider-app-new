@@ -19,11 +19,11 @@ class CustomImage extends StatelessWidget {
     this.errorWidget,
   });
 
-  String get _placeholderAsset => placeholder ?? Images.placeholder;
+  String _resolvePlaceholderAsset() => Images.resolvePlaceholder(placeholder);
 
   Widget _placeholderWidget() {
     return Image.asset(
-      _placeholderAsset,
+      _resolvePlaceholderAsset(),
       height: height,
       width: width,
       fit: fit,
