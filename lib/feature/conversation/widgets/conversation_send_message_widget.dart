@@ -84,7 +84,7 @@ class ConversationSendMessageWidget extends StatelessWidget {
                       padding: const EdgeInsets.only(left: 10, right: 5),
                       child: Row(crossAxisAlignment: CrossAxisAlignment.center,children: [
 
-                        Image.asset(Images.fileIcon,height: 30, width: 30,),
+                        Image.asset(Images.fileIcon,height: 30, width: 30, color: context.adaptiveIconColor),
                         const SizedBox(width: Dimensions.paddingSizeExtraSmall,),
 
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -196,7 +196,7 @@ class ConversationSendMessageWidget extends StatelessWidget {
                     InkWell(onTap: conversationController.isLoading ? null : () async {
                       await conversationController.pickMultipleImage(false);
                     },
-                      child: Image.asset(Images.imageIcon,height: 18,width: 18),
+                      child: Image.asset(Images.imageIcon,height: 18,width: 18, color: context.adaptiveIconColor),
                     ),
                     const SizedBox(width: Dimensions.paddingSizeSmall,),
 
@@ -204,7 +204,7 @@ class ConversationSendMessageWidget extends StatelessWidget {
                        await conversationController.pickOtherFile(false);
 
                     },
-                       child: Image.asset(Images.file,height: 18,width: 18),
+                       child: Image.asset(Images.file,height: 18,width: 18, color: context.adaptiveIconColor),
                     ),
                     const SizedBox(width: Dimensions.paddingSizeSmall,),
 

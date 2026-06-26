@@ -72,7 +72,7 @@ class AdvertisementItem extends StatelessWidget {
 
                             isExpired ? Expanded(
                               child: Text('(${'expired'.tr})', maxLines: 1, overflow: TextOverflow.ellipsis,
-                                style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).hintColor),
+                                style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: context.adaptiveIconColor),
                               ),
                             ): const SizedBox()
                           ],
@@ -93,11 +93,11 @@ class AdvertisementItem extends StatelessWidget {
               PopupMenuButton<PopupMenuModel>(
                 shape:  RoundedRectangleBorder(
                   borderRadius: const BorderRadius.all(Radius.circular(Dimensions.radiusDefault,)),
-                  side: BorderSide(color: Theme.of(context).hintColor.withValues(alpha:0.1))
+                  side: BorderSide(color: context.adaptiveIconColor.withValues(alpha:0.1))
                 ),
                 surfaceTintColor: Theme.of(context).cardColor,
                 position: PopupMenuPosition.under, elevation: 8,
-                shadowColor: Theme.of(context).hintColor.withValues(alpha:0.3),
+                shadowColor: context.adaptiveIconColor.withValues(alpha: 0.3),
                 itemBuilder: (BuildContext context) {
                   return advertisementController.getPopupMenuList(advertisementData.status!).map((PopupMenuModel option) {
                     return PopupMenuItem<PopupMenuModel>(
@@ -189,7 +189,7 @@ class AdvertisementItem extends StatelessWidget {
                     );
                   }).toList();
                 },
-                child: Icon(Icons.more_vert, color: Theme.of(context).hintColor.withValues(alpha:0.7),),
+                child: Icon(Icons.more_vert, color: context.adaptiveIconColor.withValues(alpha: 0.7),),
               )
 
             ],

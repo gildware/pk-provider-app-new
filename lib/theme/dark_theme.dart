@@ -10,7 +10,7 @@ ThemeData dark = ThemeData(
   fontFamily: 'Outfit',
   primaryColor: const Color(0xFF25274D),
   primaryColorLight: ThemePalette.darkForegroundOnBrand,
-  primaryColorDark: ThemePalette.darkText,
+  primaryColorDark: const Color(0xff1A1C38),
   scaffoldBackgroundColor: ThemePalette.darkScaffold,
   cardColor: ThemePalette.darkCard,
   shadowColor: ThemePalette.invert(const Color(0xFFD1D5DB)),

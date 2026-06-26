@@ -51,7 +51,7 @@ class ConversationSearchWidget extends StatelessWidget {
               isDense: true,
               hintText: 'search'.tr,
               hintStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
-                fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).hintColor,
+                fontSize: Dimensions.fontSizeDefault, color: context.adaptiveIconColor,
               ),
               filled: true,
               suffixIcon: conversationController.isActiveSuffixIcon ? IconButton(
@@ -63,11 +63,11 @@ class ConversationSearchWidget extends StatelessWidget {
                   FocusScope.of(context).unfocus();
                 },
                 icon: Icon(
-                  Icons.cancel_outlined, size: 18,color: Theme.of(context).hintColor
+                  Icons.cancel_outlined, size: 18,color: context.adaptiveIconColor
                 ),
               ) : Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-                child: Icon(Icons.search_outlined,color: Theme.of(context).hintColor, size: 22,),
+                child: Icon(Icons.search_outlined,color: context.adaptiveIconColor, size: 22,),
               ),
             ),
           );

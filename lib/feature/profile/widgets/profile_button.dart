@@ -24,7 +24,7 @@ class ProfileButton extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, size: 25),
+            Icon(icon, size: 25, color: context.adaptiveIconColor),
             const SizedBox(width: Dimensions.paddingSizeSmall),
             Expanded(child: Text(title!, style: robotoRegular)),
             isButtonActive != null ? Switch(

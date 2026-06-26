@@ -1,4 +1,5 @@
 import 'package:demandium_provider/util/core_export.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 
 class BookingCancelReasonDialog extends StatefulWidget {
@@ -25,7 +26,9 @@ class _BookingCancelReasonDialogState extends State<BookingCancelReasonDialog> {
   @override
   void initState() {
     super.initState();
-    Get.find<BookingDetailsController>().getProviderCancellationReasons();
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      Get.find<BookingDetailsController>().getProviderCancellationReasons();
+    });
   }
 
   @override
@@ -36,140 +39,169 @@ class _BookingCancelReasonDialogState extends State<BookingCancelReasonDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      elevation: 0,
-      insetPadding: const EdgeInsets.all(20),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault)),
-      backgroundColor: Theme.of(context).cardColor,
-      child: SizedBox(
-        width: 420,
-        child: GetBuilder<BookingDetailsController>(
-          builder: (controller) {
-            final reasons = controller.providerCancellationReasons;
+    final viewInsets = MediaQuery.viewInsetsOf(context);
+    final maxHeight = MediaQuery.sizeOf(context).height - viewInsets.bottom - 40;
 
-            return Padding(
-              padding: const EdgeInsets.all(Dimensions.paddingSizeLarge),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
-                      child: Image.asset(Images.warning, width: 50, height: 50),
-                    ),
-                    Text(
-                      'are_you_sure_to_cancel_this_booking'.tr,
-                      textAlign: TextAlign.center,
-                      style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge),
-                    ),
-                    const SizedBox(height: Dimensions.paddingSizeSmall),
-                    Text(
-                      'select_cancellation_reason_hint'.tr,
-                      textAlign: TextAlign.center,
-                      style: robotoRegular.copyWith(
-                        fontSize: Dimensions.fontSizeDefault,
-                        color: Theme.of(context).hintColor,
-                      ),
-                    ),
-                    const SizedBox(height: Dimensions.paddingSizeLarge),
-                    if (controller.isLoadingCancellationReasons)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: Dimensions.paddingSizeLarge),
-                        child: Center(child: CircularProgressIndicator()),
-                      )
-                    else if (reasons.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeDefault),
-                        child: Text(
-                          'no_cancellation_reasons_configured'.tr,
-                          textAlign: TextAlign.center,
-                          style: robotoRegular.copyWith(color: Theme.of(context).colorScheme.error),
-                        ),
-                      )
-                    else ...[
-                      Text(
-                        'cancellation_reason'.tr,
-                        style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault),
-                      ),
-                      const SizedBox(height: Dimensions.paddingSizeSmall),
-                      DropdownButtonFormField<int>(
-                        value: _selectedReasonId,
-                        decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: Dimensions.paddingSizeDefault,
-                            vertical: Dimensions.paddingSizeSmall,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                          ),
-                        ),
-                        hint: Text('select_cancellation_reason'.tr),
-                        items: reasons.map((reason) {
-                          return DropdownMenuItem<int>(
-                            value: reason.id,
-                            child: Text(reason.name ?? ''),
-                          );
-                        }).toList(),
-                        onChanged: (value) => setState(() => _selectedReasonId = value),
-                        validator: (value) => value == null ? 'select_cancellation_reason'.tr : null,
-                      ),
-                      const SizedBox(height: Dimensions.paddingSizeDefault),
-                      Text(
-                        'additional_note_optional'.tr,
-                        style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault),
-                      ),
-                      const SizedBox(height: Dimensions.paddingSizeSmall),
-                      CustomTextFormField(
-                        controller: _noteController,
-                        hintText: 'cancellation_note_optional_hint'.tr,
-                        inputType: TextInputType.multiline,
-                        maxLines: 3,
-                        capitalization: TextCapitalization.sentences,
-                      ),
-                    ],
-                    const SizedBox(height: Dimensions.paddingSizeLarge),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextButton(
-                            onPressed: controller.isStatusUpdateLoading ? null : () => Get.back(),
-                            style: TextButton.styleFrom(
-                              backgroundColor: Theme.of(context).hintColor.withValues(alpha: 0.3),
-                              minimumSize: const Size(Dimensions.webMaxWidth, 40),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+    return PopScope(
+      canPop: !Get.find<BookingDetailsController>().isStatusUpdateLoading,
+      child: Dialog(
+        elevation: 0,
+        insetPadding: const EdgeInsets.all(20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault)),
+        backgroundColor: Theme.of(context).cardColor,
+        child: Padding(
+          padding: EdgeInsets.only(bottom: viewInsets.bottom),
+          child: SizedBox(
+            width: 420,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: maxHeight),
+              child: GetBuilder<BookingDetailsController>(
+                builder: (controller) {
+                  final reasons = controller.providerCancellationReasons;
+                  final isLoadingReasons = controller.isLoadingCancellationReasons;
+                  final isSubmitting = controller.isStatusUpdateLoading;
+
+                  return SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(Dimensions.paddingSizeLarge),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
+                              child: Image.asset(Images.warning, width: 50, height: 50),
+                            ),
+                            Text(
+                              'are_you_sure_to_cancel_this_booking'.tr,
+                              textAlign: TextAlign.center,
+                              style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge),
+                            ),
+                            const SizedBox(height: Dimensions.paddingSizeSmall),
+                            Text(
+                              'select_cancellation_reason_hint'.tr,
+                              textAlign: TextAlign.center,
+                              style: robotoRegular.copyWith(
+                                fontSize: Dimensions.fontSizeDefault,
+                                color: Theme.of(context).hintColor,
                               ),
                             ),
-                            child: Text(
-                              'cancel'.tr,
-                              style: robotoBold.copyWith(
-                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                            const SizedBox(height: Dimensions.paddingSizeLarge),
+                            if (isLoadingReasons)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: Dimensions.paddingSizeLarge),
+                                child: Center(child: CircularProgressIndicator()),
+                              )
+                            else if (reasons.isEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeDefault),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      'no_cancellation_reasons_configured'.tr,
+                                      textAlign: TextAlign.center,
+                                      style: robotoRegular.copyWith(
+                                        color: Theme.of(context).colorScheme.error,
+                                      ),
+                                    ),
+                                    const SizedBox(height: Dimensions.paddingSizeSmall),
+                                    TextButton(
+                                      onPressed: () => controller.getProviderCancellationReasons(forceReload: true),
+                                      child: Text('try_again'.tr),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else ...[
+                              Text(
+                                'cancellation_reason'.tr,
+                                style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault),
                               ),
+                              const SizedBox(height: Dimensions.paddingSizeSmall),
+                              DropdownButtonFormField<int>(
+                                value: _selectedReasonId,
+                                decoration: InputDecoration(
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: Dimensions.paddingSizeDefault,
+                                    vertical: Dimensions.paddingSizeSmall,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                                  ),
+                                ),
+                                hint: Text('select_cancellation_reason'.tr),
+                                items: reasons.map((reason) {
+                                  return DropdownMenuItem<int>(
+                                    value: reason.id,
+                                    child: Text(reason.name ?? ''),
+                                  );
+                                }).toList(),
+                                onChanged: isSubmitting
+                                    ? null
+                                    : (value) => setState(() => _selectedReasonId = value),
+                                validator: (value) => value == null ? 'select_cancellation_reason'.tr : null,
+                              ),
+                              const SizedBox(height: Dimensions.paddingSizeDefault),
+                              Text(
+                                'additional_note_optional'.tr,
+                                style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault),
+                              ),
+                              const SizedBox(height: Dimensions.paddingSizeSmall),
+                              CustomTextFormField(
+                                controller: _noteController,
+                                hintText: 'cancellation_note_optional_hint'.tr,
+                                inputType: TextInputType.multiline,
+                                maxLines: 3,
+                                capitalization: TextCapitalization.sentences,
+                              ),
+                            ],
+                            const SizedBox(height: Dimensions.paddingSizeLarge),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextButton(
+                                    onPressed: isSubmitting ? null : () => Get.back(),
+                                    style: TextButton.styleFrom(
+                                      backgroundColor: Theme.of(context).hintColor.withValues(alpha: 0.3),
+                                      minimumSize: const Size(Dimensions.webMaxWidth, 40),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'cancel'.tr,
+                                      style: robotoBold.copyWith(
+                                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: Dimensions.paddingSizeDefault),
+                                Expanded(
+                                  child: CustomButton(
+                                    btnTxt: 'yes_cancel'.tr,
+                                    height: 40,
+                                    radius: Dimensions.radiusSmall,
+                                    color: Theme.of(context).colorScheme.error,
+                                    isLoading: isSubmitting,
+                                    onPressed: reasons.isEmpty || isLoadingReasons || isSubmitting
+                                        ? null
+                                        : () => _submitCancel(controller),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
+                          ],
                         ),
-                        const SizedBox(width: Dimensions.paddingSizeDefault),
-                        Expanded(
-                          child: CustomButton(
-                            btnTxt: 'yes_cancel'.tr,
-                            height: 40,
-                            radius: Dimensions.radiusSmall,
-                            color: Theme.of(context).colorScheme.error,
-                            isLoading: controller.isStatusUpdateLoading,
-                            onPressed: reasons.isEmpty || controller.isLoadingCancellationReasons
-                                ? null
-                                : () => _submitCancel(controller),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );

@@ -24,7 +24,7 @@ class AdminFeedbackBottomSheet extends StatelessWidget {
                   width: Dimensions.paddingSizeExtraMoreLarge,
                   height: Dimensions.paddingSizeExtraSmall,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).hintColor.withValues(alpha: 0.5),
+                    color: context.adaptiveIconColor.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall)
                   ),
                 ),
@@ -33,7 +33,7 @@ class AdminFeedbackBottomSheet extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor , borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                    border: Border.all(color: Theme.of(context).hintColor.withValues(alpha:0.2)),
+                    border: Border.all(color: context.adaptiveIconColor.withValues(alpha:0.2)),
                   ),
                   padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
                   margin: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
@@ -88,7 +88,7 @@ class AdminFeedbackBottomSheet extends StatelessWidget {
                     Container(
                       width: Get.width,
                       decoration: BoxDecoration(
-                          color: Theme.of(context).hintColor.withValues(alpha: 0.1),
+                          color: context.adaptiveIconColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall)
                       ),
                       padding: EdgeInsets.all(Dimensions.paddingSizeSmall),
@@ -123,7 +123,7 @@ class AdminFeedbackBottomSheet extends StatelessWidget {
 
                 Container(
                   decoration: BoxDecoration(
-                      color: Theme.of(context).hintColor.withValues(alpha: 0.1),
+                      color: context.adaptiveIconColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall)
                   ),
                   margin: EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
@@ -169,7 +169,7 @@ class AdminFeedbackBottomSheet extends StatelessWidget {
              top: 0, right: Dimensions.paddingSizeSmall,
               child: InkWell(
                 onTap: ()=> Get.back(),
-                child: Icon(Icons.close, color: Theme.of(context).hintColor.withValues(alpha: 0.7)
+                child: Icon(Icons.close, color: context.adaptiveIconColor.withValues(alpha: 0.7)
                 ),
               ),
             ),

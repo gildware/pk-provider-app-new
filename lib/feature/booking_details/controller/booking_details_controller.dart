@@ -48,6 +48,8 @@ class BookingDetailsController extends GetxController implements GetxService{
   bool _isLoadingCancellationReasons = false;
   bool get isLoadingCancellationReasons => _isLoadingCancellationReasons;
 
+  Future<List<BookingReasonModel>>? _providerCancellationReasonsRequest;
+
 
   BookingDetailsModel? _bookingDetails;
   BookingDetailsModel? get bookingDetails => _bookingDetails;
@@ -311,16 +313,27 @@ class BookingDetailsController extends GetxController implements GetxService{
     }
   }
 
-  Future<void> getProviderCancellationReasons({bool forceReload = false}) async {
+  Future<List<BookingReasonModel>> getProviderCancellationReasons({bool forceReload = false}) async {
     if (_providerCancellationReasons.isNotEmpty && !forceReload) {
-      _isLoadingCancellationReasons = false;
-      update();
-      return;
+      return _providerCancellationReasons;
+    }
+
+    if (_providerCancellationReasonsRequest != null && !forceReload) {
+      return _providerCancellationReasonsRequest!;
     }
 
     _isLoadingCancellationReasons = true;
     update();
 
+    _providerCancellationReasonsRequest = _fetchProviderCancellationReasons();
+    try {
+      return await _providerCancellationReasonsRequest!;
+    } finally {
+      _providerCancellationReasonsRequest = null;
+    }
+  }
+
+  Future<List<BookingReasonModel>> _fetchProviderCancellationReasons() async {
     try {
       final response = await bookingDetailsRepo.getProviderCancellationReasons();
       final body = response.body;
@@ -334,13 +347,17 @@ class BookingDetailsController extends GetxController implements GetxService{
             .toList();
       } else {
         ApiChecker.checkApi(response);
+        _providerCancellationReasons = [];
       }
     } catch (_) {
+      _providerCancellationReasons = [];
       showCustomSnackBar('something_went_wrong'.tr, type: ToasterMessageType.error);
     } finally {
       _isLoadingCancellationReasons = false;
       update();
     }
+
+    return _providerCancellationReasons;
   }
 
   void changeBookingStatusDropDownValue(String status, bool isSubBooking){

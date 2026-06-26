@@ -40,7 +40,7 @@ class CompanyIdentityInfoWidget extends StatelessWidget {
               width: Get.width,
               height: 40,
               decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: Theme.of(context).hintColor.withValues(alpha: 0.4))),
+                border: Border(bottom: BorderSide(color: context.adaptiveIconColor.withValues(alpha: 0.4))),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
@@ -127,11 +127,11 @@ class CompanyIdentityInfoWidget extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.cloud_upload, color: Theme.of(context).hintColor, size: 32),
+                Icon(Icons.cloud_upload, color: context.adaptiveIconColor, size: 32),
                 const SizedBox(height: Dimensions.paddingSizeSmall),
                 Text(
                   trLabel('upload_id_proof'),
-                  style: robotoRegular.copyWith(color: Theme.of(context).hintColor),
+                  style: robotoRegular.copyWith(color: context.adaptiveIconColor),
                 ),
               ],
             ),

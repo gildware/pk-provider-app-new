@@ -29,7 +29,7 @@ class ServiceManSection extends StatelessWidget {
                children: [
                  Row(
                    children: [
-                     Image.asset(Images.runningIcon,height: 15,width:15),
+                     Image.asset(Images.runningIcon,height: 15,width:15, color: context.adaptiveIconColor),
                      const SizedBox(width: Dimensions.paddingSizeSmall,),
                      Text("service_man_list".tr,
                        style: robotoMedium.copyWith(

@@ -45,7 +45,7 @@ class ConversationDetailsAppBar extends StatelessWidget implements PreferredSize
           }
         },
           icon: Icon(Icons.arrow_back_ios,
-            color: Get.isDarkMode ? Theme.of(context).hintColor : Colors.black,
+            color: context.adaptiveIconColor,
             size: Dimensions.paddingSizeLarge,
           ),
         ),

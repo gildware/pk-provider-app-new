@@ -49,7 +49,7 @@ class TutorialButtonWidget extends StatelessWidget {
                         ),
                         child:  Padding(
                           padding: EdgeInsets.all(Dimensions.paddingSizeSmall),
-                          child: Image.asset(Images.tutorialIcon, width: 20, height: 20),
+                          child: Image.asset(Images.tutorialIcon, width: 20, height: 20, color: context.adaptiveIconColor),
                         ),
                       ),
 

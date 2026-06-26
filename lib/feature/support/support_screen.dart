@@ -1,5 +1,6 @@
 import 'package:demandium_provider/common/widgets/app_bar.dart';
 import 'package:demandium_provider/feature/splash/controller/splash_controller.dart';
+import 'package:demandium_provider/helper/extension_helper.dart';
 import 'package:demandium_provider/util/dimensions.dart';
 import 'package:demandium_provider/util/images.dart';
 import 'package:demandium_provider/util/styles.dart';
@@ -240,6 +241,7 @@ class _LeadingIcon extends StatelessWidget {
                   : Images.mailIconBlue,
               height: 16,
               width: 16,
+              color: context.adaptiveIconColor,
             ),
     );
   }
@@ -259,6 +261,7 @@ class _ActionIcon extends StatelessWidget {
       contactType == SupportContactType.phone ? Images.phoneIconWhite : Images.mailIconWhite,
       height: 15,
       width: 15,
+      color: context.adaptiveIconColor,
     );
   }
 }

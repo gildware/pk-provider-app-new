@@ -66,7 +66,7 @@ class BookingDetailsServicemanInfo extends StatelessWidget {
                   top: Dimensions.paddingSizeDefault,
                   right: 15,
                   child: InkWell(
-                    child: Image.asset(Images.editIcon),
+                    child: Image.asset(Images.editIcon, color: context.adaptiveIconColor),
                     onTap: (){
                       Get.find<ServicemanSetupController>().fromBookingDetailsPage(true);
                       bookingDetailsController.showHideExpandView(350);

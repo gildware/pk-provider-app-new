@@ -168,11 +168,11 @@ class BookingRequestItem extends StatelessWidget {
             return PopupMenuButton<PopupMenuModel>(
               shape:  RoundedRectangleBorder(
                   borderRadius: const BorderRadius.all(Radius.circular(Dimensions.radiusDefault,)),
-                  side: BorderSide(color: Theme.of(context).hintColor.withValues(alpha:0.1))
+                  side: BorderSide(color: context.adaptiveIconColor.withValues(alpha:0.1))
               ),
               surfaceTintColor: Theme.of(context).cardColor,
               position: PopupMenuPosition.under, elevation: 8,
-              shadowColor: Theme.of(context).hintColor.withValues(alpha:0.3),
+              shadowColor: context.adaptiveIconColor.withValues(alpha: 0.3),
               itemBuilder: (BuildContext context) {
                 return bookingRequestController.getPopupMenuList( status : booking.bookingStatus ?? "", isRepeatBooking: booking.isRepeatBooking == 1, ongoingRepeatBooking: ongoingRepeatBooking).map((PopupMenuModel option) {
                   return PopupMenuItem<PopupMenuModel>(
@@ -273,7 +273,7 @@ class BookingRequestItem extends StatelessWidget {
                   );
                 }).toList();
               },
-              child: Icon(Icons.more_vert, color: Theme.of(context).hintColor.withValues(alpha:0.7),),
+              child: Icon(Icons.more_vert, color: context.adaptiveIconColor.withValues(alpha: 0.7),),
             );
           }),
         ),

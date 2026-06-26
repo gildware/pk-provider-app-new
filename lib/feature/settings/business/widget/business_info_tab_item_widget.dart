@@ -149,7 +149,7 @@ class _BusinessInfoTabItemWidgetState extends State<BusinessInfoTabItemWidget> {
                                 width: Dimensions.paddingSizeLarge,
                                 height: Dimensions.paddingSizeLarge,
                                 child: Checkbox(
-                                  side: BorderSide(width: 1, color: Theme.of(context).hintColor),
+                                  side: BorderSide(width: 1, color: context.adaptiveIconColor),
                                   checkColor: Theme.of(context).cardColor,
                                   activeColor: Theme.of(context).primaryColor,
                                   value: userProfileController.keepPersonalInfoAsCompanyInfo,
@@ -644,9 +644,9 @@ class LogoWidget extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Column(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
-                          Icon(Icons.cloud_upload, color: Theme.of(context).hintColor),
+                          Icon(Icons.cloud_upload, color: context.adaptiveIconColor),
 
-                          Text('update_logo'.tr, style: robotoRegular.copyWith(color: Theme.of(context).hintColor, fontSize: Dimensions.fontSizeSmall))
+                          Text('update_logo'.tr, style: robotoRegular.copyWith(color: context.adaptiveIconColor, fontSize: Dimensions.fontSizeSmall))
                         ]),
                       ],
                     ),
@@ -729,9 +729,9 @@ class CoverImageWidget extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Column(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
-                          Icon(Icons.cloud_upload, color: Theme.of(context).hintColor),
+                          Icon(Icons.cloud_upload, color: context.adaptiveIconColor),
 
-                          Text('update_cover_image'.tr, style: robotoRegular.copyWith(color: Theme.of(context).hintColor, fontSize: Dimensions.fontSizeSmall))
+                          Text('update_cover_image'.tr, style: robotoRegular.copyWith(color: context.adaptiveIconColor, fontSize: Dimensions.fontSizeSmall))
                         ]),
                       ],
                     ),

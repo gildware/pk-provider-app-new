@@ -16,7 +16,7 @@ class RegistrationProviderTypeStep extends StatelessWidget {
         children: [
           Text(trLabel('choose_provider_type'), style: robotoBold.copyWith(fontSize: Dimensions.fontSizeExtraLarge)),
           const SizedBox(height: Dimensions.paddingSizeSmall),
-          Text(trLabel('choose_provider_type_hint'), style: robotoRegular.copyWith(color: Theme.of(context).hintColor)),
+          Text(trLabel('choose_provider_type_hint'), style: robotoRegular.copyWith(color: context.adaptiveIconColor)),
           const SizedBox(height: Dimensions.paddingSizeLarge),
           ProviderTypeOptionCard(
             icon: Icons.person_outline,
@@ -127,8 +127,8 @@ class _ProfilePhotoPicker extends StatelessWidget {
                   : Container(
                   width: 110,
                   height: 110,
-                  color: Theme.of(context).hintColor.withValues(alpha: 0.15),
-                  child: Icon(Icons.person, size: 48, color: Theme.of(context).hintColor),
+                  color: context.adaptiveIconColor.withValues(alpha: 0.15),
+                  child: Icon(Icons.person, size: 48, color: context.adaptiveIconColor),
                 ),
         ),
         Positioned(
@@ -327,8 +327,8 @@ class _LogoPicker extends StatelessWidget {
         height: 100,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Theme.of(context).hintColor.withValues(alpha: 0.3)),
-          color: Theme.of(context).hintColor.withValues(alpha: 0.08),
+          border: Border.all(color: context.adaptiveIconColor.withValues(alpha: 0.3)),
+          color: context.adaptiveIconColor.withValues(alpha: 0.08),
         ),
         child: file != null
             ? ClipRRect(
@@ -343,7 +343,7 @@ class _LogoPicker extends StatelessWidget {
                 : Stack(
                 alignment: Alignment.center,
                 children: [
-                  Icon(Icons.storefront_outlined, size: 40, color: Theme.of(context).hintColor),
+                  Icon(Icons.storefront_outlined, size: 40, color: context.adaptiveIconColor),
                   Positioned(
                     bottom: 6,
                     right: 6,
@@ -635,7 +635,7 @@ class RegistrationReviewStep extends StatelessWidget {
           const SizedBox(height: Dimensions.paddingSizeSmall),
           Text(
             trLabel('approval_time_hint'),
-            style: robotoRegular.copyWith(color: Theme.of(context).hintColor, fontSize: Dimensions.fontSizeSmall),
+            style: robotoRegular.copyWith(color: context.adaptiveIconColor, fontSize: Dimensions.fontSizeSmall),
           ),
           const SizedBox(height: Dimensions.paddingSizeLarge),
           _reviewRow(context, 'contact_person_info_title', controller.contactPersonNameController.text, RegistrationStep.contactInfo),
@@ -696,7 +696,7 @@ class RegistrationReviewStep extends StatelessWidget {
               children: [
                 Text(trLabel(titleKey), style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault)),
                 const SizedBox(height: 4),
-                Text(value.isEmpty ? '-' : value, style: robotoRegular.copyWith(color: Theme.of(context).hintColor, fontSize: Dimensions.fontSizeSmall)),
+                Text(value.isEmpty ? '-' : value, style: robotoRegular.copyWith(color: context.adaptiveIconColor, fontSize: Dimensions.fontSizeSmall)),
               ],
             ),
           ),

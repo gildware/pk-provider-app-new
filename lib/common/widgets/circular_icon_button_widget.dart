@@ -44,7 +44,7 @@ class CircularIconButtonWidget extends StatelessWidget {
             child: Icon(
               icon,
               size: iconSize,
-              color: iconColor ?? context.adaptivePrimaryColor,
+              color: iconColor ?? context.adaptiveIconColor,
             ),
           ),
         ),

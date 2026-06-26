@@ -84,7 +84,7 @@ class CustomTextFormFieldState extends State<CustomTextFormField> {
       decoration: InputDecoration(
           disabledBorder:  OutlineInputBorder(
           borderRadius: BorderRadius.circular(widget.borderRadius),
-          borderSide:  BorderSide(color: Get.isDarkMode?Theme.of(context).disabledColor.withValues(alpha:0.5):Theme.of(context).hintColor.withValues(alpha:0.5)),
+          borderSide:  BorderSide(color: Get.isDarkMode?Theme.of(context).disabledColor.withValues(alpha:0.5):context.adaptiveIconColor.withValues(alpha: 0.5)),
         ),
         
         errorBorder: OutlineInputBorder(
@@ -104,14 +104,14 @@ class CustomTextFormFieldState extends State<CustomTextFormField> {
 
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(widget.borderRadius),
-          borderSide:  BorderSide(color: Get.isDarkMode?Theme.of(context).disabledColor:Theme.of(context).hintColor.withValues(alpha:0.5)),
+          borderSide:  BorderSide(color: Get.isDarkMode?Theme.of(context).disabledColor:context.adaptiveIconColor.withValues(alpha: 0.5)),
         ),
 
         isDense: true,
         hintText: widget.hintText,
         fillColor: widget.fillColor ?? Theme.of(context).cardColor.withValues(alpha:0.1),
         hintStyle: robotoRegular.copyWith(
-            fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).hintColor.withValues(alpha:0.5)),
+            fontSize: Dimensions.fontSizeDefault, color: context.adaptiveIconColor.withValues(alpha: 0.5)),
         filled: true,
 
         suffixIcon: widget.suffixIcon!=null?
@@ -127,7 +127,7 @@ class CustomTextFormFieldState extends State<CustomTextFormField> {
             child: Center(child: Image.asset(widget.suffixIcon!, height: 20, width: 20,color: context.adaptivePrimaryColor,)),),
         ) : widget.isPassword ?
         IconButton(
-          icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility, color: Theme.of(context).hintColor.withValues(alpha:0.5)),
+          icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility, color: context.adaptiveIconColor.withValues(alpha: 0.5)),
           onPressed: _toggle,
         ) : null,
       ),

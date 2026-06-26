@@ -58,7 +58,7 @@ class BusinessTransactionSearchWidget extends StatelessWidget {
                         isDense: true,
                         hintText: 'search'.tr,
                         hintStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
-                          fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).hintColor,
+                          fontSize: Dimensions.fontSizeDefault, color: context.adaptiveIconColor,
                         ),
                         filled: true,
                         suffixIcon: businessSubscriptionController.isActiveSuffixIcon ? IconButton(
@@ -70,11 +70,11 @@ class BusinessTransactionSearchWidget extends StatelessWidget {
                             FocusScope.of(context).unfocus();
                           },
                           icon: Icon(
-                              Icons.cancel_outlined, size: 18,color: Theme.of(context).hintColor
+                              Icons.cancel_outlined, size: 18,color: context.adaptiveIconColor
                           ),
                         ) : Padding(
                           padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-                          child: Icon(Icons.search_outlined,color: Theme.of(context).hintColor, size: 22,),
+                          child: Icon(Icons.search_outlined,color: context.adaptiveIconColor, size: 22,),
                         ),
                       ),
                     ),
@@ -108,7 +108,7 @@ class BusinessTransactionSearchWidget extends StatelessWidget {
                         color: Theme.of(context).cardColor
                       ),
                       padding: const EdgeInsets.all(Dimensions.paddingSizeDefault - 2),
-                      child: Icon(Icons.calendar_today_outlined, color: Theme.of(context).hintColor.withValues(alpha:0.7), size: 23,),
+                      child: Icon(Icons.calendar_today_outlined, color: context.adaptiveIconColor.withValues(alpha: 0.7), size: 23,),
                     ),
                   )
 
@@ -119,7 +119,7 @@ class BusinessTransactionSearchWidget extends StatelessWidget {
               businessSubscriptionController.dateTimeRange !=null ? Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
-                  border: Border.all(color: Theme.of(context).hintColor),
+                  border: Border.all(color: context.adaptiveIconColor),
                 ),
                 margin: const EdgeInsets.only(top: Dimensions.paddingSizeDefault),
 
@@ -127,12 +127,12 @@ class BusinessTransactionSearchWidget extends StatelessWidget {
 
                 child: Row(mainAxisSize: MainAxisSize.min,children: [
                     Text("${ DateConverter.dateStringMonthYear(businessSubscriptionController.dateTimeRange!.start)} - ${ DateConverter.dateStringMonthYear(businessSubscriptionController.dateTimeRange!.end)},",
-                      style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).hintColor),
+                      style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: context.adaptiveIconColor),
                     ),
                   const SizedBox(width: Dimensions.paddingSizeExtraSmall,),
                   InkWell(
                     onTap: () => businessSubscriptionController.clearSearchController(),
-                    child: Icon(Icons.close, color: Theme.of(context).hintColor, size: 20,),
+                    child: Icon(Icons.close, color: context.adaptiveIconColor, size: 20,),
                   ),
                   ],
                 ),

@@ -111,7 +111,7 @@ class _ServiceLogItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(color: Theme.of(context).hintColor.withValues(alpha:0.1),
+      decoration: BoxDecoration(color: context.adaptiveIconColor.withValues(alpha:0.1),
         borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
       ),
       padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeDefault),
@@ -164,11 +164,11 @@ class _ServiceLogItem extends StatelessWidget {
                       return PopupMenuButton<PopupMenuModel>(
                         shape:  RoundedRectangleBorder(
                             borderRadius: const BorderRadius.all(Radius.circular(Dimensions.radiusDefault,)),
-                            side: BorderSide(color: Theme.of(context).hintColor.withValues(alpha:0.1))
+                            side: BorderSide(color: context.adaptiveIconColor.withValues(alpha:0.1))
                         ),
                         surfaceTintColor: Theme.of(context).cardColor,
                         position: PopupMenuPosition.under, elevation: 8,
-                        shadowColor: Theme.of(context).hintColor.withValues(alpha:0.3),
+                        shadowColor: context.adaptiveIconColor.withValues(alpha: 0.3),
                         itemBuilder: (BuildContext context) {
                           return bookingDetailsController.getPopupMenuList( status :  serviceList[index]?.bookingStatus ?? "").map((PopupMenuModel option) {
                             return PopupMenuItem<PopupMenuModel>(
@@ -222,7 +222,7 @@ class _ServiceLogItem extends StatelessWidget {
                             );
                           }).toList();
                         },
-                        child: Icon(Icons.more_vert, color: Theme.of(context).hintColor.withValues(alpha:0.7),),
+                        child: Icon(Icons.more_vert, color: context.adaptiveIconColor.withValues(alpha: 0.7),),
                       );
                     }),
                   ),

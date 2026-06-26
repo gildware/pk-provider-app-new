@@ -17,7 +17,7 @@ class MySubscriptionSection extends StatelessWidget {
 
               Row(
                 children: [
-                  Image.asset(Images.dashboardProfile,height: 15,width:15),
+                  Image.asset(Images.dashboardProfile,height: 15,width:15, color: context.adaptiveIconColor),
                   const SizedBox(width: Dimensions.paddingSizeSmall,),
                   Text("mySubscription".tr,
                     style: robotoMedium.copyWith(

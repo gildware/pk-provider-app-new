@@ -46,7 +46,7 @@ class TotalCashInHandWidget extends StatelessWidget {
                       ),
                       child: InkWell(
                         onTap: ()=> toolTip?.showTooltip(),
-                        child: Image.asset(Images.alertIcon, height: 15, width: 15),),)
+                        child: Image.asset(Images.alertIcon, height: 15, width: 15, color: context.adaptiveIconColor),),)
                         : const SizedBox(),
                   ],
                   ),

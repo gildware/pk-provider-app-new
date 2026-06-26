@@ -59,7 +59,7 @@ class ReportAppBarView extends StatelessWidget implements PreferredSizeWidget {
               clipBehavior: Clip.none,
               alignment: Alignment.topRight,
               children: [
-                Image.asset(Images.reportFilterIcon, height: 25, width: 25,),
+                Image.asset(Images.reportFilterIcon, height: 25, width: 25, color: context.adaptiveIconColor),
                 isFiltered ? Positioned(
                   top: -5, right: -6,
                   child: Container(

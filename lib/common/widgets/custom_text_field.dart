@@ -176,18 +176,18 @@ class CustomTextFieldState extends State<CustomTextField> {
             borderRadius: BorderRadius.circular(widget.borderRadius),
           ) : UnderlineInputBorder(borderSide: BorderSide(color:  Theme.of(context).primaryColor)),
 
-          enabledBorder :  UnderlineInputBorder(borderSide: BorderSide(color: Theme.of(context).hintColor.withValues(alpha: 0.4))),
+          enabledBorder :  UnderlineInputBorder(borderSide: BorderSide(color: context.adaptiveIconColor.withValues(alpha: 0.4))),
           errorBorder :  UnderlineInputBorder(borderSide: BorderSide(color:  Theme.of(context).colorScheme.error)),
           focusedErrorBorder :  UnderlineInputBorder(borderSide: BorderSide(color:  Theme.of(context).colorScheme.error)),
           border :  UnderlineInputBorder(borderSide: BorderSide(color:  Theme.of(context).colorScheme.error)),
-          disabledBorder :  UnderlineInputBorder(borderSide: BorderSide(color: Theme.of(context).hintColor.withValues(alpha: 0.4))),
+          disabledBorder :  UnderlineInputBorder(borderSide: BorderSide(color: context.adaptiveIconColor.withValues(alpha: 0.4))),
 
 
 
           hintText: widget.hintText != null && widget.hintText!.isNotEmpty ? trLabel(widget.hintText) : widget.hintText,
           hintStyle: robotoRegular.copyWith(
               fontSize: Dimensions.fontSizeDefault,
-              color: Theme.of(context).hintColor.withValues(alpha:Get.isDarkMode ? .5:1)),
+              color: context.adaptiveIconColor.withValues(alpha:Get.isDarkMode ? .5:1)),
 
           suffixIconConstraints: widget.isPassword ? BoxConstraints(
             minHeight: widget.focusNode?.hasFocus == true || widget.controller!.text.isNotEmpty ? 40 : 20,
@@ -212,7 +212,7 @@ class CustomTextFieldState extends State<CustomTextField> {
             child: Stack(
               alignment: widget.focusNode?.hasFocus == true  || widget.controller!.text.isNotEmpty? Alignment.bottomCenter : Alignment.bottomRight,
               children: [
-                Icon(_obscureText ? Icons.visibility_off : Icons.visibility,size: 20, color: Theme.of(context).hintColor.withValues(alpha:0.3)),
+                Icon(_obscureText ? Icons.visibility_off : Icons.visibility,size: 20, color: context.adaptiveIconColor.withValues(alpha: 0.3)),
               ],
             ),
           ) : null,

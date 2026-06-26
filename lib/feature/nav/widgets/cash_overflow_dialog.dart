@@ -37,7 +37,7 @@ class CashOverflowDialog extends StatelessWidget {
                       onTap: (){
                         userProfileController.hideOverflowDialog();
                       },
-                      child: Image.asset(Images.crossIcon, height: 20, width: 20),
+                      child: Image.asset(Images.crossIcon, height: 20, width: 20, color: context.adaptiveIconColor),
                     ),
                     const SizedBox(width: Dimensions.paddingSizeExtraSmall),
 

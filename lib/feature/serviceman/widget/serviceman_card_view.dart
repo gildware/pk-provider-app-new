@@ -102,7 +102,7 @@ class ServicemanCardView extends StatelessWidget {
                         servicemanController.getSingleServicemanData(index:index, fromPage: 'editPage');
                         Get.to(const AddNewServicemanScreen(isEditScreen: true));
                       },
-                      child: Image.asset(Images.servicemanEdit,height: 25,width: 25),
+                      child: Image.asset(Images.servicemanEdit,height: 25,width: 25, color: context.adaptiveIconColor),
                     ),
 
                     GestureDetector(
@@ -120,7 +120,7 @@ class ServicemanCardView extends StatelessWidget {
                         Get.back();
                         },
                       ), barrierDismissible: true),
-                      child: Image.asset(Images.servicemanDelete,height: 25,width: 25),
+                      child: Image.asset(Images.servicemanDelete,height: 25,width: 25, color: context.adaptiveIconColor),
                     ),
 
                     GestureDetector(

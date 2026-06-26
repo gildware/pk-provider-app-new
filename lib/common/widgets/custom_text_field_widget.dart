@@ -124,14 +124,14 @@ class CustomTextFieldWidgetState extends State<CustomTextFieldWidget> {
             isDense: true,
             hintText: widget.hintText.isEmpty ? widget.titleText : widget.hintText,
             fillColor: !widget.isEnabled ? Theme.of(context).disabledColor.withValues(alpha:0.1) : Theme.of(context).cardColor,
-            hintStyle: robotoRegular.copyWith(fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).hintColor),
+            hintStyle: robotoRegular.copyWith(fontSize: Dimensions.fontSizeLarge, color: context.adaptiveIconColor),
             filled: true,
             labelStyle : widget.showLabelText ? robotoRegular.copyWith(
                 fontSize: Dimensions.fontSizeDefault,
-                color: Theme.of(context).hintColor):null,
+                color: context.adaptiveIconColor):null,
             errorStyle: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall),
             label: widget.showLabelText ? Text.rich(TextSpan(children: [
-              TextSpan(text: widget.labelText ?? '', style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).hintColor.withValues(alpha:.75))),
+              TextSpan(text: widget.labelText ?? '', style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeLarge, color: context.adaptiveIconColor.withValues(alpha:.75))),
               if(widget.required && widget.labelText != null)
                 TextSpan(text : ' *', style: robotoRegular.copyWith(color: Theme.of(context).colorScheme.error, fontSize: Dimensions.fontSizeLarge)),
               if(widget.isEnabled == false)
@@ -171,9 +171,9 @@ class CustomTextFieldWidgetState extends State<CustomTextFieldWidget> {
             ) : widget.prefixImage != null && widget.prefixIcon == null ? Padding(
               padding: EdgeInsets.symmetric(horizontal: widget.prefixSize),
               child: const SizedBox(),
-            ) : widget.prefixImage == null && widget.prefixIcon != null ? Icon(widget.prefixIcon, size: widget.iconSize, color: Theme.of(context).hintColor.withValues(alpha:0.3)) : null,
+            ) : widget.prefixImage == null && widget.prefixIcon != null ? Icon(widget.prefixIcon, size: widget.iconSize, color: context.adaptiveIconColor.withValues(alpha: 0.3)) : null,
             suffixIcon: widget.isPassword ? IconButton(
-              icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility, color: Theme.of(context).hintColor.withValues(alpha:0.3)),
+              icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility, color: context.adaptiveIconColor.withValues(alpha: 0.3)),
               onPressed: _toggle,
             ) : widget.suffixIcon != null ? IconButton(
               icon: Icon(widget.suffixIcon, color: Theme.of(context).disabledColor, size: widget.iconSize),

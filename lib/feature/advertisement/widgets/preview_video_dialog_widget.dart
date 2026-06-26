@@ -30,7 +30,7 @@ class PreviewVideoDialogWidget extends StatelessWidget {
                   Text("template_preview".tr, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault),),
                   InkWell(
                     onTap: ()=> Get.back(),
-                    child: Icon(Icons.clear, color: Theme.of(context).hintColor, size: 20,),
+                    child: Icon(Icons.clear, color: context.adaptiveIconColor, size: 20,),
                   )
                 ],),
 
@@ -68,8 +68,8 @@ class PreviewVideoDialogWidget extends StatelessWidget {
                           child: Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
-                              color: Theme.of(context).hintColor.withValues(alpha:0.1),
-                              border: Border.all(color: Theme.of(context).hintColor.withValues(alpha:0.2))
+                              color: context.adaptiveIconColor.withValues(alpha:0.1),
+                              border: Border.all(color: context.adaptiveIconColor.withValues(alpha:0.2))
                             ),
                             padding: const EdgeInsets.only(bottom: 25),
                             child: const Center(child: Icon(Icons.play_circle, color: Colors.white,size: 45,),),
@@ -94,7 +94,7 @@ class PreviewVideoDialogWidget extends StatelessWidget {
                                 height: 17, width: double.infinity,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                                  color: Theme.of(context).hintColor.withValues(alpha:0.1),
+                                  color: context.adaptiveIconColor.withValues(alpha:0.1),
                                 ),
                               ) : Text(title!,
                                 maxLines: 1,
@@ -107,14 +107,14 @@ class PreviewVideoDialogWidget extends StatelessWidget {
                                 height: 17, width: 150,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                                  color: Theme.of(context).hintColor.withValues(alpha:0.1),
+                                  color: context.adaptiveIconColor.withValues(alpha:0.1),
                                 ),
                               ): Text(
                                 description!,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: robotoRegular.copyWith(
-                                  color: Theme.of(context).hintColor
+                                  color: context.adaptiveIconColor
                                 ),
                               ),
 
@@ -124,7 +124,7 @@ class PreviewVideoDialogWidget extends StatelessWidget {
                                 height: 17, width: double.infinity,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                                  color: Theme.of(context).hintColor.withValues(alpha:0.1),
+                                  color: context.adaptiveIconColor.withValues(alpha:0.1),
                                 ),
                               ): const SizedBox()
                             ]),

@@ -8,6 +8,8 @@ class ColumnText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = Theme.of(context).colorScheme.onPrimary;
+
     return SizedBox(
       width: Get.width * .27,
       child: Center(
@@ -16,7 +18,7 @@ class ColumnText extends StatelessWidget {
           children: [
             Text(
               amount.toString(),
-              style: robotoBold.copyWith(fontSize: 17, color: Colors.white),
+              style: robotoBold.copyWith(fontSize: 17, color: textColor),
             ),
             const SizedBox(height: Dimensions.paddingSizeSmall),
             Text(
@@ -24,7 +26,7 @@ class ColumnText extends StatelessWidget {
               textAlign: TextAlign.center,
               style: robotoMedium.copyWith(
                 fontSize: 12,
-                color: Colors.white,
+                color: textColor,
               ),
             ),
           ],

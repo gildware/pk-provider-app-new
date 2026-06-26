@@ -38,7 +38,7 @@ class CustomAlertDialogWidget extends StatelessWidget {
 
         Align(alignment: Alignment.centerRight,child: InkWell(
           onTap: ()=> Get.back(),
-          child: Icon(Icons.highlight_remove_outlined, color: Theme.of(context).hintColor),
+          child: Icon(Icons.highlight_remove_outlined, color: context.adaptiveIconColor),
         )),
 
         if(ResponsiveHelper.isDesktop(context)) const SizedBox(height: Dimensions.paddingSizeLarge),

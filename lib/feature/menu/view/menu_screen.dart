@@ -71,7 +71,7 @@ class MenuScreen extends StatelessWidget {
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         GestureDetector(
           onTap: () => Get.back(),
-          child: const Icon(Icons.keyboard_arrow_down_rounded, size: 30),
+          child: Icon(Icons.keyboard_arrow_down_rounded, size: 30, color: context.adaptiveIconColor),
         ),
         const SizedBox(height: Dimensions.paddingSizeExtraSmall),
 

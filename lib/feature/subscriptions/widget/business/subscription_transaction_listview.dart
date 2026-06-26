@@ -87,11 +87,11 @@ class SubscriptionTransactionListview extends StatelessWidget {
                       PopupMenuButton<PopupMenuModel>(
                         shape:  RoundedRectangleBorder(
                             borderRadius: const BorderRadius.all(Radius.circular(Dimensions.radiusDefault,)),
-                            side: BorderSide(color: Theme.of(context).hintColor.withValues(alpha:0.1))
+                            side: BorderSide(color: context.adaptiveIconColor.withValues(alpha:0.1))
                         ),
                         surfaceTintColor: Theme.of(context).cardColor,
                         position: PopupMenuPosition.under, elevation: 8,
-                        shadowColor: Theme.of(context).hintColor.withValues(alpha:0.3),
+                        shadowColor: context.adaptiveIconColor.withValues(alpha: 0.3),
                         itemBuilder: (BuildContext context) {
                           return menuList.map((PopupMenuModel option) {
                             return PopupMenuItem<PopupMenuModel>(
@@ -117,7 +117,7 @@ class SubscriptionTransactionListview extends StatelessWidget {
                               child: Row(
                                 children: [
                                   const SizedBox(width: Dimensions.paddingSizeExtraSmall,),
-                                  Icon(option.icon, size: Dimensions.fontSizeLarge,color: Theme.of(context).hintColor,),
+                                  Icon(option.icon, size: Dimensions.fontSizeLarge,color: context.adaptiveIconColor,),
                                   const SizedBox(width: Dimensions.paddingSizeSmall,),
                                   Text(option.title.tr, style: robotoRegular.copyWith(
                                       fontSize: Dimensions.fontSizeSmall
@@ -127,7 +127,7 @@ class SubscriptionTransactionListview extends StatelessWidget {
                             );
                           }).toList();
                         },
-                        child: Icon(Icons.more_vert, color: Theme.of(context).hintColor.withValues(alpha:0.7),),
+                        child: Icon(Icons.more_vert, color: context.adaptiveIconColor.withValues(alpha: 0.7),),
                       ),
                     ]),
                   ),

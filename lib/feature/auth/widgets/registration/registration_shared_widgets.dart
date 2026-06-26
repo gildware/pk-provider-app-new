@@ -99,7 +99,7 @@ class ProviderTypeOptionCard extends StatelessWidget {
                   color: isSelected ? primary.withValues(alpha: 0.15) : Theme.of(context).hintColor.withValues(alpha: 0.08),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: isSelected ? primary : Theme.of(context).hintColor, size: 28),
+                child: Icon(icon, color: isSelected ? primary : context.adaptiveIconColor, size: 28),
               ),
               const SizedBox(width: Dimensions.paddingSizeDefault),
               Expanded(
@@ -111,7 +111,7 @@ class ProviderTypeOptionCard extends StatelessWidget {
                     Text(
                       trLabel(subtitleKey),
                       style: robotoRegular.copyWith(
-                        color: Theme.of(context).hintColor,
+                        color: context.adaptiveIconColor,
                         fontSize: Dimensions.fontSizeSmall,
                       ),
                     ),
@@ -163,7 +163,7 @@ class RegistrationIconField extends StatelessWidget {
         onChanged: (_) => onChanged?.call(),
         style: robotoRegular,
         decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: Theme.of(context).hintColor, size: 22),
+          prefixIcon: Icon(icon, color: context.adaptiveIconColor, size: 22),
           labelText: trLabel(titleKey),
           hintText: trLabel(hintKey),
           filled: true,
@@ -171,7 +171,7 @@ class RegistrationIconField extends StatelessWidget {
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault)),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-            borderSide: BorderSide(color: Theme.of(context).hintColor.withValues(alpha: 0.25)),
+            borderSide: BorderSide(color: context.adaptiveIconColor.withValues(alpha: 0.25)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
@@ -216,7 +216,7 @@ class RegistrationUploadBox extends StatelessWidget {
                 width: 1.5,
                 style: BorderStyle.solid,
               ),
-              color: Theme.of(context).hintColor.withValues(alpha: 0.04),
+              color: context.adaptiveIconColor.withValues(alpha: 0.04),
             ),
             child: preview ??
                 Column(
@@ -228,7 +228,7 @@ class RegistrationUploadBox extends StatelessWidget {
                     Text(
                       trLabel(subtitleKey),
                       textAlign: TextAlign.center,
-                      style: robotoRegular.copyWith(color: Theme.of(context).hintColor, fontSize: Dimensions.fontSizeSmall),
+                      style: robotoRegular.copyWith(color: context.adaptiveIconColor, fontSize: Dimensions.fontSizeSmall),
                     ),
                   ],
                 ),

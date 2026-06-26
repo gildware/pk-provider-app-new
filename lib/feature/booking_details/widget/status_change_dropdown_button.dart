@@ -214,6 +214,7 @@ class ChangeStatusDropdownButton extends StatelessWidget {
 
   void _showCancelReasonDialog(BuildContext context) {
     showCustomDialog(
+      barrierDismissible: true,
       child: BookingCancelReasonDialog(
         bookingId: bookingId,
         isSubBooking: isSubBooking,

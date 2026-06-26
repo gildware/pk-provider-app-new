@@ -17,6 +17,9 @@ extension ContextInfo on BuildContext {
       ? ThemePalette.darkText
       : theme.primaryColor;
 
+  /// Toolbar and action icons on surface backgrounds (white in dark, primary in light).
+  Color get adaptiveIconColor => adaptivePrimaryColor;
+
   /// Body text on surface backgrounds.
   Color get onSurfaceText => ThemePalette.text(Get.isDarkMode);
 

@@ -47,7 +47,7 @@ class RecentActivitySection extends StatelessWidget {
                   const Expanded(child: SizedBox()),
                   InkWell(
                     onTap: () => dashboardController.changeRecentActivityView(),
-                    child: Image.asset(dashboardController.showRecentActivityList ? Images.recentActivityGraph : Images.recentActivityList, width: 20,),
+                    child: Image.asset(dashboardController.showRecentActivityList ? Images.recentActivityGraph : Images.recentActivityList, width: 20, color: context.adaptiveIconColor),
                   ),
                 ],
               ),

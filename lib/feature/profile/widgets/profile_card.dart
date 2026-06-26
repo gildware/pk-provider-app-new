@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
 
 class ProfileCardItem extends StatelessWidget {
-  final String leadingIcon;
+  final IconData leadingIcon;
   final bool? isDarkItem;
   final String title;
   final IconData? trailingIcon;
@@ -26,7 +26,11 @@ class ProfileCardItem extends StatelessWidget {
           horizontalTitleGap: Dimensions.paddingSizeExtraSmall,
           title: Text(title.tr),
           trailing: Icon(trailingIcon,size: 15,color: context.adaptivePrimaryColor,),
-          leading: Image.asset(leadingIcon,height: 20,width: 20,fit:BoxFit.cover),
+          leading: Icon(
+            leadingIcon,
+            size: 24,
+            color: context.adaptiveIconColor,
+          ),
         ),
       ),
     );

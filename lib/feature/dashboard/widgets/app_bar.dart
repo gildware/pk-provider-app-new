@@ -66,7 +66,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
                   border: Border.all(color: context.adaptivePrimaryColor.withValues(alpha:0.1)),
                 ),
                 padding: const EdgeInsets.all(5),
-                child: Icon(Icons.calendar_month_rounded, size: 22, color: Theme.of(context).hintColor),
+                child: Icon(Icons.calendar_month_rounded, size: 22, color: context.adaptiveIconColor),
               ),
             ),
             SizedBox(width: Dimensions.fontSizeExtraSmall),
@@ -143,7 +143,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
                           fallbackAsset: Images.customPostIcon,
                           width: 20,
                           height: 20,
-                          color: Theme.of(context).hintColor,
+                          color: context.adaptiveIconColor,
                         ),
                         if (splashController.showRedDotIconForCustomBooking)
                           Positioned(
@@ -166,56 +166,77 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
               ],
             ) :
             Row(children: [
-              Padding(padding: const EdgeInsets.only(top: 10.0), child: SizedBox(
-                height: 20, width: 20,
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () {
-                    Get.toNamed(RouteHelper.getInboxScreenRoute());
-                    if(isRedundentClick(DateTime.now())){
-                      return;
-                    }
-                  },
-                  icon: Image.asset(Images.messageIcon, height: 20, width: 20)
-                ),
-              )),
-
-              Padding(padding: const EdgeInsets.only(top: 10.0), child: Stack(children: [
-                IconButton(
+              Padding(
+                padding: const EdgeInsets.only(top: 10.0),
+                child: InkWell(
                   hoverColor: Colors.transparent,
                   splashColor: Colors.transparent,
-                  onPressed: () {
-                    Get.toNamed(RouteHelper.getNotificationRoute());
-                    if(isRedundentClick(DateTime.now())){
+                  highlightColor: Colors.transparent,
+                  onTap: () {
+                    if (isRedundentClick(DateTime.now())) {
                       return;
                     }
-                    notificationController.resetNotificationCount();
+                    Get.toNamed(RouteHelper.getInboxScreenRoute());
                   },
-                  icon: Image.asset(Images.notificationIcon, height: 22, width: 22)
-                ),
-                if( notificationController.unseenNotificationCount>0)Positioned(
-                  right: 2,
-                  top: 0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 2,vertical: 3),
-                    height: 20,
-                    width: 20,
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: context.adaptivePrimaryColor
-                    ),
-                    child: FittedBox(
-                        child: Text(
-                          notificationController.unseenNotificationCount.toString(),
-                          style: robotoRegular.copyWith(color: light.cardColor
-                          ),
-                        )
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      size: 22,
+                      color: context.adaptiveIconColor,
                     ),
                   ),
-                )
-              ])),
-              ]
-            ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 10.0),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    InkWell(
+                      hoverColor: Colors.transparent,
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      onTap: () {
+                        if (isRedundentClick(DateTime.now())) {
+                          return;
+                        }
+                        Get.toNamed(RouteHelper.getNotificationRoute());
+                        notificationController.resetNotificationCount();
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Icon(
+                          Icons.notifications_outlined,
+                          size: 22,
+                          color: context.adaptiveIconColor,
+                        ),
+                      ),
+                    ),
+                    if (notificationController.unseenNotificationCount > 0)
+                      Positioned(
+                        right: 2,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
+                          height: 20,
+                          width: 20,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: context.adaptivePrimaryColor,
+                          ),
+                          child: FittedBox(
+                            child: Text(
+                              notificationController.unseenNotificationCount.toString(),
+                              style: robotoRegular.copyWith(color: light.cardColor),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ]),
             const SizedBox(
               width: Dimensions.paddingSizeExtraSmall,
             )
