@@ -1,5 +1,5 @@
 import 'package:demandium_provider/helper/app_startup.dart';
-import 'package:demandium_provider/helper/booking_notification_action_handler.dart';
+import 'package:demandium_provider/helper/auth_session_helper.dart';
 import 'package:demandium_provider/helper/version.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
@@ -42,6 +42,7 @@ class SplashScreenState extends State<SplashScreen> {
     });
     Get.find<SplashController>().initSharedData().then((_) async {
       await Get.find<AuthRepo>().preloadRememberMeCredentials();
+      await AuthSessionHelper.syncFromStorage();
       _route();
     });
 
@@ -136,6 +137,10 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   void _notificationRoute(NotificationBody notificationBody){
+    if (!Get.find<AuthController>().isLoggedIn()) {
+      Get.offNamed(RouteHelper.getSignInRoute('LogIn'));
+      return;
+    }
 
     Get.find<UserProfileController>().getProviderInfo().then((value) {
       String notificationType = notificationBody.notificationType??"";
@@ -149,11 +154,32 @@ class SplashScreenState extends State<SplashScreen> {
         case "booking": {
           if (notificationBody.bookingId != null && notificationBody.bookingId != "") {
             Get.offNamed(RouteHelper.getInitialRoute());
-            if (notificationBody.bookingStatus?.toLowerCase() == 'pending') {
-              Future.delayed(const Duration(milliseconds: 600), () {
-                BookingNotificationActionHandler.showBookingAlertFromBody(notificationBody);
-              });
-            }
+            Future.delayed(const Duration(milliseconds: 600), () {
+              if (notificationBody.bookingType == "repeat" &&
+                  notificationBody.repeatBookingType == "single") {
+                Get.toNamed(
+                  RouteHelper.getBookingDetailsRoute(
+                    subBookingId: notificationBody.bookingId,
+                    fromPage: "fromNotification",
+                  ),
+                );
+              } else if (notificationBody.bookingType == "repeat" &&
+                  notificationBody.repeatBookingType != "single") {
+                Get.toNamed(
+                  RouteHelper.getRepeatBookingDetailsRoute(
+                    bookingId: notificationBody.bookingId,
+                    fromPage: "fromNotification",
+                  ),
+                );
+              } else {
+                Get.toNamed(
+                  RouteHelper.getBookingDetailsRoute(
+                    bookingId: notificationBody.bookingId,
+                    fromPage: "fromNotification",
+                  ),
+                );
+              }
+            });
           } else {
             Get.offNamed(RouteHelper.getInitialRoute());
           }
@@ -191,6 +217,27 @@ class SplashScreenState extends State<SplashScreen> {
         } break;
         case "advertisement": {
           Get.toNamed(RouteHelper.getAdvertisementDetailsScreen(advertisementId: notificationBody.advertisementId, fromNotification: "fromNotification"));
+        } break;
+
+        case "review": {
+          Get.offNamed(RouteHelper.getInitialRoute());
+          Future.delayed(const Duration(milliseconds: 600), () {
+            NotificationHelper.openReviewNotificationTarget();
+          });
+        } break;
+
+        case "incoming_call":
+        case "call_accepted":
+        case "call_declined":
+        case "call_cancelled":
+        case "call_missed":
+        case "call_ended": {
+          Get.offAllNamed(RouteHelper.getInitialRoute());
+          Future.delayed(const Duration(milliseconds: 600), () async {
+            if (Get.isRegistered<InAppCallController>()) {
+              await Get.find<InAppCallController>().handlePushData(notificationBody.toJson());
+            }
+          });
         } break;
 
         default: {

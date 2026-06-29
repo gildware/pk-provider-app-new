@@ -44,20 +44,12 @@ class RepeatBookingChangeStatusDropdownButton extends StatelessWidget {
                 fontSize: Dimensions.fontSizeDefault,
                 isLoading: bookingDetailsController.isAcceptButtonLoading ? false : false,
                 onPressed: bookingDetailsController.isAcceptButtonLoading ? (){} :  (){
-                  showCustomDialog(child:  ConfirmationDialog(
-                    yesButtonColor: Theme.of(Get.context!).primaryColor,
-                    title: "are_you_sure_to_ignore_the_booking_request".tr,
-                    description: "once_you_ignore_the_request",
-                    noButtonColor: Theme.of(context).colorScheme.error,
-                    noTextColor: Colors.white,
-                    icon: Images.warning,
-                    noButtonText: "cancel",
-                    onYesPressed: () {
-                        bookingDetailsController.ignoreBookingRequest(bookingId);
-                        Get.back();
-                        Get.back();
-                    },
-                  ));
+                  BookingCancelReasonDialog.showReject(
+                    bookingId: bookingId,
+                    isSubBooking: isSubBooking,
+                    currentBookingStatus: bookingDetails.bookingStatus ?? 'pending',
+                    popParentOnSuccess: true,
+                  );
                 },
               ),
             ),

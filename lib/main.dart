@@ -1,5 +1,7 @@
 
 import 'package:demandium_provider/helper/app_startup.dart';
+import 'package:demandium_provider/helper/auth_session_helper.dart';
+import 'package:demandium_provider/helper/get_di.dart' as di;
 import 'package:demandium_provider/util/core_export.dart';
 import 'package:get/get.dart';
 import 'feature/nav/widgets/cash_overflow_overlay.dart';
@@ -25,15 +27,32 @@ Future<void> main() async {
 
   if (GetPlatform.isMobile) {
     FirebaseMessaging.onBackgroundMessage(myBackgroundMessageHandler);
+    await NotificationHelper.createAndroidNotificationChannels(
+      flutterLocalNotificationsPlugin,
+    );
   }
 
   runApp(MyApp(languages: languages));
   AppStartup.scheduleDeferredInit(flutterLocalNotificationsPlugin);
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final Map<String, Map<String, String>>? languages;
   const MyApp({super.key, required this.languages});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void reassemble() {
+    super.reassemble();
+    di.ensureBookingRequestDependencies();
+    AuthSessionHelper.syncFromStorage().then((_) {
+      AuthSessionHelper.redirectToSignInIfNeeded();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +64,7 @@ class MyApp extends StatelessWidget {
           navigatorKey: Get.key,
           theme: themeController.darkTheme ? dark : light,
           locale: localizeController.locale,
-          translations: Messages(languages: languages),
+          translations: Messages(languages: widget.languages),
           initialRoute: RouteHelper.getSplashRoute(body: null),
           getPages: RouteHelper.routes,
           defaultTransition: Transition.fadeIn,

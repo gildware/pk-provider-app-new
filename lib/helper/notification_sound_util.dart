@@ -4,7 +4,17 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationSoundUtil {
   static const String defaultRawSound = 'notification';
-  static const String withoutSoundChannelId = 'demandiumWithoutsound';
+  static const String withoutSoundChannelId = 'demandium_silent_v3';
+
+  static const List<String> legacyAndroidChannelIds = [
+    'demandium',
+    'demandium_v2',
+    'demandium_booking_v2',
+    'demandium_chat_v2',
+    'demandium_wallet_v2',
+    'demandium_bidding_v2',
+    'demandiumWithoutsound',
+  ];
 
   static String rawSoundForType(String? type) {
     switch (type) {
@@ -35,33 +45,42 @@ class NotificationSoundUtil {
       case 'booking':
       case 'booking_ignored':
       case 'offline-payment':
-        return 'demandium_booking';
+        return 'demandium_booking_v3';
       case 'chatting':
-        return 'demandium_chat';
+        return 'demandium_chat_v3';
       case 'wallet':
       case 'loyalty_point':
       case 'admin_pay':
       case 'withdraw':
       case 'refund':
-        return 'demandium_wallet';
+        return 'demandium_wallet_v3';
       case 'bidding':
       case 'bid-withdraw':
-        return 'demandium_bidding';
+        return 'demandium_bidding_v3';
       default:
-        return 'demandium';
+        return 'demandium_v3';
     }
   }
 
   static String androidChannelNameForId(String channelId) {
     switch (channelId) {
-      case 'demandium_booking':
+      case 'demandium_booking_v3':
+      case 'demandium_booking_v2':
         return 'Booking notifications';
-      case 'demandium_chat':
+      case 'demandium_chat_v3':
+      case 'demandium_chat_v2':
         return 'Chat notifications';
-      case 'demandium_wallet':
+      case 'demandium_wallet_v3':
+      case 'demandium_wallet_v2':
         return 'Wallet notifications';
-      case 'demandium_bidding':
+      case 'demandium_bidding_v3':
+      case 'demandium_bidding_v2':
         return 'Bidding notifications';
+      case 'demandium_v3':
+      case 'demandium_v2':
+        return 'General notifications';
+      case 'demandium':
+        return 'General notifications';
       case withoutSoundChannelId:
         return 'Notifications without sound';
       default:
@@ -83,13 +102,57 @@ class NotificationSoundUtil {
     return null;
   }
 
+  static String? channelIdFromData(Map<String, dynamic> data) {
+    final channelId = data['android_channel_id']?.toString();
+    if (channelId != null && channelId.isNotEmpty) {
+      return normalizeAndroidChannelId(channelId);
+    }
+    return null;
+  }
+
+  static String normalizeAndroidChannelId(String channelId) {
+    switch (channelId) {
+      case 'demandium_v2':
+        return 'demandium_v3';
+      case 'demandium_booking_v2':
+        return 'demandium_booking_v3';
+      case 'demandium_chat_v2':
+        return 'demandium_chat_v3';
+      case 'demandium_wallet_v2':
+        return 'demandium_wallet_v3';
+      case 'demandium_bidding_v2':
+        return 'demandium_bidding_v3';
+      case 'demandiumWithoutsound':
+        return withoutSoundChannelId;
+      default:
+        return channelId;
+    }
+  }
+
+  static String rawSoundFromData(Map<String, dynamic> data, {String? type}) {
+    final sound = data['notification_sound']?.toString();
+    if (sound != null && sound.isNotEmpty) {
+      return sound.replaceAll(RegExp(r'\.(wav|mp3|ogg)$', caseSensitive: false), '');
+    }
+    return rawSoundForType(type);
+  }
+
+  static Future<void> deleteLegacyAndroidChannels(
+    AndroidFlutterLocalNotificationsPlugin? androidPlugin,
+  ) async {
+    if (androidPlugin == null) return;
+    for (final channelId in legacyAndroidChannelIds) {
+      await androidPlugin.deleteNotificationChannel(channelId: channelId);
+    }
+  }
+
   static List<AndroidNotificationChannel> buildAndroidChannels() {
     const channelDefinitions = <(String, String, String)>[
-      ('demandium', 'notification', 'General notifications'),
-      ('demandium_booking', 'booking', 'Booking notifications'),
-      ('demandium_chat', 'chat', 'Chat notifications'),
-      ('demandium_wallet', 'wallet', 'Wallet notifications'),
-      ('demandium_bidding', 'bidding', 'Bidding notifications'),
+      ('demandium_v3', 'notification', 'General notifications'),
+      ('demandium_booking_v3', 'booking', 'Booking notifications'),
+      ('demandium_chat_v3', 'chat', 'Chat notifications'),
+      ('demandium_wallet_v3', 'wallet', 'Wallet notifications'),
+      ('demandium_bidding_v3', 'bidding', 'Bidding notifications'),
     ];
 
     return [
@@ -113,47 +176,6 @@ class NotificationSoundUtil {
     ];
   }
 
-  static List<AndroidNotificationAction> bookingNotificationActions() {
-    return const [
-      AndroidNotificationAction(
-        'accept_booking',
-        'Accept',
-        showsUserInterface: true,
-        cancelNotification: true,
-      ),
-      AndroidNotificationAction(
-        'ignore_booking',
-        'Reject',
-        showsUserInterface: false,
-        cancelNotification: true,
-      ),
-    ];
-  }
-
-  static List<DarwinNotificationCategory> buildDarwinCategories() {
-    return [
-      DarwinNotificationCategory(
-        'booking_alert',
-        actions: <DarwinNotificationAction>[
-          DarwinNotificationAction.plain(
-            'accept_booking',
-            'Accept',
-            options: <DarwinNotificationActionOption>{
-              DarwinNotificationActionOption.foreground,
-            },
-          ),
-          DarwinNotificationAction.plain(
-            'ignore_booking',
-            'Reject',
-            options: <DarwinNotificationActionOption>{
-              DarwinNotificationActionOption.destructive,
-            },
-          ),
-        ],
-      ),
-    ];
-  }
-
   static AndroidNotificationDetails androidDetailsForType(
     String? type, {
     bool withSound = true,
@@ -161,8 +183,11 @@ class NotificationSoundUtil {
     AndroidBitmap<Object>? largeIcon,
     List<AndroidNotificationAction>? actions,
     bool urgentBooking = false,
+    String? channelIdOverride,
+    String? rawSoundOverride,
   }) {
-    final channelId = androidChannelIdForType(type, withSound: withSound);
+    final channelId = channelIdOverride ??
+        androidChannelIdForType(type, withSound: withSound);
     final channelName = androidChannelNameForId(channelId);
 
     if (!withSound) {
@@ -170,6 +195,7 @@ class NotificationSoundUtil {
         channelId,
         channelName,
         channelDescription: channelName,
+        icon: 'notification_icon',
         playSound: false,
         importance: Importance.max,
         priority: Priority.max,
@@ -184,12 +210,15 @@ class NotificationSoundUtil {
       );
     }
 
+    final rawSound = rawSoundOverride ?? rawSoundForType(type);
+
     return AndroidNotificationDetails(
       channelId,
       channelName,
       channelDescription: channelName,
+      icon: 'notification_icon',
       playSound: true,
-      sound: RawResourceAndroidNotificationSound(rawSoundForType(type)),
+      sound: RawResourceAndroidNotificationSound(rawSound),
       importance: Importance.max,
       priority: Priority.max,
       styleInformation: styleInformation,
@@ -200,6 +229,27 @@ class NotificationSoundUtil {
       autoCancel: true,
       category: urgentBooking ? AndroidNotificationCategory.call : null,
       visibility: urgentBooking ? NotificationVisibility.public : null,
+    );
+  }
+
+  static AndroidNotificationDetails androidDetailsFromData(
+    Map<String, dynamic> data, {
+    bool withSound = true,
+    StyleInformation? styleInformation,
+    AndroidBitmap<Object>? largeIcon,
+    List<AndroidNotificationAction>? actions,
+    bool urgentBooking = false,
+  }) {
+    final type = data['type']?.toString();
+    return androidDetailsForType(
+      type,
+      withSound: withSound,
+      styleInformation: styleInformation,
+      largeIcon: largeIcon,
+      actions: actions,
+      urgentBooking: urgentBooking,
+      channelIdOverride: withSound ? channelIdFromData(data) : null,
+      rawSoundOverride: withSound ? rawSoundFromData(data, type: type) : null,
     );
   }
 

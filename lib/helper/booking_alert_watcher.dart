@@ -15,6 +15,7 @@ class BookingAlertWatcher extends GetxService with WidgetsBindingObserver {
   Timer? _timer;
   bool _baselineEstablished = false;
   final Set<String> _knownPendingBookingIds = <String>{};
+  final Set<String> _handledBookingIds = <String>{};
   bool _isForeground = true;
 
   static const Duration pollInterval = Duration(seconds: 10);
@@ -35,6 +36,7 @@ class BookingAlertWatcher extends GetxService with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _baselineEstablished = false;
     _knownPendingBookingIds.clear();
+    _handledBookingIds.clear();
   }
 
   void resetBaseline() {
@@ -44,8 +46,17 @@ class BookingAlertWatcher extends GetxService with WidgetsBindingObserver {
 
   static void markBookingHandled(String bookingId) {
     if (Get.isRegistered<BookingAlertWatcher>()) {
-      Get.find<BookingAlertWatcher>()._knownPendingBookingIds.add(bookingId);
+      final watcher = Get.find<BookingAlertWatcher>();
+      watcher._knownPendingBookingIds.add(bookingId);
+      watcher._handledBookingIds.add(bookingId);
     }
+  }
+
+  static bool isBookingHandled(String bookingId) {
+    if (Get.isRegistered<BookingAlertWatcher>()) {
+      return Get.find<BookingAlertWatcher>()._handledBookingIds.contains(bookingId);
+    }
+    return false;
   }
 
   @override
@@ -90,6 +101,7 @@ class BookingAlertWatcher extends GetxService with WidgetsBindingObserver {
         'pending',
         1,
         ServiceType.all,
+        includeTabCounts: false,
       );
       if (response.statusCode != 200) {
         return;
@@ -109,7 +121,8 @@ class BookingAlertWatcher extends GetxService with WidgetsBindingObserver {
           continue;
         }
 
-        if (_knownPendingBookingIds.contains(bookingId)) {
+        if (_knownPendingBookingIds.contains(bookingId) ||
+            _handledBookingIds.contains(bookingId)) {
           continue;
         }
 

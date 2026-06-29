@@ -54,6 +54,7 @@ class AppConstants {
   static const String cancelSubBookingUrl = '/api/v1/provider/booking/single-repeat-cancel/';
   static const String changeBookingStatus = '/api/v1/provider/booking/status-update';
   static const String providerCancellationReasonsUrl = '/api/v1/provider/booking/provider-cancellation-reasons';
+  static const String providerHoldReasonsUrl = '/api/v1/provider/booking/provider-hold-reasons';
   static const String changeSubBookingStatus = '/api/v1/provider/booking/single-repeat-status-update';
   static const String recordBookingPaymentUrl = '/api/v1/provider/booking/record-payment';
   static const String bookingOTPNotificationUri = '/api/v1/provider/booking/opt/notification-send';
@@ -68,6 +69,8 @@ class AppConstants {
   static const String changeScheduleUrl = '/api/v1/provider/booking/schedule-update';
   static const String subscriptionListUrl = '/api/v1/provider/subscribed/sub-categories';
   static const String notificationUrl = '/api/v1/provider/notifications';
+  static const String notificationUnreadCountUrl = '/api/v1/provider/notifications/unread-count';
+  static const String notificationMarkAllReadUrl = '/api/v1/provider/notifications/mark-all-read';
   static const String zoneUrl = '/api/v1/zones';
   static const String zoneTreeUrl = '/api/v1/zones/tree';
   static const String tokenUrl = '/api/v1/provider/update/fcm-token';
@@ -78,6 +81,11 @@ class AppConstants {
   static const String searchChannelListUrl = '/api/v1/provider/chat/channel-list-search';
   static const String getConversationUrl = '/api/v1/provider/chat/conversation';
   static const String sendMessageUrl = '/api/v1/provider/chat/send-message';
+  static const String inAppCallConfig = '/api/v1/provider/in-app-call/config';
+  static const String inAppCallPending = '/api/v1/provider/in-app-call/pending';
+  static const String inAppCallInitiate = '/api/v1/provider/in-app-call/initiate';
+  static const String inAppCallHistory = '/api/v1/provider/in-app-call/history';
+  static const String inAppCallBase = '/api/v1/provider/in-app-call';
   static const String getServiceReviewList = '/api/v1/provider/service/review';
   static const String getProviderReviewList = '/api/v1/provider/review';
   static const String reviewReply = '/api/v1/provider/review-reply';

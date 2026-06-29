@@ -11,7 +11,11 @@ class _ProviderReviewScreenState extends State<ProviderReviewScreen> {
   @override
   void initState() {
     super.initState();
-    Get.find<ReviewController>().getProviderReview(1);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (Get.isRegistered<ReviewController>()) {
+        Get.find<ReviewController>().getProviderReview(1);
+      }
+    });
   }
   @override
   Widget build(BuildContext context) {

@@ -58,13 +58,20 @@ class ChangeStatusDropdownButton extends StatelessWidget {
     BuildContext context,
     BookingDetailsController controller,
   ) {
-    switch (bookingDetails.bookingStatus) {
+    final status = isSubBooking
+        ? controller.subBookingDetails?.content?.bookingStatus
+        : controller.bookingDetails?.content?.bookingStatus;
+    switch (status ?? bookingDetails.bookingStatus) {
       case 'pending':
         return _buildPendingActions(context, controller);
       case 'accepted':
         return _buildAcceptedActions(context, controller);
+      case 'pending_cancellation':
+        return _buildPendingCancellationInfo(context);
       case 'ongoing':
         return _buildOngoingActions(context, controller);
+      case 'on_hold':
+        return _buildOnHoldActions(context, controller);
       default:
         return const SizedBox();
     }
@@ -156,8 +163,57 @@ class ChangeStatusDropdownButton extends StatelessWidget {
     );
   }
 
+  Widget _buildPendingCancellationInfo(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.error.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+      ),
+      child: Text(
+        'provider_cancellation_pending_message'.tr,
+        textAlign: TextAlign.center,
+        style: robotoRegular.copyWith(
+          fontSize: Dimensions.fontSizeDefault,
+          color: Theme.of(context).textTheme.bodyLarge?.color,
+        ),
+      ),
+    );
+  }
+
   Color _actionButtonTextColor(BuildContext context, Color lightModeColor) {
     return Get.isDarkMode ? Colors.white : lightModeColor;
+  }
+
+  Widget _buildOnHoldActions(
+    BuildContext context,
+    BookingDetailsController controller,
+  ) {
+    final holdAfterVisit = BookingHelper.isHoldAfterVisit(bookingDetails);
+    final targetStatus = BookingHelper.resolveUnholdTargetStatus(bookingDetails);
+
+    return CustomButton(
+      btnTxt: holdAfterVisit ? 'resume_work'.tr : 'remove_from_hold'.tr,
+      color: context.adaptivePrimaryColor.withValues(alpha: 0.1),
+      textColor: _actionButtonTextColor(
+        context,
+        context.adaptivePrimaryColor,
+      ),
+      fontSize: Dimensions.fontSizeDefault,
+      onPressed: () => _showStatusChangeConfirmation(
+        context: context,
+        controller: controller,
+        targetStatus: targetStatus,
+        title: holdAfterVisit
+            ? 'want_to_resume_work_on_this_booking'.tr
+            : 'want_to_remove_booking_from_hold'.tr,
+        description: holdAfterVisit
+            ? 'resume_work_booking_hint_text'.tr
+            : 'remove_from_hold_booking_hint_text'.tr,
+        yesButtonText: holdAfterVisit ? 'resume_work'.tr : 'remove_from_hold'.tr,
+      ),
+    );
   }
 
   Widget _buildOngoingActions(
@@ -177,13 +233,7 @@ class ChangeStatusDropdownButton extends StatelessWidget {
               Theme.of(context).textTheme.bodyLarge?.color ?? Colors.white,
             ),
             fontSize: Dimensions.fontSizeDefault,
-            onPressed: () => _showStatusChangeConfirmation(
-              context: context,
-              controller: controller,
-              targetStatus: 'on_hold',
-              title: 'want_to_put_booking_on_hold'.tr,
-              description: 'put_on_hold_booking_hint_text'.tr,
-            ),
+            onPressed: () => _showHoldReasonDialog(context),
           ),
         ),
         const SizedBox(width: Dimensions.paddingSizeDefault),
@@ -206,6 +256,12 @@ class ChangeStatusDropdownButton extends StatelessWidget {
     if (!controller.statusTypeList.contains('canceled')) {
       return false;
     }
+    final status = isSubBooking
+        ? controller.subBookingDetails?.content?.bookingStatus
+        : controller.bookingDetails?.content?.bookingStatus;
+    if (status != 'accepted' && status != 'pending') {
+      return false;
+    }
     if (isSubBooking && bookingDetails.isPaid == 1) {
       return false;
     }
@@ -215,7 +271,21 @@ class ChangeStatusDropdownButton extends StatelessWidget {
   void _showCancelReasonDialog(BuildContext context) {
     showCustomDialog(
       barrierDismissible: true,
+      useSafeArea: false,
       child: BookingCancelReasonDialog(
+        bookingId: bookingId,
+        isSubBooking: isSubBooking,
+        currentBookingStatus: bookingDetails.bookingStatus ?? '',
+        popParentOnSuccess: true,
+      ),
+    );
+  }
+
+  void _showHoldReasonDialog(BuildContext context) {
+    showCustomDialog(
+      barrierDismissible: true,
+      useSafeArea: false,
+      child: BookingHoldReasonDialog(
         bookingId: bookingId,
         isSubBooking: isSubBooking,
         currentBookingStatus: bookingDetails.bookingStatus ?? '',
@@ -227,21 +297,11 @@ class ChangeStatusDropdownButton extends StatelessWidget {
     BuildContext context,
     BookingDetailsController controller,
   ) {
-    showCustomDialog(
-      child: ConfirmationDialog(
-        yesButtonColor: Theme.of(Get.context!).primaryColor,
-        title: 'are_you_sure_to_reject_the_booking_request'.tr,
-        description: 'once_you_reject_the_request'.tr,
-        noButtonColor: Theme.of(context).colorScheme.error,
-        noTextColor: Colors.white,
-        icon: Images.warning,
-        noButtonText: 'cancel',
-        onYesPressed: () {
-          controller.ignoreBookingRequest(bookingId);
-          Get.back();
-          Get.back();
-        },
-      ),
+    BookingCancelReasonDialog.showReject(
+      bookingId: bookingId,
+      isSubBooking: isSubBooking,
+      currentBookingStatus: bookingDetails.bookingStatus ?? 'pending',
+      popParentOnSuccess: true,
     );
   }
 

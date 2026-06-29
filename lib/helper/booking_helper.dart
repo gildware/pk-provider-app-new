@@ -493,6 +493,43 @@ class BookingHelper{
     return null;
   }
 
+  static bool isHoldAfterVisit(BookingDetailsContent booking) {
+    if ((booking.bookingStatus ?? '').toLowerCase() != 'on_hold') {
+      return false;
+    }
+
+    if (booking.statusUi?.displayKey == 'hold_after_visit') {
+      return true;
+    }
+
+    final histories = booking.statusHistories;
+    if (histories == null || histories.length < 2) {
+      return false;
+    }
+
+    final sorted = List<StatusHistories>.from(histories)
+      ..sort((a, b) {
+        final aTime = DateTime.tryParse(a.createdAt ?? a.updatedAt ?? '') ?? DateTime(0);
+        final bTime = DateTime.tryParse(b.createdAt ?? b.updatedAt ?? '') ?? DateTime(0);
+        if (aTime != bTime) {
+          return aTime.compareTo(bTime);
+        }
+        return (a.id ?? 0).compareTo(b.id ?? 0);
+      });
+
+    final last = sorted.last;
+    if ((last.bookingStatus ?? '').toLowerCase() != 'on_hold') {
+      return false;
+    }
+
+    final previous = sorted[sorted.length - 2];
+    return (previous.bookingStatus ?? '').toLowerCase() == 'ongoing';
+  }
+
+  static String resolveUnholdTargetStatus(BookingDetailsContent booking) {
+    return isHoldAfterVisit(booking) ? 'ongoing' : 'accepted';
+  }
+
   static double resolveListGrandTotal(BookingRequestModel booking) {
     return booking.displayGrandTotal;
   }

@@ -210,21 +210,11 @@ class BookingRequestItem extends StatelessWidget {
                           });
                         }
                       }else if(option.title == "ignore"){
-                        showCustomDialog(child:  ConfirmationDialog(
-                          yesButtonColor: Theme.of(Get.context!).primaryColor,
-                          title: "are_you_sure_to_ignore_the_booking_request".tr,
-                          description: "once_you_ignore_the_request",
-                          noButtonColor: Theme.of(context).colorScheme.error,
-                          noTextColor: Colors.white,
-                          icon: Images.warning,
-                          noButtonText: "cancel",
-                          onYesPressed: () {
-                            Get.find<BookingDetailsController>().ignoreBookingRequest(booking.id!);
-                            Get.back();
-                            Get.back();
-                          },
-
-                        ),);
+                        BookingCancelReasonDialog.showReject(
+                          bookingId: booking.id!,
+                          currentBookingStatus: booking.bookingStatus ?? 'pending',
+                        );
+                        Get.back();
                       }else if(option.title == "download_invoice" || option.title == "download_full_invoice"){
                         String languageCode = Get.find<LocalizationController>().locale.languageCode;
                         final variant = booking.isRepeatBooking == 1 ? 'repeat' : 'regular';

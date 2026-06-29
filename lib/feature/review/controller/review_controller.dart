@@ -54,7 +54,7 @@ class ReviewController extends GetxController implements GetxService{
       _pageSize = response.body['content']['reviews']['last_page'];
       if(offset == 1 ){
         _providerReviewList =[];
-        _providerRating==null;
+        _providerRating = null;
       }
         response.body['content']['reviews']['data'].forEach((review){
           _providerReviewList!.add( Review.fromJson(review));

@@ -111,6 +111,12 @@ class RepeatBookingDetailsWidget extends StatelessWidget {
                 ),
               ),
 
+              bookingDetails.bookingStatus == "on_hold" ?
+              ChangeStatusDropdownButton(
+                bookingDetails: bookingDetails,
+                bookingId: bookingDetails.id!,
+                isSubBooking: isSubBooking,
+              ) :
               ((bookingDetails.bookingStatus == "pending" || bookingDetails.bookingStatus == "accepted" || bookingDetails.bookingStatus == "ongoing" )) ?
               RepeatBookingChangeStatusDropdownButton(
                 bookingDetails: bookingDetails,

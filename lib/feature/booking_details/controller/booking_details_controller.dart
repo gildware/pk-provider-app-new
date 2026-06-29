@@ -1,5 +1,8 @@
+import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
+import 'package:demandium_provider/helper/booking_alert_watcher.dart';
 import 'package:demandium_provider/helper/booking_helper.dart';
+import 'package:demandium_provider/helper/booking_notification_constants.dart';
 import 'package:demandium_provider/util/core_export.dart';
 
 class BookingDetailsController extends GetxController implements GetxService{
@@ -42,6 +45,9 @@ class BookingDetailsController extends GetxController implements GetxService{
   bool _hideResendButton = false;
   bool get hideResendButton => _hideResendButton;
 
+  String? _lastStatusUpdateMessage;
+  String? get lastStatusUpdateMessage => _lastStatusUpdateMessage;
+
   List<BookingReasonModel> _providerCancellationReasons = [];
   List<BookingReasonModel> get providerCancellationReasons => _providerCancellationReasons;
 
@@ -49,6 +55,14 @@ class BookingDetailsController extends GetxController implements GetxService{
   bool get isLoadingCancellationReasons => _isLoadingCancellationReasons;
 
   Future<List<BookingReasonModel>>? _providerCancellationReasonsRequest;
+
+  List<BookingReasonModel> _providerHoldReasons = [];
+  List<BookingReasonModel> get providerHoldReasons => _providerHoldReasons;
+
+  bool _isLoadingHoldReasons = false;
+  bool get isLoadingHoldReasons => _isLoadingHoldReasons;
+
+  Future<List<BookingReasonModel>>? _providerHoldReasonsRequest;
 
 
   BookingDetailsModel? _bookingDetails;
@@ -87,7 +101,6 @@ class BookingDetailsController extends GetxController implements GetxService{
       _bookingDetails = BookingDetailsModel.fromJson(response.body);
 
       if(initEditBooking){
-        Get.find<BookingEditController>().getServiceListBasedOnSubcategory(subCategoryId : bookingDetails?.content?.subcategoryId ?? "");
         Get.find<BookingEditController>().initializedControllerValue(_bookingDetails?.content);
       }
      dropDownValue = bookingDetails?.content?.bookingStatus ?? "";
@@ -117,6 +130,7 @@ class BookingDetailsController extends GetxController implements GetxService{
   Future<void> acceptBookingRequest(String bookingId) async {
     _isAcceptButtonLoading = true;
     update();
+    BookingAlertWatcher.markBookingHandled(bookingId);
     Response response = await bookingDetailsRepo.acceptBookingRequest(bookingId);
     if(response.statusCode==200 && response.body['response_code'] == "status_update_success_200"){
       await getBookingDetails( bookingId, reload: false );
@@ -130,19 +144,50 @@ class BookingDetailsController extends GetxController implements GetxService{
     update();
   }
 
-  Future<void> ignoreBookingRequest(String bookingId) async {
+  Future<bool> ignoreBookingRequest(
+    String bookingId, {
+    int? providerCancellationReasonId,
+    String? statusChangeRemarks,
+  }) async {
     _isIgnoreButtonLoading = true;
     update();
-    Response response = await bookingDetailsRepo.ignoreBookingRequest(bookingId);
-    if(response.statusCode==200 ) {
+    Response response = await bookingDetailsRepo.ignoreBookingRequest(
+      bookingId,
+      providerCancellationReasonId: providerCancellationReasonId,
+      statusChangeRemarks: statusChangeRemarks,
+    );
+    if (response.statusCode == 200) {
+      final responseCode = response.body is Map
+          ? '${response.body['response_code'] ?? ''}'
+          : '';
+      final isSuccess = responseCode.isEmpty ||
+          responseCode == 'booking_ignore_success_200' ||
+          responseCode == 'booking_already_ignore_200' ||
+          responseCode == 'status_update_success_200';
+
+      if (!isSuccess) {
+        ApiChecker.checkApi(response);
+        _isIgnoreButtonLoading = false;
+        update();
+        return false;
+      }
+
+      BookingAlertWatcher.markBookingHandled(bookingId);
+      await FlutterLocalNotificationsPlugin().cancel(
+        id: BookingNotificationConstants.notificationIdFor(bookingId),
+      );
       showCustomSnackBar(response.body["message"],  type: ToasterMessageType.success);
       Get.find<BookingRequestController>().getBookingRequestList(Get.find<BookingRequestController>().bookingStatus, 1);
+      _isIgnoreButtonLoading = false;
+      update();
+      return true;
     }
     else{
       ApiChecker.checkApi(response);
     }
     _isIgnoreButtonLoading = false;
     update();
+    return false;
   }
 
   Future<void> cancelSubBooking({required String bookingId, required String subBookingId}) async {
@@ -150,9 +195,18 @@ class BookingDetailsController extends GetxController implements GetxService{
     update();
     Response response = await bookingDetailsRepo.cancelSubBooking(subBookingId);
     if(response.statusCode==200 ) {
-      await getBookingDetails(bookingId, reload: true);
-      Get.back();
-      showCustomSnackBar(response.body["message"],  type: ToasterMessageType.success);
+      BookingAlertWatcher.markBookingHandled(bookingId);
+      await FlutterLocalNotificationsPlugin().cancel(
+        id: BookingNotificationConstants.notificationIdFor(bookingId),
+      );
+      Get.find<BookingRequestController>().getBookingRequestList(Get.find<BookingRequestController>().bookingStatus, 1);
+      final message = response.body is Map
+          ? response.body['message']?.toString() ?? ''
+          : '';
+      _completeBookingWithdrawalUi(
+        navigateBack: true,
+        successMessage: message.isNotEmpty ? message : 'provider_cancellation_request_received'.tr,
+      );
     }
     else{
       ApiChecker.checkApi(response);
@@ -171,6 +225,7 @@ class BookingDetailsController extends GetxController implements GetxService{
     int? providerCancellationReasonId,
     String? statusChangeRemarks,
     int? holdReopenReasonId,
+    bool deferUiFeedback = false,
   }) async {
     final targetStatus = isSubBooking ? subBookingDropDownValue : dropDownValue;
     final bookingContent = isSubBooking ? subBookingDetails?.content : bookingDetails?.content;
@@ -187,7 +242,12 @@ class BookingDetailsController extends GetxController implements GetxService{
     for(XFile file in _photoEvidence) {
       multiParts.add(MultipartBody('evidence_photos[]', file));
     }
-    if(bookingStatus != null && bookingStatus == 'ongoing' && targetStatus == 'canceled'){
+    if(bookingStatus != null && targetStatus == 'canceled' && bookingStatus != 'pending' && bookingStatus != 'accepted'){
+      showCustomSnackBar('provider_can_only_cancel_pending_or_accepted_booking'.tr, type : ToasterMessageType.info);
+      _isStatusUpdateLoading = false;
+      update();
+      return false;
+    }else if(bookingStatus != null && bookingStatus == 'ongoing' && targetStatus == 'canceled'){
       showCustomSnackBar('service_ongoing_can_not_cancel_booking'.tr, type : ToasterMessageType.info);
       _isStatusUpdateLoading = false;
       update();
@@ -209,8 +269,24 @@ class BookingDetailsController extends GetxController implements GetxService{
         holdReopenReasonId: holdReopenReasonId,
       );
       if(response.statusCode==200 && response.body["response_code"]=="status_update_success_200"){
+        final isProviderWithdrawal =
+            !isSubBooking && targetStatus == 'canceled' && bookingStatus == 'accepted';
+        final message = response.body['message']?.toString() ?? '';
+        final successMessage = message.isNotEmpty
+            ? message.capitalizeFirst!
+            : 'provider_cancellation_request_received'.tr;
+        _lastStatusUpdateMessage = successMessage;
 
-        if(isSubBooking){
+        if (isProviderWithdrawal) {
+          BookingAlertWatcher.markBookingHandled(bookingId);
+          await FlutterLocalNotificationsPlugin().cancel(
+            id: BookingNotificationConstants.notificationIdFor(bookingId),
+          );
+          Get.find<BookingRequestController>().getBookingRequestList(
+            Get.find<BookingRequestController>().bookingStatus,
+            1,
+          );
+        } else if(isSubBooking){
           await getBookingSubDetails(bookingId,reload: false);
          getBookingDetails(_bookingDetails?.content?.id ?? "",reload: false);
         }else{
@@ -218,10 +294,24 @@ class BookingDetailsController extends GetxController implements GetxService{
           Get.find<BookingRequestController>().getBookingRequestList(Get.find<BookingRequestController>().bookingStatus, 1);
         }
 
-        if(isBack){
-          Get.back();
+        if (deferUiFeedback) {
+          _isStatusUpdateLoading = false;
+          update();
+          return true;
         }
-        showCustomSnackBar(response.body['message'].toString().capitalizeFirst,  type: ToasterMessageType.success);
+
+        if (isProviderWithdrawal) {
+          _completeBookingWithdrawalUi(
+            navigateBack: isBack,
+            successMessage: successMessage,
+          );
+        } else {
+          if(isBack){
+            _navigateBackSafely();
+          }
+          _showSuccessSnackBarDeferred(successMessage);
+        }
+
         _isStatusUpdateLoading = false;
         update();
         return true;
@@ -323,7 +413,6 @@ class BookingDetailsController extends GetxController implements GetxService{
     }
 
     _isLoadingCancellationReasons = true;
-    update();
 
     _providerCancellationReasonsRequest = _fetchProviderCancellationReasons();
     try {
@@ -354,10 +443,59 @@ class BookingDetailsController extends GetxController implements GetxService{
       showCustomSnackBar('something_went_wrong'.tr, type: ToasterMessageType.error);
     } finally {
       _isLoadingCancellationReasons = false;
-      update();
     }
 
     return _providerCancellationReasons;
+  }
+
+  Future<List<BookingReasonModel>> getProviderHoldReasons({bool forceReload = false}) async {
+    if (_providerHoldReasons.isNotEmpty && !forceReload) {
+      return _providerHoldReasons;
+    }
+
+    if (_providerHoldReasonsRequest != null && !forceReload) {
+      return _providerHoldReasonsRequest!;
+    }
+
+    _isLoadingHoldReasons = true;
+
+    _providerHoldReasonsRequest = _fetchProviderHoldReasons();
+    try {
+      return await _providerHoldReasonsRequest!;
+    } finally {
+      _providerHoldReasonsRequest = null;
+    }
+  }
+
+  Future<List<BookingReasonModel>> _fetchProviderHoldReasons() async {
+    try {
+      final response = await bookingDetailsRepo.getProviderHoldReasons();
+      final body = response.body;
+      final responseCode = body is Map ? body['response_code']?.toString() : null;
+
+      if (response.statusCode == 200 && responseCode == 'default_200') {
+        final List<dynamic> raw = body is Map && body['content'] is List ? body['content'] : [];
+        _providerHoldReasons = raw
+            .whereType<Map>()
+            .map((item) => BookingReasonModel.fromJson(Map<String, dynamic>.from(item)))
+            .toList();
+      } else {
+        ApiChecker.checkApi(response);
+        _providerHoldReasons = [];
+      }
+    } catch (_) {
+      _providerHoldReasons = [];
+      showCustomSnackBar('something_went_wrong'.tr, type: ToasterMessageType.error);
+    } finally {
+      _isLoadingHoldReasons = false;
+    }
+
+    return _providerHoldReasons;
+  }
+
+  void prefetchProviderReasonLists() {
+    getProviderCancellationReasons();
+    getProviderHoldReasons();
   }
 
   void changeBookingStatusDropDownValue(String status, bool isSubBooking){
@@ -429,6 +567,47 @@ class BookingDetailsController extends GetxController implements GetxService{
     if(resetBookingDetails){
       _bookingDetails = null;
     }
+  }
+
+  void _navigateBackSafely() {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (Get.isDialogOpen == true) {
+        Get.back();
+        return;
+      }
+      if (Get.key.currentState?.canPop() ?? false) {
+        Get.back();
+      }
+    });
+  }
+
+  void _showSuccessSnackBarDeferred(String message) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      Future<void>.delayed(const Duration(milliseconds: 150), () {
+        showCustomSnackBar(message, type: ToasterMessageType.success);
+      });
+    });
+  }
+
+  void _completeBookingWithdrawalUi({
+    required bool navigateBack,
+    required String successMessage,
+  }) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
+      if (navigateBack) {
+        Future<void>.delayed(const Duration(milliseconds: 50), () {
+          if (Get.key.currentState?.canPop() ?? false) {
+            Get.back();
+          }
+        });
+      }
+      Future<void>.delayed(const Duration(milliseconds: 200), () {
+        showCustomSnackBar(successMessage, type: ToasterMessageType.success);
+      });
+    });
   }
 
   bool isShowChattingButton(BookingDetailsContent? bookingDetails, TabController? tabController){

@@ -27,7 +27,6 @@ class BookingAlertDialogWidget extends StatefulWidget {
 
 class _BookingAlertDialogWidgetState extends State<BookingAlertDialogWidget> {
   bool _isAcceptLoading = false;
-  bool _isRejectLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -89,11 +88,10 @@ class _BookingAlertDialogWidgetState extends State<BookingAlertDialogWidget> {
               CustomButton(
                 isLoading: _isAcceptLoading,
                 btnTxt: 'accept'.tr,
-                onPressed: _isRejectLoading ? null : _onAccept,
+                onPressed: _onAccept,
               ),
               const SizedBox(height: Dimensions.paddingSizeSmall),
               CustomButton(
-                isLoading: _isRejectLoading,
                 btnTxt: 'ignore'.tr,
                 color: Theme.of(context).disabledColor.withValues(alpha: 0.15),
                 textColor: Theme.of(context).textTheme.bodyLarge?.color,
@@ -101,7 +99,7 @@ class _BookingAlertDialogWidgetState extends State<BookingAlertDialogWidget> {
               ),
               const SizedBox(height: Dimensions.paddingSizeSmall),
               TextButton(
-                onPressed: (_isAcceptLoading || _isRejectLoading)
+                onPressed: _isAcceptLoading
                     ? null
                     : _onViewBooking,
                 child: Text('view_booking'.tr),
@@ -122,11 +120,11 @@ class _BookingAlertDialogWidgetState extends State<BookingAlertDialogWidget> {
   }
 
   Future<void> _onReject() async {
-    setState(() => _isRejectLoading = true);
-    await BookingNotificationActionHandler.rejectFromDialog(widget.bookingId);
-    if (!mounted) return;
-    setState(() => _isRejectLoading = false);
     _closeDialog();
+    BookingCancelReasonDialog.showReject(
+      bookingId: widget.bookingId,
+      currentBookingStatus: 'pending',
+    );
   }
 
   void _onViewBooking() {

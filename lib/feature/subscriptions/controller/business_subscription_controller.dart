@@ -169,7 +169,7 @@ class  BusinessSubscriptionController extends GetxController implements GetxServ
       "payment_platform" : "app",
       "package_id" : packageId,
       "payment_method": paymentMethod,
-      "callback": AppConstants.baseUrl,
+      "callback": ApiUrlHelper.resolveBaseUrl(),
     };
 
     Response response = await subscriptionRepo.renewOrShiftSubscription(body, packageStatus: packageStatus);

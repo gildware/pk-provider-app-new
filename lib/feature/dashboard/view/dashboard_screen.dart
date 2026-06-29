@@ -21,6 +21,7 @@ class _DashBoardScreenState extends State<DashBoardScreen>{
   void initState() {
     super.initState();
     _loadDashboardData();
+    Get.find<BookingDetailsController>().prefetchProviderReasonLists();
   }
 
   Future<void> _loadDashboardData({bool reload = false}) async {
@@ -80,7 +81,7 @@ class _DashBoardScreenState extends State<DashBoardScreen>{
             Get.find<DashboardController>().changeRecentActivityView(status: true, shouldUpdate: true);
             Get.find<DashboardController>().changeTypeOfShowBookingStatus(status: true, shouldUpdate: true);
             await Get.find<UserProfileController>().getProviderInfo(reload: true);
-            Get.find<NotificationController>().getNotifications(1, saveNotificationCount: false);
+            Get.find<NotificationController>().getUnreadNotificationCount();
             Get.find<SplashController>().getConfigData();
           },
           child: SingleChildScrollView(

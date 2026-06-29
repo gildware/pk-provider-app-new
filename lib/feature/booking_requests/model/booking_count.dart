@@ -2,6 +2,7 @@ class BookingCount {
   int? all;
   int? pending;
   int? accepted;
+  int? pendingCancellation;
   int? ongoing;
   int? onHold;
   int? completed;
@@ -21,6 +22,7 @@ class BookingCount {
     this.all,
     this.pending,
     this.accepted,
+    this.pendingCancellation,
     this.ongoing,
     this.onHold,
     this.completed,
@@ -41,6 +43,7 @@ class BookingCount {
     all = _readCount(json['all']);
     pending = _readCount(json['pending']);
     accepted = _readCount(json['accepted']);
+    pendingCancellation = _readCount(json['pending_cancellation']);
     ongoing = _readCount(json['ongoing']);
     onHold = _readCount(json['on_hold']);
     completed = _readCount(json['completed']);
@@ -74,6 +77,8 @@ class BookingCount {
         return pending ?? 0;
       case 'accepted':
         return accepted ?? 0;
+      case 'pending_cancellation':
+        return pendingCancellation ?? 0;
       case 'ongoing':
         return ongoing ?? 0;
       case 'on_hold':

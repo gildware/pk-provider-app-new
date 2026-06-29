@@ -10,10 +10,19 @@ class NotificationRepo {
     return await apiClient.getData(
         '${AppConstants.notificationUrl}?limit=30&offset=$offset');
   }
-  Future <int?> getNotificationCount() async {
-    return sharedPreferences.getInt(AppConstants.notificationCount);
+
+  Future<Response> getUnreadCount() async {
+    return await apiClient.getData(AppConstants.notificationUnreadCountUrl);
   }
-  void setNotificationCount(int count){
-    sharedPreferences.setInt(AppConstants.notificationCount, count);
+
+  Future<Response> markAsRead(String notificationId) async {
+    return await apiClient.putData(
+      '${AppConstants.notificationUrl}/$notificationId/read',
+      {},
+    );
+  }
+
+  Future<Response> markAllAsRead() async {
+    return await apiClient.putData(AppConstants.notificationMarkAllReadUrl, {});
   }
 }

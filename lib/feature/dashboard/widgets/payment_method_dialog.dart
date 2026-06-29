@@ -85,7 +85,7 @@ class PaymentMethodDialog extends StatelessWidget {
 
                     String platform = GetPlatform.isWeb ? "web" : "app" ;
 
-                    String callbackUrl = GetPlatform.isWeb ? "$protocol//$hostname:$port$path" : AppConstants.baseUrl;
+                    String callbackUrl = GetPlatform.isWeb ? "$protocol//$hostname:$port$path" : ApiUrlHelper.resolveBaseUrl();
 
                     String providerID = Get.find<UserProfileController>().providerModel!.content!.providerInfo!.id!;
 
@@ -94,7 +94,7 @@ class PaymentMethodDialog extends StatelessWidget {
 
                     final accessToken = await PaymentAccessTokenHelper.forProvider();
 
-                    url = '${AppConstants.baseUrl}/payment?payment_method=${paymentMethod.gateway}&provider_id=$providerID&access_token=$accessToken'
+                    url = '${ApiUrlHelper.resolveBaseUrl()}/payment?payment_method=${paymentMethod.gateway}&provider_id=$providerID&access_token=$accessToken'
                         '&callback=$callbackUrl&amount=$amount&payment_platform=$platform&is_pay_to_admin=true';
 
                     Get.back();

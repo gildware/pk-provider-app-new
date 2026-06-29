@@ -33,7 +33,11 @@ class BottomNavScreen extends StatefulWidget {
         Get.find<UserProfileController>().trialWidgetShow(route: "");
       });
       await Get.find<AuthController>().updateToken();
+      if (Get.isRegistered<InAppCallController>()) {
+        await Get.find<InAppCallController>().loadConfig();
+      }
       Get.find<PaymentInfoController>().getPaymentMethods(isUpdate: false, isReload: false);
+      Get.find<NotificationController>().getUnreadNotificationCount();
     });
   }
 
@@ -59,6 +63,13 @@ class BottomNavScreenState extends State<BottomNavScreen> {
   @override
   void initState() {
     super.initState();
+
+    if (!Get.find<AuthController>().isLoggedIn()) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.offAllNamed(RouteHelper.getSignInRoute('LogIn'));
+      });
+      return;
+    }
 
     if(!widget.formTutorial) {
       BottomNavScreen.loadData(pageIndex: widget.pageIndex);

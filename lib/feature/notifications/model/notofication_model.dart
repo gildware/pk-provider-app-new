@@ -154,6 +154,11 @@ class Data{
   int? isActive;
   String? createdAt;
   String? updatedAt;
+  bool? isRead;
+  String? notificationType;
+  String? bookingId;
+  String? bookingType;
+  String? repeatType;
 
   Data(
       {this.id,
@@ -165,7 +170,12 @@ class Data{
         this.toUsers,
         this.isActive,
         this.createdAt,
-        this.updatedAt});
+        this.updatedAt,
+        this.isRead,
+        this.notificationType,
+        this.bookingId,
+        this.bookingType,
+        this.repeatType});
 
   Data.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -173,10 +183,15 @@ class Data{
     description = json['description'];
     coverImage = json['cover_image'];
     coverImageFullPath = json['cover_image_full_path'];
-    toUsers = json['to_users'].cast<String>();
+    toUsers = json['to_users']?.cast<String>();
     isActive = json['is_active'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
+    isRead = json['is_read'] == true;
+    notificationType = json['notification_type']?.toString();
+    bookingId = json['booking_id']?.toString();
+    bookingType = json['booking_type']?.toString();
+    repeatType = json['repeat_type']?.toString();
   }
 
   Map<String, dynamic> toJson() {
@@ -191,6 +206,11 @@ class Data{
     data['is_active'] = isActive;
     data['created_at'] = createdAt;
     data['updated_at'] = updatedAt;
+    data['is_read'] = isRead;
+    data['notification_type'] = notificationType;
+    data['booking_id'] = bookingId;
+    data['booking_type'] = bookingType;
+    data['repeat_type'] = repeatType;
     return data;
   }
 }

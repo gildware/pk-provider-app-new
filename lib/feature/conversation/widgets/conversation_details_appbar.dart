@@ -6,7 +6,18 @@ class ConversationDetailsAppBar extends StatelessWidget implements PreferredSize
   final String? image;
   final String? phone;
   final String fromNotification;
-  const ConversationDetailsAppBar({super.key, this.name, this.image, this.phone, this.fromNotification =""});
+  final String? channelId;
+  final String? userType;
+
+  const ConversationDetailsAppBar({
+    super.key,
+    this.name,
+    this.image,
+    this.phone,
+    this.fromNotification = "",
+    this.channelId,
+    this.userType,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,14 +37,39 @@ class ConversationDetailsAppBar extends StatelessWidget implements PreferredSize
         ),
         const SizedBox(width: Dimensions.paddingSizeSmall),
 
-        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-          Text( name?.tr ?? "", style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault)),
+            Text( name?.tr ?? "", style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault)),
 
-          if(phone !="") Text(phone ?? "", style: robotoLight.copyWith( fontSize: Dimensions.fontSizeSmall)),
+            if(phone !="") Text(phone ?? "", style: robotoLight.copyWith( fontSize: Dimensions.fontSizeSmall)),
 
-        ]),
+          ]),
+        ),
       ]),
+
+      actions: [
+        GetBuilder<InAppCallController>(builder: (callController) {
+          if (!callController.shouldShowCallButton(channelId, userType)) {
+            return const SizedBox.shrink();
+          }
+
+          return IconButton(
+            onPressed: callController.busy
+                ? null
+                : () => callController.startCall(
+                      channelId!,
+                      peerName: name,
+                      peerImage: image,
+                      peerPhone: phone,
+                      peerUserType: userType,
+                    ),
+            icon: Icon(Icons.call, color: context.adaptiveIconColor),
+            tooltip: 'call'.tr,
+          );
+        }),
+        const SizedBox(width: 4),
+      ],
 
       leading: Padding(
         padding: const EdgeInsets.only(left: Dimensions.paddingSizeDefault),

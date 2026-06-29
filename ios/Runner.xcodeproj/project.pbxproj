@@ -217,6 +217,11 @@
 				B9005CF0285EF9510086AD44 /* GoogleService-Info.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+				PKNSND0002000000000001 /* notification.wav in Resources */,
+				PKNSND0004000000000001 /* booking.wav in Resources */,
+				PKNSND0006000000000001 /* chat.wav in Resources */,
+				PKNSND0008000000000001 /* wallet.wav in Resources */,
+				PKNSND0010000000000001 /* bidding.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

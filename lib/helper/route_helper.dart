@@ -97,11 +97,25 @@ class RouteHelper {
       '$bookingDetails?booking_id=$bookingId&sub_booking_id=$subBookingId&fromPage=$fromPage';
   static String getRepeatBookingDetailsRoute({String? bookingId,  String? fromPage, String? subBookingId}) =>
       '$repeatBookingDetails?booking_id=$bookingId&sub_booking_id=$subBookingId&fromPage=$fromPage';
-  static String getChatScreenRoute(String channelId,String name,String image,String phone,String userType, {String? fromNotification}) =>
-      '$chatScreen?channelID=$channelId&name=$name&image=$image&phone=$phone&userType=$userType&fromNotification=$fromNotification';
+  static String getChatScreenRoute(String channelId,String name,String image,String phone,String userType, {String? fromNotification}) {
+    final query = Uri(queryParameters: {
+      'channelID': channelId,
+      'name': name,
+      'image': image,
+      'phone': phone,
+      'userType': userType,
+      'fromNotification': fromNotification ?? '',
+    });
+    return '$chatScreen?${query.query}';
+  }
 
   static String getInboxScreenRoute({String? fromNotification}) => '$chatInbox?fromNotification=$fromNotification';
-  static String getNotificationRoute({String? fromPage}) => '$notification?page=$fromPage';
+  static String getNotificationRoute({String? fromPage}) {
+    if (fromPage == null || fromPage.isEmpty) {
+      return notification;
+    }
+    return '$notification?page=$fromPage';
+  }
   static String getTransactionListRoute({String? fromPage}) => '$transactions?page=$fromPage';
   static String getAdvertisementListScreen({required int count}) => '$advertisementList?count=$count';
   static String getAdvertisementDetailsScreen({String? advertisementId, String? fromNotification}) => '$advertisementDetails?advertisementId=$advertisementId&fromNotification=$fromNotification';
@@ -131,10 +145,14 @@ class RouteHelper {
 
 
   static List<GetPage> routes = [
-    GetPage( name: initial, page: () {
-      int pageIndex = int.tryParse(Get.parameters['pageIndex'] ?? "0") ?? 0;
-      return  BottomNavScreen(pageIndex: pageIndex);
-    }),
+    GetPage(
+      name: initial,
+      page: () {
+        int pageIndex = int.tryParse(Get.parameters['pageIndex'] ?? "0") ?? 0;
+        return BottomNavScreen(pageIndex: pageIndex);
+      },
+      middlewares: [AuthMiddleware()],
+    ),
     GetPage(name: splash, page: () {
       NotificationBody? data;
       if(Get.parameters['data'] != 'null') {
@@ -162,7 +180,7 @@ class RouteHelper {
         ))
     ),
     GetPage(name: notification, page: () => NotificationScreen(
-        fromNotificationPage: Get.parameters['fromPage'].toString()
+        fromNotificationPage: Get.parameters['fromPage'],
     )),
     GetPage( name: mySubscription, page: () => const SubscriptionScreen()),
     GetPage(name: allServices, page: () {
@@ -171,7 +189,12 @@ class RouteHelper {
         builder: (context) => AllServicesScreen(isTutorialActive: formTutorial),
       );
     }),
-    GetPage(transition: Transition.fadeIn, name: signIn, page: () => const SignInScreen(exitFromApp: false,)),
+    GetPage(
+      transition: Transition.fadeIn,
+      name: signIn,
+      page: () => const SignInScreen(exitFromApp: false,),
+      middlewares: [RedirectToHomeMiddleware()],
+    ),
     GetPage(binding: SignupBinding(), name: signUp, page: () => const SignUpScreen()),
 
     GetPage(
@@ -274,5 +297,31 @@ class RouteHelper {
   ];
   static Widget getRoute(Widget navigateTo) {
     return  navigateTo;
+  }
+}
+
+class AuthMiddleware extends GetMiddleware {
+  @override
+  int? get priority => 1;
+
+  @override
+  RouteSettings? redirect(String? route) {
+    if (!Get.find<AuthController>().isLoggedIn()) {
+      return RouteSettings(name: RouteHelper.getSignInRoute('LogIn'));
+    }
+    return null;
+  }
+}
+
+class RedirectToHomeMiddleware extends GetMiddleware {
+  @override
+  int? get priority => 0;
+
+  @override
+  RouteSettings? redirect(String? route) {
+    if (Get.find<AuthController>().isLoggedIn()) {
+      return RouteSettings(name: RouteHelper.getInitialRoute());
+    }
+    return null;
   }
 }

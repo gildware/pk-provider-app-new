@@ -9,123 +9,161 @@ class ConversationListScreen extends StatefulWidget {
   State<ConversationListScreen> createState() => _ConversationListScreenState();
 }
 
-class _ConversationListScreenState extends State<ConversationListScreen> with SingleTickerProviderStateMixin {
-
+class _ConversationListScreenState extends State<ConversationListScreen> with TickerProviderStateMixin {
+  late final TabController _inboxTabController;
 
   @override
   void initState() {
     super.initState();
+    _inboxTabController = TabController(length: 2, vsync: this);
+    _inboxTabController.addListener(_onInboxTabChanged);
     Get.find<ConversationController>().clearSearchController(shouldUpdate: false);
     _loadData();
   }
 
+  void _onInboxTabChanged() {
+    if (_inboxTabController.index == 1 && !_inboxTabController.indexIsChanging) {
+      Get.find<InAppCallController>().getCallHistory(1, reload: true);
+    }
+  }
+
   Future<void> _loadData() async {
     await Get.find<ConversationController>().getChannelList(1, type: "customer");
-    // SERVICEMAN_DISABLED
     if (AppFeatureFlags.servicemanEnabled) {
       await Get.find<ConversationController>().getChannelList(1, type: "serviceman");
     }
   }
 
+  @override
+  void dispose() {
+    _inboxTabController.removeListener(_onInboxTabChanged);
+    _inboxTabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: CustomAppBar(title: 'inbox'.tr,
-        onBackPressed: (){
-
-
-          if(widget.fromNotification == "fromNotification"){
+      appBar: CustomAppBar(
+        title: 'inbox'.tr,
+        onBackPressed: () {
+          if (widget.fromNotification == "fromNotification") {
             Get.offNamed(RouteHelper.getInitialRoute());
-          }else{
-
-            if(Get.find<ConversationController>().isActiveSuffixIcon && Get.find<ConversationController>().isSearchComplete){
+          } else {
+            if (Get.find<ConversationController>().isActiveSuffixIcon &&
+                Get.find<ConversationController>().isSearchComplete) {
               Get.find<ConversationController>().clearSearchController();
-
-            }else{
+            } else {
               Get.back();
             }
           }
         },
       ),
-      body: RefreshIndicator(
-        color: context.adaptivePrimaryColor,
-        backgroundColor: Theme.of(context).cardColor,
-        onRefresh: () async=> Get.find<ConversationController>().getChannelList(1, reload: true),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
+            child: TabBar(
+              controller: _inboxTabController,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: context.tabIndicatorColor,
+              labelColor: context.tabSelectedColor,
+              labelStyle: robotoMedium,
+              tabs: [
+                Tab(text: 'chat'.tr),
+                Tab(text: 'calls'.tr),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _inboxTabController,
+              children: [
+                _buildChatTab(),
+                const CallHistoryListView(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-        child: GetBuilder<ConversationController>(
-          builder: (conversationController){
-
-
-            if(conversationController.customerChannelList != null) {
-              return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-
-                const SizedBox(height: Dimensions.paddingSizeDefault),
+  Widget _buildChatTab() {
+    return RefreshIndicator(
+      color: context.adaptivePrimaryColor,
+      backgroundColor: Theme.of(context).cardColor,
+      onRefresh: () async => Get.find<ConversationController>().getChannelList(1, reload: true),
+      child: GetBuilder<ConversationController>(
+        builder: (conversationController) {
+          if (conversationController.customerChannelList != null) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: Dimensions.paddingSizeSmall),
                 const ConversationSearchWidget(),
-                const SizedBox(height: Dimensions.paddingSizeSmall,),
-
+                const SizedBox(height: Dimensions.paddingSizeExtraSmall),
                 Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start , children: [
-
-                    conversationController.adminConversationModel != null?
-                    ChannelItem(
-                      channelData: conversationController.adminConversationModel!,
-                      isAdmin: true,
-                    ): const SizedBox(),
-
-                    const SizedBox(height: Dimensions.paddingSizeSmall,),
-                    if (AppFeatureFlags.servicemanEnabled)
-                      ConversationListTabview(tabController: conversationController.tabController),
-                    const SizedBox(height: Dimensions.paddingSizeSmall,),
-
-                    Expanded(
-                      child: AppFeatureFlags.servicemanEnabled
-                          ? TabBarView(
-                              controller: conversationController.tabController,
-                              children: [
-                                conversationController.searchedChannelList == null &&
-                                        !conversationController.isSearchComplete
-                                    ? const ConversationSearchShimmer()
-                                    : ConversationListView(
-                                        channelList: conversationController.isSearchComplete
-                                            ? conversationController.searchedCustomerChannelList
-                                            : conversationController.customerChannelList!,
-                                        tabIndex: 0,
-                                      ),
-                                conversationController.searchedChannelList == null &&
-                                        !conversationController.isSearchComplete
-                                    ? const ConversationSearchShimmer()
-                                    : ConversationListView(
-                                        channelList: conversationController.isSearchComplete
-                                            ? conversationController.searchedServicemanChannelList
-                                            : conversationController.servicemanChannelList ?? [],
-                                        tabIndex: 1,
-                                      ),
-                              ],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      conversationController.adminConversationModel != null
+                          ? ChannelItem(
+                              channelData: conversationController.adminConversationModel!,
+                              isAdmin: true,
                             )
-                          : (conversationController.searchedChannelList == null &&
-                                  !conversationController.isSearchComplete
-                              ? const ConversationSearchShimmer()
-                              : ConversationListView(
-                                  channelList: conversationController.isSearchComplete
-                                      ? conversationController.searchedCustomerChannelList
-                                      : conversationController.customerChannelList!,
-                                  tabIndex: 0,
-                                )),
-                    ),
-                  ],),
+                          : const SizedBox(),
+                      if (conversationController.adminConversationModel != null)
+                        const SizedBox(height: Dimensions.paddingSizeExtraSmall),
+                      if (AppFeatureFlags.servicemanEnabled)
+                        ConversationListTabview(tabController: conversationController.tabController),
+                      if (AppFeatureFlags.servicemanEnabled)
+                        const SizedBox(height: Dimensions.paddingSizeExtraSmall),
+                      Expanded(
+                        child: AppFeatureFlags.servicemanEnabled
+                            ? TabBarView(
+                                controller: conversationController.tabController,
+                                children: [
+                                  conversationController.searchedChannelList == null &&
+                                          !conversationController.isSearchComplete
+                                      ? const ConversationSearchShimmer()
+                                      : ConversationListView(
+                                          channelList: conversationController.isSearchComplete
+                                              ? conversationController.searchedCustomerChannelList
+                                              : conversationController.customerChannelList!,
+                                          tabIndex: 0,
+                                        ),
+                                  conversationController.searchedChannelList == null &&
+                                          !conversationController.isSearchComplete
+                                      ? const ConversationSearchShimmer()
+                                      : ConversationListView(
+                                          channelList: conversationController.isSearchComplete
+                                              ? conversationController.searchedServicemanChannelList
+                                              : conversationController.servicemanChannelList ?? [],
+                                          tabIndex: 1,
+                                        ),
+                                ],
+                              )
+                            : (conversationController.searchedChannelList == null &&
+                                    !conversationController.isSearchComplete
+                                ? const ConversationSearchShimmer()
+                                : ConversationListView(
+                                    channelList: conversationController.isSearchComplete
+                                        ? conversationController.searchedCustomerChannelList
+                                        : conversationController.customerChannelList!,
+                                    tabIndex: 0,
+                                  )),
+                      ),
+                    ],
+                  ),
                 ),
-
-              ],);
-            }else{
-              return const ConversationListShimmer();
-            }
-          },
-        ),
+              ],
+            );
+          }
+          return const ConversationListShimmer();
+        },
       ),
     );
   }
 }
-
-

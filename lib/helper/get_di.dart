@@ -16,6 +16,25 @@ import 'package:demandium_provider/util/core_export.dart';
 import 'package:get/get.dart';
 
 
+/// Re-registers booking request dependencies after hot reload (init() does not re-run).
+void ensureBookingRequestDependencies() {
+  if (!Get.isRegistered<BookingRequestRepo>()) {
+    Get.lazyPut(() => BookingRequestRepo(apiClient: Get.find()), fenix: true);
+  }
+  if (!Get.isRegistered<BookingRequestController>()) {
+    Get.lazyPut(
+      () => BookingRequestController(bookingRequestRepo: Get.find()),
+      fenix: true,
+    );
+  }
+  if (!Get.isRegistered<BookingCalendarController>()) {
+    Get.lazyPut(
+      () => BookingCalendarController(bookingRequestRepo: Get.find()),
+      fenix: true,
+    );
+  }
+}
+
 Future<Map<String, Map<String, String>>> init() async{
 
   /// Core
@@ -42,7 +61,7 @@ Future<Map<String, Map<String, String>>> init() async{
   Get.lazyPut(() => BookingDetailsRepo(apiClient: Get.find()));
   Get.lazyPut(() => ReportRepo(apiClient: Get.find()));
   Get.lazyPut(() => UserRepo(Get.find(), apiClient: Get.find()));
-  Get.lazyPut(() => BookingRequestRepo(apiClient: Get.find()));
+  Get.lazyPut(() => BookingRequestRepo(apiClient: Get.find()), fenix: true);
   Get.lazyPut(() => AdvertisementRepo(apiClient: Get.find()));
   Get.lazyPut(() => ShowcaseRepo(apiClient: Get.find()));
   Get.lazyPut(() => SubscriptionRepo(apiClient: Get.find(), sharedPreferences: Get.find()));
@@ -75,11 +94,12 @@ Future<Map<String, Map<String, String>>> init() async{
   Get.lazyPut(() => ServiceCategoryController(serviceRepo:ServiceRepo(apiClient: Get.find())));
   Get.lazyPut(() => TransactionController(transactionRepo: Get.find()));
   Get.lazyPut(() => BookingDetailsController(bookingDetailsRepo: BookingDetailsRepo(apiClient: Get.find())));
-  Get.lazyPut(() => BookingRequestController(bookingRequestRepo: Get.find()));
+  Get.lazyPut(() => BookingRequestController(bookingRequestRepo: Get.find()), fenix: true);
   Get.lazyPut(() => AdvertisementController(advertisementRepo: Get.find()));
   Get.lazyPut(() => ShowcaseController(showcaseRepo: Get.find()));
   Get.lazyPut(() => ServicemanDetailsController(servicemanRepo: Get.find()));
   Get.lazyPut(() => ConversationController(conversationRepo: Get.find()));
+  Get.put(InAppCallController(inAppCallRepo: InAppCallRepo(apiClient: Get.find())), permanent: true);
   Get.lazyPut(() => SuggestServiceController(suggestServiceRepo: Get.find()));
   Get.lazyPut(() => NotificationController(notificationRepo: Get.find()));
   Get.lazyPut(() => BusinessSubscriptionController(subscriptionRepo: SubscriptionRepo(apiClient: Get.find(), sharedPreferences: Get.find())));
@@ -97,7 +117,7 @@ Future<Map<String, Map<String, String>>> init() async{
   Get.lazyPut(() => CompanyIdentityController());
   Get.lazyPut(() => PaymentInfoController(paymentInfoRepo: Get.find()));
   Get.lazyPut(() => PaymentsController(paymentsRepo: Get.find()));
-  Get.lazyPut(() => BookingCalendarController(bookingRequestRepo: Get.find()));
+  Get.lazyPut(() => BookingCalendarController(bookingRequestRepo: Get.find()), fenix: true);
   Get.lazyPut(() => CalenderOrderFilterController());
 
   Get.put(BookingAlertWatcher(), permanent: true);

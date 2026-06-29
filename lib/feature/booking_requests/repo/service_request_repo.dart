@@ -6,9 +6,19 @@ class BookingRequestRepo{
 
   BookingRequestRepo({required this.apiClient});
 
-  Future<Response> getBookingRequestData(String requestType, int offset, ServiceType serviceType) async {
-    return await apiClient.postData(AppConstants.bookingListUrl,
-        {"limit" : 10, "offset" : offset, "booking_status" : requestType, "service_type" : serviceType.name});
+  Future<Response> getBookingRequestData(
+    String requestType,
+    int offset,
+    ServiceType serviceType, {
+    bool includeTabCounts = true,
+  }) async {
+    return await apiClient.postData(AppConstants.bookingListUrl, {
+      "limit": 10,
+      "offset": offset,
+      "booking_status": requestType,
+      "service_type": serviceType.name,
+      if (!includeTabCounts) "include_tab_counts": 0,
+    });
   }
 
   Future<Response> getBookingCalendarData({

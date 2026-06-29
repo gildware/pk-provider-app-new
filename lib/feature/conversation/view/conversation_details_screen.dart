@@ -1,4 +1,6 @@
 
+import 'dart:async';
+
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
 
@@ -27,12 +29,19 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
 
   String phone ='';
   String? providerId = Get.find<UserProfileController>().providerModel?.content?.providerInfo?.userId;
+  Timer? _incomingCallPollTimer;
+
   @override
   void initState() {
     super.initState();
     Get.find<ConversationController>().setChannelId(widget.channelID);
     Get.find<ConversationController>().getConversation(widget.channelID, 1);
     Get.find<ConversationController>().resetControllerValue(shouldUpdate: false);
+    Get.find<InAppCallController>().loadConfig();
+    Get.find<InAppCallController>().checkPendingIncomingCall();
+    _incomingCallPollTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      Get.find<InAppCallController>().checkPendingIncomingCall();
+    });
 
     if(Get.find<SplashController>().configModel.content?.showPhoneNumber==0 && widget.userType.contains("customer")){
       phone = "";
@@ -43,12 +52,20 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
   }
 
   @override
+  void dispose() {
+    _incomingCallPollTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
 
       appBar: ConversationDetailsAppBar(
         fromNotification: widget.formNotification,
         name: widget.name, phone: phone, image: widget.image,
+        channelId: widget.channelID,
+        userType: widget.userType,
       ),
 
       body: GetBuilder<ConversationController>( builder: (conversationController) {

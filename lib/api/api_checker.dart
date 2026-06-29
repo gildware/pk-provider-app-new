@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../helper/auth_session_helper.dart';
 import '../util/core_export.dart';
 
 class ApiChecker {
@@ -28,20 +29,25 @@ class ApiChecker {
   }
 
   static void _executeUnAuthorized(Response response, [String? errorMessage]) {
-    if (!Get.find<AuthController>().isLoggedIn()) {
+    final isLoggedIn = Get.find<AuthController>().isLoggedIn();
+
+    if (isLoggedIn) {
+      Get.find<AuthController>().clearSharedData();
+      Get.find<UserProfileController>().clearUserProfileData();
+    } else if (!AuthSessionHelper.isProtectedRoute()) {
       return;
     }
 
-    Get.find<AuthController>().clearSharedData();
-    Get.find<UserProfileController>().clearUserProfileData();
-
-    if (Get.currentRoute != RouteHelper.getSignInRoute('splash')) {
+    if (Get.currentRoute != RouteHelper.getSignInRoute('splash') &&
+        Get.currentRoute != RouteHelper.getSignInRoute('LogIn')) {
       Get.offAllNamed(RouteHelper.getSignInRoute('splash'));
-      final message = errorMessage ??
-          response.statusText ??
-          'Session expired. Please sign in again.';
-      if (message.isNotEmpty) {
-        showCustomSnackBar(message);
+      if (isLoggedIn) {
+        final message = errorMessage ??
+            response.statusText ??
+            'Session expired. Please sign in again.';
+        if (message.isNotEmpty) {
+          showCustomSnackBar(message);
+        }
       }
     }
   }

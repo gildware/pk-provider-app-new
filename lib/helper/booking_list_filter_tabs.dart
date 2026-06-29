@@ -6,6 +6,7 @@ const List<String> bookingListFilterTabs = [
   'all',
   'pending',
   'accepted',
+  'pending_cancellation',
   'canceled',
   'ongoing',
   'completed',
@@ -51,6 +52,8 @@ IconData bookingListFilterTabIcon(String tab) {
       return Icons.schedule_rounded;
     case 'accepted':
       return Icons.check_circle_outline_rounded;
+    case 'pending_cancellation':
+      return Icons.hourglass_top_rounded;
     case 'canceled':
       return Icons.cancel_outlined;
     case 'ongoing':

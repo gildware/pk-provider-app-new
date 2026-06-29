@@ -1,7 +1,60 @@
 import 'package:demandium_provider/common/widgets/circular_icon_button_widget.dart';
-import 'package:demandium_provider/helper/help_me.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
+
+class _AppBarHeaderIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+  final int? badgeCount;
+
+  const _AppBarHeaderIconButton({
+    required this.icon,
+    required this.onPressed,
+    this.badgeCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: onPressed,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+      splashRadius: 22,
+      icon: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Icon(icon, size: 22, color: context.adaptiveIconColor),
+          if (badgeCount != null && badgeCount! > 0)
+            Positioned(
+              right: -2,
+              top: -2,
+              child: IgnorePointer(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
+                  height: 18,
+                  width: 18,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: context.adaptivePrimaryColor,
+                  ),
+                  child: FittedBox(
+                    child: Text(
+                      badgeCount! > 99 ? '99+' : badgeCount.toString(),
+                      style: robotoRegular.copyWith(
+                        color: light.cardColor,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
 
 class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
@@ -48,31 +101,42 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
           title: title!=null?
           Text(title!.tr,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
             style: robotoBold.copyWith(
               color: context.adaptivePrimaryColor,
               fontSize: titleFontSize ?? Dimensions.fontSizeExtraLarge,
             ),
           ):MobileAppIconHelper.homeLogo(width: 110),
           actions: [
-
-           if(fromBookingRequest) InkWell(
-              onTap: (){
-                Get.toNamed(RouteHelper.getCalendarOrderRoute());
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Get.isDarkMode ? Theme.of(context).cardColor : Colors.white,
-                  border: Border.all(color: context.adaptivePrimaryColor.withValues(alpha:0.1)),
+            if (fromBookingRequest)
+              IconButton(
+                onPressed: () => Get.toNamed(RouteHelper.getCalendarOrderRoute()),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                splashRadius: 22,
+                icon: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Get.isDarkMode ? Theme.of(context).cardColor : Colors.white,
+                    border: Border.all(color: context.adaptivePrimaryColor.withValues(alpha:0.1)),
+                  ),
+                  padding: const EdgeInsets.all(5),
+                  child: Icon(Icons.calendar_month_rounded, size: 22, color: context.adaptiveIconColor),
                 ),
-                padding: const EdgeInsets.all(5),
-                child: Icon(Icons.calendar_month_rounded, size: 22, color: context.adaptiveIconColor),
               ),
+            _AppBarHeaderIconButton(
+              icon: Icons.chat_bubble_outline_rounded,
+              onPressed: () => Get.toNamed(RouteHelper.getInboxScreenRoute()),
             ),
-            SizedBox(width: Dimensions.fontSizeExtraSmall),
+            _AppBarHeaderIconButton(
+              icon: Icons.notifications_outlined,
+              badgeCount: notificationController.unseenNotificationCount,
+              onPressed: () => Get.toNamed(RouteHelper.getNotificationRoute()),
+            ),
 
             // Post/bidding shortcut — hidden unless enabled via admin (Mobile App Management → App Features).
-            (fromBookingRequest && Get.find<SplashController>().configModel.content?.biddingStatus==1)?
+            if (fromBookingRequest && Get.find<SplashController>().configModel.content?.biddingStatus==1)
             Row(
               children: [
 
@@ -164,79 +228,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
               ],
-            ) :
-            Row(children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 10.0),
-                child: InkWell(
-                  hoverColor: Colors.transparent,
-                  splashColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  onTap: () {
-                    if (isRedundentClick(DateTime.now())) {
-                      return;
-                    }
-                    Get.toNamed(RouteHelper.getInboxScreenRoute());
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Icon(
-                      Icons.chat_bubble_outline_rounded,
-                      size: 22,
-                      color: context.adaptiveIconColor,
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 10.0),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    InkWell(
-                      hoverColor: Colors.transparent,
-                      splashColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                      onTap: () {
-                        if (isRedundentClick(DateTime.now())) {
-                          return;
-                        }
-                        Get.toNamed(RouteHelper.getNotificationRoute());
-                        notificationController.resetNotificationCount();
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Icon(
-                          Icons.notifications_outlined,
-                          size: 22,
-                          color: context.adaptiveIconColor,
-                        ),
-                      ),
-                    ),
-                    if (notificationController.unseenNotificationCount > 0)
-                      Positioned(
-                        right: 2,
-                        top: 0,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
-                          height: 20,
-                          width: 20,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: context.adaptivePrimaryColor,
-                          ),
-                          child: FittedBox(
-                            child: Text(
-                              notificationController.unseenNotificationCount.toString(),
-                              style: robotoRegular.copyWith(color: light.cardColor),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ]),
+            ),
             const SizedBox(
               width: Dimensions.paddingSizeExtraSmall,
             )

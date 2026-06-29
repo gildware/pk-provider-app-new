@@ -1,6 +1,7 @@
 
 import 'package:get/get.dart';
 import 'package:demandium_provider/helper/booking_list_filter_tabs.dart';
+import 'package:demandium_provider/helper/get_di.dart' as di;
 import 'package:demandium_provider/util/core_export.dart';
 
 class BookingRequestScreen extends StatefulWidget {
@@ -17,9 +18,11 @@ class _BookingRequestScreenState extends State<BookingRequestScreen>{
   void initState() {
     super.initState();
 
+    di.ensureBookingRequestDependencies();
     Get.find<UserProfileController>().getProviderInfo(reload: true);
     Get.find<BookingRequestController>().updateSelectedServiceType();
     Get.find<BookingRequestController>().getBookingRequestList('pending',1,reload: true, isFirst: true);
+    Get.find<BookingDetailsController>().prefetchProviderReasonLists();
   }
 
   @override

@@ -61,7 +61,11 @@ class SplashController extends GetxController implements GetxService {
     } else if ((Get.currentRoute.contains(RouteHelper.maintenanceRoute) &&
         (_configModel.content?.maintenanceMode?.maintenanceStatus == 0 ||
             _configModel.content?.maintenanceMode?.selectedMaintenanceSystem?.providerApp == 0))) {
-      Get.offAllNamed(RouteHelper.getInitialRoute());
+      if (Get.find<AuthController>().isLoggedIn()) {
+        Get.offAllNamed(RouteHelper.getInitialRoute());
+      } else {
+        Get.offAllNamed(RouteHelper.getSignInRoute('LogIn'));
+      }
     } else if (_configModel.content?.maintenanceMode?.maintenanceStatus == 0) {
       if (_configModel.content?.maintenanceMode?.selectedMaintenanceSystem?.providerApp == 1) {
         if (_configModel.content?.maintenanceMode?.maintenanceTypeAndDuration?.maintenanceDuration ==

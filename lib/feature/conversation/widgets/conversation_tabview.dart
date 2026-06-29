@@ -23,18 +23,18 @@ class ConversationListTabview extends StatelessWidget {
               tabAlignment: TabAlignment.start,
               labelPadding: EdgeInsets.only(
                 right: conversationController.isActiveSuffixIcon && conversationController.isSearchComplete
-                    && conversationController.searchedCustomerChannelList.isNotEmpty ? 10 : 25,
+                    && conversationController.searchedCustomerChannelList.isNotEmpty ? 8 : 18,
               ),
-              indicatorPadding: const EdgeInsets.only(right: 30),
+              indicatorPadding: const EdgeInsets.only(right: 24),
               tabs:  [
                 SizedBox(
-                  height: 35,
+                  height: 28,
                   child:Center(
                     child: Row(
                       children: [
                         Text("customer".tr),
                         conversationController.isActiveSuffixIcon && conversationController.isSearchComplete  && conversationController.searchedCustomerChannelList.isNotEmpty?
-                        Container(height: 15 , width: 15,
+                        Container(height: 13 , width: 13,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle, color: context.adaptivePrimaryColor,
                           ),
@@ -53,13 +53,13 @@ class ConversationListTabview extends StatelessWidget {
                 // SERVICEMAN_DISABLED
                 if (AppFeatureFlags.servicemanEnabled)
                 SizedBox(
-                  height: 35,
+                  height: 28,
                   child:  Center(
                     child: Row(
                       children: [
                         Text("serviceman".tr),
                         conversationController.isActiveSuffixIcon && conversationController.isSearchComplete  && conversationController.searchedServicemanChannelList.isNotEmpty?
-                        Container(height: 15 , width: 15,
+                        Container(height: 13 , width: 13,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle, color: context.adaptivePrimaryColor,
                           ),

@@ -133,7 +133,7 @@ class BookingDetailsWidget extends StatelessWidget {
                 ),
               ),
 
-              (  (!isSubBooking || (isSubBooking && bookingDetails.bookingStatus != "pending")) && (bookingDetails.bookingStatus == "pending" || bookingDetails.bookingStatus == "accepted" || bookingDetails.bookingStatus == "ongoing" )) ?
+              (  (!isSubBooking || (isSubBooking && bookingDetails.bookingStatus != "pending")) && const {'pending', 'accepted', 'ongoing', 'on_hold'}.contains(bookingDetails.bookingStatus)) ?
               ChangeStatusDropdownButton(
                 bookingDetails: bookingDetails,
                 bookingId: bookingDetails.id!,

@@ -111,7 +111,7 @@ class DigitalPaymentLauncher {
       final paymentId = uri.queryParameters['payment_id'];
       if (paymentId != null && paymentId.isNotEmpty) {
         final prepareUri = Uri.parse(
-          '${AppConstants.baseUrl}/payment/razor-pay/native-prepare',
+          '${ApiUrlHelper.resolveBaseUrl()}/payment/razor-pay/native-prepare',
         ).replace(queryParameters: {
           'payment_id': paymentId,
           if (accessToken != null && accessToken.isNotEmpty)
@@ -215,7 +215,7 @@ class DigitalPaymentLauncher {
 
       try {
         final verifyUri = Uri.parse(
-          '${AppConstants.baseUrl}/payment/razor-pay/verify-payment',
+          '${ApiUrlHelper.resolveBaseUrl()}/payment/razor-pay/verify-payment',
         ).replace(
           queryParameters: {
             'payment_request_id': paymentRequestId,

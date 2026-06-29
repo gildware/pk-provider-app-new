@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:demandium_provider/feature/booking_details/widget/booking_cancel_reason_dialog.dart';
 import 'package:demandium_provider/common/model/notification_body.dart';
 import 'package:demandium_provider/helper/booking_alert_watcher.dart';
 import 'package:demandium_provider/common/widgets/booking_alert_dialog_widget.dart';
@@ -69,14 +70,11 @@ class BookingNotificationActionHandler {
     }
 
     if (actionId == BookingNotificationConstants.rejectActionId) {
-      await _performBookingAction(
-        accept: false,
-        bookingId: bookingId,
-        cancelNotification: true,
-      );
-      BookingAlertWatcher.markBookingHandled(bookingId);
-      if (!fromBackground) {
-        _refreshBookingData();
+      if (!fromBackground && _isAppInitialized()) {
+        BookingCancelReasonDialog.showReject(
+          bookingId: bookingId,
+          currentBookingStatus: 'pending',
+        );
       }
       return;
     }
@@ -95,6 +93,9 @@ class BookingNotificationActionHandler {
     if (bookingId == null || bookingId.isEmpty) {
       return;
     }
+    if (BookingAlertWatcher.isBookingHandled(bookingId)) {
+      return;
+    }
     if (_shownAlertBookingIds.contains(bookingId)) {
       return;
     }
@@ -104,8 +105,11 @@ class BookingNotificationActionHandler {
 
     _shownAlertBookingIds.add(bookingId);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (BookingAlertWatcher.isBookingHandled(bookingId)) {
+        return;
+      }
       if (Get.isDialogOpen == true) {
-        _shownAlertBookingIds.remove(bookingId);
+        _releaseShownAlertSlot(bookingId);
         return;
       }
       Get.dialog(
@@ -115,15 +119,22 @@ class BookingNotificationActionHandler {
           body: data['body']?.toString() ?? '',
           bookingType: data['booking_type']?.toString(),
           repeatBookingType: data['repeat_type']?.toString(),
-          onClosed: () => _shownAlertBookingIds.remove(bookingId),
+          onClosed: () => _releaseShownAlertSlot(bookingId),
         ),
         barrierDismissible: false,
-      ).whenComplete(() => _shownAlertBookingIds.remove(bookingId));
+      ).whenComplete(() => _releaseShownAlertSlot(bookingId));
     });
   }
 
   static void showBookingAlertFromBody(NotificationBody body) {
     showBookingAlert(body.toJson());
+  }
+
+  static void _releaseShownAlertSlot(String bookingId) {
+    if (BookingAlertWatcher.isBookingHandled(bookingId)) {
+      return;
+    }
+    _shownAlertBookingIds.remove(bookingId);
   }
 
   static void _refreshBookingData() {
@@ -208,6 +219,7 @@ class BookingNotificationActionHandler {
   static bool _isAppInitialized() => Get.isRegistered<SharedPreferences>();
 
   static Future<void> acceptFromDialog(String bookingId) async {
+    BookingAlertWatcher.markBookingHandled(bookingId);
     if (!Get.isRegistered<BookingDetailsController>()) {
       await _performBookingAction(
         accept: true,
@@ -222,26 +234,13 @@ class BookingNotificationActionHandler {
     await FlutterLocalNotificationsPlugin().cancel(
       id: BookingNotificationConstants.notificationIdFor(bookingId),
     );
-    BookingAlertWatcher.markBookingHandled(bookingId);
     _refreshBookingData();
   }
 
   static Future<void> rejectFromDialog(String bookingId) async {
-    if (!Get.isRegistered<BookingDetailsController>()) {
-      await _performBookingAction(
-        accept: false,
-        bookingId: bookingId,
-        cancelNotification: true,
-      );
-      _refreshBookingData();
-      return;
-    }
-
-    await Get.find<BookingDetailsController>().ignoreBookingRequest(bookingId);
-    await FlutterLocalNotificationsPlugin().cancel(
-      id: BookingNotificationConstants.notificationIdFor(bookingId),
+    BookingCancelReasonDialog.showReject(
+      bookingId: bookingId,
+      currentBookingStatus: 'pending',
     );
-    BookingAlertWatcher.markBookingHandled(bookingId);
-    _refreshBookingData();
   }
 }

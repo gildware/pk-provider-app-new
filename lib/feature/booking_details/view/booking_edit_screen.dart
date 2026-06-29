@@ -21,11 +21,19 @@ class _BookingEditScreenState extends State<BookingEditScreen> {
 
     var bookingDetailsController = Get.find<BookingDetailsController>();
 
+    final bookingContent = widget.bookingEditType == BookingEditType.subBooking
+        ? bookingDetailsController.subBookingDetails?.content
+        : bookingDetailsController.bookingDetails?.content;
+
     Get.find<BookingEditController>().initializedControllerValue(
-      widget.bookingEditType == BookingEditType.subBooking
-          ? bookingDetailsController.subBookingDetails?.content : bookingDetailsController.bookingDetails?.content,
+      bookingContent,
       shouldUpdate: false,
     );
+
+    final subCategoryId = bookingContent?.subcategoryId ?? '';
+    if (subCategoryId.isNotEmpty) {
+      Get.find<BookingEditController>().getServiceListBasedOnSubcategory(subCategoryId: subCategoryId);
+    }
 
     Get.find<BookingEditController>().updateIsCheckedAllUpcomingBooking(shouldUpdate: false);
   }

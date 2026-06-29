@@ -20,8 +20,19 @@ class BookingDetailsRepo{
     return await apiClient.putData("${AppConstants.acceptBookingRequestUrl}/$bookingID",{'method':'put'});
   }
 
-  Future<Response> ignoreBookingRequest(String bookingID) async {
-    return await apiClient.postData("${AppConstants.ignoreBookingRequestUrl}/$bookingID", {});
+  Future<Response> ignoreBookingRequest(
+    String bookingID, {
+    int? providerCancellationReasonId,
+    String? statusChangeRemarks,
+  }) async {
+    final Map<String, dynamic> body = {};
+    if (providerCancellationReasonId != null) {
+      body['booking_provider_cancellation_reason_id'] = providerCancellationReasonId;
+    }
+    if (statusChangeRemarks != null && statusChangeRemarks.trim().isNotEmpty) {
+      body['status_change_remarks'] = statusChangeRemarks.trim();
+    }
+    return await apiClient.postData("${AppConstants.ignoreBookingRequestUrl}/$bookingID", body);
   }
 
   Future<Response> cancelSubBooking(String subBookingId) async {
@@ -34,6 +45,10 @@ class BookingDetailsRepo{
 
   Future<Response> getProviderCancellationReasons() async {
     return await apiClient.getData(AppConstants.providerCancellationReasonsUrl);
+  }
+
+  Future<Response> getProviderHoldReasons() async {
+    return await apiClient.getData(AppConstants.providerHoldReasonsUrl);
   }
 
   Future<Response> changeBookingStatus(
@@ -63,9 +78,15 @@ class BookingDetailsRepo{
     if (statusChangeRemarks != null && statusChangeRemarks.trim().isNotEmpty) {
       body['status_change_remarks'] = statusChangeRemarks.trim();
     }
-    return await apiClient.postMultipartData(
-        "${isSubBooking ? AppConstants.changeSubBookingStatus : AppConstants.changeBookingStatus}/$bookingID", body, photoEvidence,null
-    );
+
+    final url =
+        '${isSubBooking ? AppConstants.changeSubBookingStatus : AppConstants.changeBookingStatus}/$bookingID';
+
+    if (photoEvidence != null && photoEvidence.isNotEmpty) {
+      return await apiClient.postMultipartData(url, body, photoEvidence, null);
+    }
+
+    return await apiClient.putData(url, body);
   }
 
   Future<Response> recordBookingPayment(String bookingId, double amount) async {

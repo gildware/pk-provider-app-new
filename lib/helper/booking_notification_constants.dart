@@ -11,7 +11,8 @@ class BookingNotificationConstants {
     if (data['type']?.toString() != 'booking') {
       return false;
     }
-    return data['booking_status']?.toString().toLowerCase() == 'pending';
+    final status = data['booking_status']?.toString().toLowerCase() ?? '';
+    return status == 'pending';
   }
 
   static int notificationIdFor(String bookingId) =>

@@ -224,19 +224,27 @@ class AuthController extends GetxController implements GetxService {
   Future<ResponseModel> sendProviderLoginOtp(String phone) async {
     _isLoading = true;
     update();
-    Response response = await authRepo.sendProviderLoginOtp(phone);
     ResponseModel responseModel;
-    if (response.statusCode == 200 && response.body['response_code'] == 'default_200') {
-      responseModel = ResponseModel(true, '');
-    } else {
-      final responseCode = response.body['response_code']?.toString();
-      final responseText = response.statusCode == 500
-          ? trLabel('internal_server_error', fallback: 'Internal Server Error')
-          : trLabel(responseCode, fallback: response.body['message']?.toString() ?? response.statusText);
-      responseModel = ResponseModel(false, responseText);
+    try {
+      final response = await authRepo.sendProviderLoginOtp(phone);
+      final body = response.body;
+      if (response.statusCode == 200 && body is Map && body['response_code'] == 'default_200') {
+        responseModel = ResponseModel(true, '');
+      } else {
+        final responseCode = body is Map ? body['response_code']?.toString() : null;
+        final message = body is Map ? body['message']?.toString() : null;
+        final responseText = response.statusCode == 500
+            ? trLabel('internal_server_error', fallback: 'Internal Server Error')
+            : trLabel(responseCode, fallback: message ?? response.statusText);
+        responseModel = ResponseModel(false, responseText);
+      }
+    } catch (e, stack) {
+      ErrorLogger.record(e, stack, reason: 'AuthController.sendProviderLoginOtp');
+      responseModel = ResponseModel(false, 'connection_to_api_server_failed'.tr);
+    } finally {
+      _isLoading = false;
+      update();
     }
-    _isLoading = false;
-    update();
     return responseModel;
   }
 

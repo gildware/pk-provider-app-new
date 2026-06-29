@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:demandium_provider/feature/notifications/widget/notification_shimmer.dart';
+import 'package:demandium_provider/feature/notifications/model/notofication_model.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
 
@@ -12,10 +14,23 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
+  Timer? _inboxPollTimer;
+
   @override
   void initState() {
     super.initState();
     Get.find<NotificationController>().getNotifications(1, reload: true);
+    _inboxPollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (Get.isRegistered<NotificationController>()) {
+        Get.find<NotificationController>().refreshInboxFromPush();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _inboxPollTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -66,14 +81,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         ),
 
                         child: ListView.separated(itemBuilder: (context, index1) {
+                          final item = controller.notificationList[index0][index1] as Data;
                           return InkWell(
-                            onTap: () => showDialog(context: context, builder: (ctx)  =>
-                                ImageDialog(
-                                  imageUrl: '${controller.notificationList[index0][index1].coverImageFullPath}',
-                                  title: controller.notificationList[index0][index1].title.toString().trim(),
-                                  subTitle: "${controller.notificationList[index0][index1].description}",
-                                )
-                            ),
+                            onTap: () => controller.handleInboxNotificationTap(item),
                             child: Container(
                                 padding:  const EdgeInsets.symmetric(
                                     horizontal: Dimensions.paddingSizeDefault,
@@ -88,7 +98,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(50),
                                         child: CustomImage(
-                                          image: '${controller.notificationList[index0][index1].coverImageFullPath}',
+                                          image: '${item.coverImageFullPath}',
                                           height: 30, width: 30, fit: BoxFit.cover,
                                         ),
                                       ),
@@ -98,19 +108,38 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text(controller.notificationList[index0][index1].title.toString().trim(),
-                                              style: robotoMedium.copyWith(color: Theme.of(context).
-                                              textTheme.bodyLarge!.color!.withValues(alpha:0.7) ,
-                                                fontSize: Dimensions.fontSizeDefault,
-                                              ),
+                                            Row(
+                                              children: [
+                                                if (item.isRead != true)
+                                                  Container(
+                                                    width: 8,
+                                                    height: 8,
+                                                    margin: const EdgeInsets.only(right: 6),
+                                                    decoration: BoxDecoration(
+                                                      color: context.adaptivePrimaryColor,
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                  ),
+                                                Expanded(
+                                                  child: Text(
+                                                    item.title.toString().trim(),
+                                                    style: robotoMedium.copyWith(
+                                                      color: Theme.of(context).textTheme.bodyLarge!.color!.withValues(alpha: item.isRead == true ? 0.7 : 1),
+                                                      fontSize: Dimensions.fontSizeDefault,
+                                                      fontWeight: item.isRead == true ? FontWeight.w500 : FontWeight.w700,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                             const SizedBox(height: Dimensions.paddingSizeSmall,),
-                                            Text("${controller.notificationList[index0][index1].description}",
-                                              style: robotoRegular.copyWith(color: Theme.of(context).
-                                              textTheme.bodyLarge!.color!.withValues(alpha:0.5) ,
+                                            Text(
+                                              '${item.description}',
+                                              style: robotoRegular.copyWith(
+                                                color: Theme.of(context).textTheme.bodyLarge!.color!.withValues(alpha: 0.5),
                                                 fontSize: Dimensions.fontSizeDefault,
                                               ),
-                                              maxLines:2,
+                                              maxLines: 2,
                                             ),
                                           ],
                                         ),
@@ -121,8 +150,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                           mainAxisAlignment: MainAxisAlignment.end,
                                           children: [
                                             Text(DateConverter.convertStringTimeOnly(
-                                                DateConverter.isoUtcStringToLocalDate(
-                                                    controller.notificationList[index0][index1].createdAt)),
+                                                DateConverter.isoUtcStringToLocalDate(item.createdAt ?? '')),
                                             ),
                                           ],
                                         ),
