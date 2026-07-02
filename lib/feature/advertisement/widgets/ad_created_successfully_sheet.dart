@@ -53,18 +53,16 @@ class AdCreatedSuccessfullySheet extends StatelessWidget {
               ),
               recognizer: TapGestureRecognizer()..onTap = () {
                 ConversationController conversationController = Get.find();
-                if(conversationController.adminConversationModel != null){
-                  String name = "admin";
-                  ConversationUserModel? conversationUser;
-                  if(conversationController.adminConversationModel?.channelUsers !=null && conversationController.adminConversationModel!.channelUsers!.length > 1){
-                    conversationUser = conversationController.adminConversationModel?.channelUsers?[0].user?.userType != "super-admin" ? conversationController.adminConversationModel?.channelUsers![0] : conversationController.adminConversationModel?.channelUsers![1];
-                  }
-                  String image = '${Get.find<SplashController>().configModel.content?.faviconFullPath}';
-                  String phone =  conversationUser?.user?.phone ?? "";
-                  String userType =  "super_admin";
+                final adminChannel = conversationController.adminConversationModel;
+                if (adminChannel != null) {
+                  final channelId = adminChannel.id ?? '';
+                  final name = AdminChatBrandingHelper.displayName;
+                  final image = AdminChatBrandingHelper.logoImageUrl();
+                  final phone = AdminChatBrandingHelper.adminPhone;
+                  const userType = 'super-admin';
                   Get.toNamed(RouteHelper.getChatScreenRoute(
-                      conversationUser?.channelId ?? "",name,image,phone,userType));
-                }else{
+                      channelId, name, image, phone, userType));
+                } else {
                   Get.toNamed(RouteHelper.getInboxScreenRoute());
                 }
               },

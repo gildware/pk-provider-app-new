@@ -21,6 +21,10 @@ class ConversationDetailsAppBar extends StatelessWidget implements PreferredSize
 
   @override
   Widget build(BuildContext context) {
+    final displayPhone = AdminChatBrandingHelper.chatPhone(
+      userType: userType,
+      fallback: phone,
+    );
 
     return AppBar(
       elevation: 5, titleSpacing: 0,
@@ -32,7 +36,9 @@ class ConversationDetailsAppBar extends StatelessWidget implements PreferredSize
         ClipRRect(borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraLarge * 2),
           child: CustomImage(
             image: image, height: 30, width: 30,
-            placeholder: name == "admin" ? Images.adminPlaceHolder : Images.userPlaceHolder,
+            placeholder: AdminChatBrandingHelper.isSuperAdmin(userType)
+                ? AdminChatBrandingHelper.logoPlaceholder
+                : Images.userPlaceHolder,
           ),
         ),
         const SizedBox(width: Dimensions.paddingSizeSmall),
@@ -40,9 +46,9 @@ class ConversationDetailsAppBar extends StatelessWidget implements PreferredSize
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-            Text( name?.tr ?? "", style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault)),
+              Text(name ?? "", style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault)),
 
-            if(phone !="") Text(phone ?? "", style: robotoLight.copyWith( fontSize: Dimensions.fontSizeSmall)),
+            if(displayPhone.isNotEmpty) Text(displayPhone, style: robotoLight.copyWith( fontSize: Dimensions.fontSizeSmall)),
 
           ]),
         ),
@@ -61,7 +67,7 @@ class ConversationDetailsAppBar extends StatelessWidget implements PreferredSize
                       channelId!,
                       peerName: name,
                       peerImage: image,
-                      peerPhone: phone,
+                      peerPhone: displayPhone,
                       peerUserType: userType,
                     ),
             icon: Icon(Icons.call, color: context.adaptiveIconColor),
@@ -74,10 +80,12 @@ class ConversationDetailsAppBar extends StatelessWidget implements PreferredSize
       leading: Padding(
         padding: const EdgeInsets.only(left: Dimensions.paddingSizeDefault),
         child: IconButton(onPressed: () {
-          if(fromNotification == "fromNotification"){
+          if (fromNotification == 'fromNotification') {
             Get.offNamed(RouteHelper.getInboxScreenRoute(fromNotification: fromNotification));
-          }else{
+          } else if (Navigator.canPop(context)) {
             Get.back();
+          } else {
+            Get.offNamed(RouteHelper.getInboxScreenRoute());
           }
         },
           icon: Icon(Icons.arrow_back_ios,

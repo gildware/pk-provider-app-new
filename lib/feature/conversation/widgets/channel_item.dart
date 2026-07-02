@@ -1,4 +1,4 @@
-
+import 'package:demandium_provider/feature/conversation/widgets/channel_last_message_status.dart';
 import 'package:demandium_provider/helper/extension_helper.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
@@ -16,7 +16,9 @@ class ChannelItem extends StatelessWidget {
     int? isSeen;
     String? lastMessage;
 
-    String providerOwnerName = "${Get.find<UserProfileController>().providerModel?.content?.providerInfo?.owner?.firstName} ${Get.find<UserProfileController>().providerModel?.content?.providerInfo?.owner?.lastName}";
+    String currentUserName = "${Get.find<UserProfileController>().providerModel?.content?.providerInfo?.owner?.firstName ?? ''} ${Get.find<UserProfileController>().providerModel?.content?.providerInfo?.owner?.lastName ?? ''}".trim();
+    final isLastMessageFromCurrentUser =
+        channelData.lastMessageSentUser?.trim() == currentUserName;
 
 
     if(channelData.channelUsers !=null && channelData.channelUsers!.length > 1){
@@ -26,11 +28,19 @@ class ChannelItem extends StatelessWidget {
 
     }
 
-    String imageWithPath = conversationUser?.user?.userType=="super-admin" ?
-    Get.find<SplashController>().configModel.content?.faviconFullPath ?? "" : conversationUser?.user?.profileImageFullPath ?? "";
+    if (isAdmin && conversationUser == null) {
+      isRead = 1;
+    }
+
+    final isAdminChat = isAdmin ||
+        AdminChatBrandingHelper.isSuperAdmin(conversationUser?.user?.userType);
+
+    String imageWithPath = isAdminChat
+        ? AdminChatBrandingHelper.logoImageUrl()
+        : (conversationUser?.user?.profileImageFullPath ?? '');
 
     if(channelData.lastSentMessage !=null ){
-      if(channelData.lastMessageSentUser == providerOwnerName){
+      if(channelData.lastMessageSentUser?.trim() == currentUserName){
         lastMessage = "${'you'.tr}: ${channelData.lastSentMessage}";
       }else{
         lastMessage = "${channelData.lastSentMessage}";
@@ -39,7 +49,7 @@ class ChannelItem extends StatelessWidget {
     }else{
       if(channelData.lastSentAttachmentType !=null){
        if((channelData.lastSentAttachmentType == "png" || channelData.lastSentAttachmentType == "jpg")){
-         if(channelData.lastMessageSentUser == providerOwnerName){
+         if(channelData.lastMessageSentUser?.trim() == currentUserName){
 
            if(channelData.lastSentFileCount!=null && channelData.lastSentFileCount! > 1){
              lastMessage = "${'you_sent'.tr} ${channelData.lastSentFileCount} ${'photos'.tr}";
@@ -58,7 +68,7 @@ class ChannelItem extends StatelessWidget {
          }
        }else{
 
-         if(channelData.lastMessageSentUser == providerOwnerName){
+         if(channelData.lastMessageSentUser?.trim() == currentUserName){
            if(channelData.lastSentFileCount!=null && channelData.lastSentFileCount! > 1){
              lastMessage = "${'you_sent'.tr} ${channelData.lastSentFileCount} ${"attachments".tr}";
            }else{
@@ -77,7 +87,15 @@ class ChannelItem extends StatelessWidget {
       }
     }
 
-    return conversationUser != null ? Container(
+    final channelTimestamp = conversationUser?.updatedAt ??
+        channelData.lastSentAt ??
+        channelData.createdAt;
+
+    if (!isAdmin && conversationUser == null) {
+      return const SizedBox();
+    }
+
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 2, horizontal: Dimensions.paddingSizeEight),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
@@ -95,7 +113,9 @@ class ChannelItem extends StatelessWidget {
             ClipRRect(borderRadius: BorderRadius.circular(50),
               child: CustomImage(height: 42, width: 42,
                 image: imageWithPath,
-                placeholder: isAdmin ? Images.adminPlaceHolder : Images.userPlaceHolder,
+                placeholder: isAdminChat
+                    ? AdminChatBrandingHelper.logoPlaceholder
+                    : Images.userPlaceHolder,
               ),
             ),
 
@@ -105,7 +125,9 @@ class ChannelItem extends StatelessWidget {
 
               Row(children: [
                 Expanded(
-                  child: Text( isAdmin ? "admin".tr : "${ conversationUser.user?.firstName??""} ${ conversationUser.user?.lastName}",
+                  child: Text(isAdminChat
+                      ? AdminChatBrandingHelper.displayName
+                      : "${conversationUser?.user?.firstName ?? ""} ${conversationUser?.user?.lastName}",
                     style: robotoBold.copyWith(
                       fontSize: Dimensions.fontSizeDefault,
                       color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha:0.7)
@@ -115,7 +137,7 @@ class ChannelItem extends StatelessWidget {
                   ),
                 ),
 
-                if( conversationUser.user?.userType == "super-admin") Padding(
+                if (isAdminChat) Padding(
                   padding: const EdgeInsets.only(left: Dimensions.paddingSizeExtraSmall),
                   child: Container(
                     decoration: BoxDecoration(
@@ -134,10 +156,11 @@ class ChannelItem extends StatelessWidget {
 
                 const SizedBox(width: Dimensions.paddingSizeExtraSmall),
 
-                Text(DateConverter.dateMonthYearTime(DateConverter.isoUtcStringToLocalDate(conversationUser.updatedAt!)),
-                  style: robotoRegular.copyWith(color: Theme.of(context).hintColor, fontSize: Dimensions.fontSizeExtraSmall),
-                  textDirection: TextDirection.ltr,
-                ),
+                if (channelTimestamp != null && channelTimestamp.isNotEmpty)
+                  Text(DateConverter.dateMonthYearTime(DateConverter.isoUtcStringToLocalDate(channelTimestamp)),
+                    style: robotoRegular.copyWith(color: Theme.of(context).hintColor, fontSize: Dimensions.fontSizeExtraSmall),
+                    textDirection: TextDirection.ltr,
+                  ),
               ]),
 
               if(lastMessage!=null) Padding(padding: const EdgeInsets.only(top: 2),
@@ -156,9 +179,9 @@ class ChannelItem extends StatelessWidget {
                       ),
                     ),
 
-                    if(channelData.lastMessageSentUser == providerOwnerName) Icon(Icons.done_all,
-                      color: isSeen ==1  && isRead == 1 ? context.tabSelectedColor : Theme.of(context).hintColor.withValues(alpha:0.7),
-                      size: 16,
+                    if(isLastMessageFromCurrentUser) ChannelLastMessageStatus(
+                      status: channelData.lastMessageStatus,
+                      peerIsRead: isSeen,
                     ),
                   ],
                 ),
@@ -171,19 +194,34 @@ class ChannelItem extends StatelessWidget {
         Positioned.fill(child: CustomInkWell(
           radius: Dimensions.radiusDefault,
           onTap:(){
-            String name = isAdmin ? "admin" : "${ conversationUser?.user?.firstName ?? ""} ${ conversationUser?.user?.lastName??""}";
-            String image = imageWithPath;
-            String phone =  conversationUser?.user?.phone??"";
-            String userType =  conversationUser?.user?.userType??"";
+            String name = isAdminChat
+                ? AdminChatBrandingHelper.displayName
+                : "${conversationUser?.user?.firstName ?? ""} ${conversationUser?.user?.lastName ?? ""}";
+            String image = isAdminChat ? AdminChatBrandingHelper.logoImageUrl() : imageWithPath;
+            String phone = AdminChatBrandingHelper.chatPhone(
+              userType: isAdminChat ? 'super-admin' : conversationUser?.user?.userType,
+              fallback: conversationUser?.user?.phone,
+            );
+            String userType = isAdminChat ? 'super-admin' : (conversationUser?.user?.userType ?? "");
+            final channelId = channelData.id ?? conversationUser?.channelId ?? "";
+            final conversationController = Get.find<ConversationController>();
+            conversationController.setChannelId(channelId);
+            conversationController.setActiveChannelPeer(
+              userType: userType,
+              name: name,
+              image: image,
+              phone: phone,
+            );
+            conversationController.prefetchConversation(channelId);
             Get.toNamed(RouteHelper.getChatScreenRoute(
-                conversationUser?.channelId ?? "",name,image,phone,userType));
+                channelId,name,image,phone,userType));
           },
         ),)
 
 
       ],),
 
-    ) : const SizedBox();
+    );
   }
 }
 

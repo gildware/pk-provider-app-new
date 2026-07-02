@@ -5,6 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:demandium_provider/common/widgets/demo_reset_dialog_widget.dart';
 import 'package:demandium_provider/firebase_options.dart';
 import 'package:demandium_provider/helper/booking_notification_constants.dart';
+import 'package:demandium_provider/helper/error_logger.dart';
 import 'package:demandium_provider/util/core_export.dart';
 import 'package:demandium_provider/helper/notification_sound_util.dart';
 import 'package:get/get.dart';
@@ -12,6 +13,22 @@ import 'package:http/http.dart' as http;
 
 
 class NotificationHelper {
+
+  static bool _foregroundMessagingRegistered = false;
+
+  /// iOS foreground: when true, FCM/APNS shows the system banner (used off chat).
+  /// When false, banners are suppressed while viewing a chat thread.
+  static Future<void> setIosForegroundBannerEnabled(bool enabled) async {
+    if (!GetPlatform.isIOS) {
+      return;
+    }
+
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: enabled,
+      badge: true,
+      sound: enabled,
+    );
+  }
 
   static Future<void> createAndroidNotificationChannels(
     FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
@@ -29,9 +46,13 @@ class NotificationHelper {
   static Future<void> initialize(FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin) async {
     await createAndroidNotificationChannels(flutterLocalNotificationsPlugin);
     var androidInitialize = const AndroidInitializationSettings('notification_icon');
-    const iOSInitialize = DarwinInitializationSettings();
+    const iOSInitialize = DarwinInitializationSettings(
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
+    );
     var initializationsSettings = InitializationSettings(android: androidInitialize, iOS: iOSInitialize);
-    flutterLocalNotificationsPlugin.initialize(
+    await flutterLocalNotificationsPlugin.initialize(
       settings: initializationsSettings,
       onDidReceiveNotificationResponse: (NotificationResponse? notificationResponse) async {
         try {
@@ -64,25 +85,7 @@ class NotificationHelper {
             print("Type: ${notificationBody.notificationType}");
           }
           if(notificationBody.notificationType=="chatting"){
-
-            if(Get.currentRoute.contains(RouteHelper.chatScreen)){
-              Get.back();
-              Get.back();
-
-            } else if(Get.currentRoute.contains(RouteHelper.chatInbox)){
-              Get.back();
-
-            }
-
-            Get.toNamed(RouteHelper.getChatScreenRoute(
-              notificationBody.channelId??"",
-              notificationBody.userType == "supper-admin" ? "admin" : notificationBody.userName??"",
-              notificationBody.userProfileImage??"",
-              notificationBody.userPhone??"",
-              notificationBody.userType??"",
-              fromNotification: "fromNotification",
-            ));
-
+            openChatFromNotification(notificationBody);
           }
           else if(_isInAppCallEvent(notificationBody.notificationType)){
             if(Get.isRegistered<InAppCallController>()){
@@ -112,6 +115,9 @@ class NotificationHelper {
           }
           else if(notificationBody.notificationType == 'service_request'){
             Get.to(()=> const SuggestedServiceListScreen());
+          }
+          else if(notificationBody.notificationType == 'showcase'){
+            Get.to(() => const ShowcaseListScreen());
           }
           else if(notificationBody.notificationType == 'maintenance'){
             Get.toNamed(RouteHelper.getSplashRoute());
@@ -143,6 +149,21 @@ class NotificationHelper {
       },
     );
 
+    if (GetPlatform.isIOS) {
+      await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
+    }
+
+    if (kDebugMode) {
+      print('NotificationHelper: FCM onMessage listener registered');
+    }
+
+    if (_foregroundMessagingRegistered) {
+      return;
+    }
+    _foregroundMessagingRegistered = true;
+
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
 
       if (kDebugMode) {
@@ -163,27 +184,7 @@ class NotificationHelper {
       }
 
       else if(message.data['type']=='chatting'){
-
-        if((message.data['channel_id']!="" && message.data['channel_id']!=null)){
-
-          if(Get.currentRoute.contains(RouteHelper.chatScreen) && (message.data['channel_id'] == Get.find<ConversationController>().channelId) ){
-            Get.find<ConversationController>().getConversation(message.data['channel_id'], 1);
-          }else if(Get.currentRoute.contains(RouteHelper.chatInbox)
-              || Get.currentRoute.contains(RouteHelper.chatScreen)){
-
-            NotificationHelper.showNotification(message, false,flutterLocalNotificationsPlugin);
-            if(message.data['user_type'] == 'customer'){
-              Get.find<ConversationController>().getChannelList(1);
-            }else if (AppFeatureFlags.servicemanEnabled) {
-              Get.find<ConversationController>().getChannelList(1, type: "serviceman");
-            }
-          }else{
-            NotificationHelper.showNotification(message, false,flutterLocalNotificationsPlugin);
-          }
-
-        } else{
-          NotificationHelper.showNotification(message, false,flutterLocalNotificationsPlugin);
-        }
+        unawaited(_handleChattingPush(message, flutterLocalNotificationsPlugin));
       }
       
       else if(message.data['type']=='general'){
@@ -234,21 +235,7 @@ class NotificationHelper {
 
           NotificationBody notificationBody = convertNotification(message.data);
           if(notificationBody.notificationType=="chatting"){
-
-            if(Get.currentRoute.contains(RouteHelper.chatScreen)){
-              Get.back();
-              Get.back();
-            } else if(Get.currentRoute.contains(RouteHelper.chatInbox)){
-              Get.back();
-            }
-            Get.toNamed(RouteHelper.getChatScreenRoute(
-              notificationBody.channelId??"",
-              notificationBody.userType == "supper-admin" ? "admin" : notificationBody.userName??"",
-              notificationBody.userProfileImage??"",
-              notificationBody.userPhone??"",
-              notificationBody.userType??"",
-              fromNotification: "fromNotification"
-            ));
+            openChatFromNotification(notificationBody);
           }
           else if(_isInAppCallEvent(notificationBody.notificationType)){
             if(Get.isRegistered<InAppCallController>()){
@@ -276,6 +263,9 @@ class NotificationHelper {
           }
           else if(notificationBody.notificationType == 'service_request'){
             Get.to(()=> const SuggestedServiceListScreen());
+          }
+          else if(notificationBody.notificationType == 'showcase'){
+            Get.to(() => const ShowcaseListScreen());
           }
           else if(notificationBody.notificationType == 'suspend'){
             Get.offAllNamed(RouteHelper.getInitialRoute());
@@ -318,6 +308,176 @@ class NotificationHelper {
     if (Get.isRegistered<NotificationController>()) {
       Get.find<NotificationController>().refreshInboxFromPush();
     }
+  }
+
+  /// On iOS the chat screen disables APNS banners; show a local banner for other threads.
+  static bool _isOnChatScreen() {
+    return Get.currentRoute.contains(RouteHelper.chatScreen);
+  }
+
+  static Future<void> _presentChatMessageBanner(
+    RemoteMessage message,
+    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
+  ) async {
+    if (_isOnChatScreen()) {
+      await _showCrossThreadChatHeadsUp(message);
+      await _playForegroundNotificationSound(
+        message.data['type']?.toString(),
+        message.data,
+      );
+      return;
+    }
+
+    try {
+      await NotificationHelper.showNotification(
+        message,
+        false,
+        flutterLocalNotificationsPlugin,
+      );
+    } catch (e, stack) {
+      ErrorLogger.record(e, stack, reason: 'NotificationHelper.chatPushBanner');
+    }
+  }
+
+  static Future<void> _showCrossThreadChatHeadsUp(RemoteMessage message) async {
+    final title = message.data['title']?.toString().trim() ?? '';
+    final body = message.data['body']?.toString().trim() ?? '';
+    if (title.isEmpty) {
+      return;
+    }
+
+    final notificationBody = convertNotification(message.data);
+    if (Get.isSnackbarOpen) {
+      Get.closeAllSnackbars();
+    }
+
+    Get.snackbar(
+      title,
+      body,
+      snackPosition: SnackPosition.TOP,
+      duration: const Duration(seconds: 5),
+      margin: const EdgeInsets.all(Dimensions.paddingSizeSmall),
+      borderRadius: Dimensions.radiusDefault,
+      isDismissible: true,
+      forwardAnimationCurve: Curves.easeOutCubic,
+      reverseAnimationCurve: Curves.easeInCubic,
+      onTap: (_) {
+        openChatFromNotification(notificationBody);
+      },
+    );
+  }
+
+  static Future<void> _handleChattingPush(
+    RemoteMessage message,
+    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
+  ) async {
+    final channelId = message.data['channel_id']?.toString().trim() ?? '';
+    final conversationController = Get.isRegistered<ConversationController>()
+        ? Get.find<ConversationController>()
+        : null;
+
+    final onActiveChat = channelId.isNotEmpty &&
+        Get.currentRoute.contains(RouteHelper.chatScreen) &&
+        conversationController != null &&
+        conversationController.isViewingChannel(channelId);
+
+    if(onActiveChat) {
+      try {
+        conversationController.appendIncomingMessageFromPush(message.data);
+        await _playForegroundNotificationSound(
+          message.data['type']?.toString(),
+          message.data,
+          inChatThread: true,
+        );
+      } catch (e) {
+        if (kDebugMode) {
+          print('Chat push append failed, falling back to banner: $e');
+        }
+        await NotificationHelper.showNotification(
+          message,
+          false,
+          flutterLocalNotificationsPlugin,
+          forceLocalBanner: true,
+        );
+      }
+      unawaited(conversationController.getUnreadChatCount());
+      return;
+    }
+
+    unawaited(conversationController?.getUnreadChatCount());
+    await _presentChatMessageBanner(message, flutterLocalNotificationsPlugin);
+
+    if (channelId.isEmpty || conversationController == null) {
+      return;
+    }
+
+    if (Get.currentRoute.contains(RouteHelper.chatInbox)) {
+      if (message.data['user_type'] == 'customer') {
+        conversationController.getChannelList(1, silent: true);
+      } else if (AppFeatureFlags.servicemanEnabled) {
+        conversationController.getChannelList(1, type: 'serviceman', silent: true);
+      }
+    } else if (Get.currentRoute.contains(RouteHelper.chatScreen) ||
+        !Get.currentRoute.contains(RouteHelper.chatInbox)) {
+      conversationController.getChannelList(1, silent: true);
+    }
+  }
+
+  static String chatSenderDisplayName(NotificationBody body) {
+    if (AdminChatBrandingHelper.isSuperAdmin(body.userType)) {
+      return AdminChatBrandingHelper.displayName;
+    }
+
+    return body.userName ?? '';
+  }
+
+  static String chatSenderPhone(NotificationBody body) {
+    return AdminChatBrandingHelper.chatPhone(
+      userType: body.userType,
+      fallback: body.userPhone,
+    );
+  }
+
+  static void openChatFromNotification(
+    NotificationBody notificationBody, {
+    bool popExistingChatRoutes = true,
+  }) {
+    final channelId = notificationBody.channelId?.trim() ?? '';
+    if (channelId.isEmpty) {
+      Get.toNamed(RouteHelper.getInboxScreenRoute(fromNotification: 'fromNotification'));
+      return;
+    }
+
+    if (Get.isRegistered<ConversationController>()) {
+      final conversationController = Get.find<ConversationController>();
+      if (Get.currentRoute.contains(RouteHelper.chatScreen) &&
+          conversationController.isViewingChannel(channelId)) {
+        return;
+      }
+    }
+
+    if (popExistingChatRoutes) {
+      if (Get.currentRoute.contains(RouteHelper.chatScreen)) {
+        Get.back();
+        if (Get.currentRoute.contains(RouteHelper.chatInbox)) {
+          Get.back();
+        }
+      } else if (Get.currentRoute.contains(RouteHelper.chatInbox)) {
+        Get.back();
+      }
+    }
+
+    Get.toNamed(RouteHelper.getChatScreenRoute(
+      channelId,
+      chatSenderDisplayName(notificationBody),
+      AdminChatBrandingHelper.chatImageUrl(
+        userType: notificationBody.userType,
+        fallback: notificationBody.userProfileImage,
+      ),
+      NotificationHelper.chatSenderPhone(notificationBody),
+      notificationBody.userType ?? '',
+      fromNotification: 'fromNotification',
+    ));
   }
 
   static void _refreshBookingDataIfPending(Map<String, dynamic> data) {
@@ -378,6 +538,18 @@ class NotificationHelper {
       return pushId.hashCode & 0x7FFFFFFF;
     }
 
+    if (message.data['type']?.toString() == 'chatting') {
+      final conversationId = message.data['conversation_id']?.toString();
+      if (conversationId != null && conversationId.isNotEmpty) {
+        return conversationId.hashCode & 0x7FFFFFFF;
+      }
+
+      final channelId = message.data['channel_id']?.toString();
+      if (channelId != null && channelId.isNotEmpty) {
+        return 'chat:$channelId'.hashCode & 0x7FFFFFFF;
+      }
+    }
+
     final bookingId = message.data['booking_id']?.toString();
     if (bookingId != null &&
         bookingId.isNotEmpty &&
@@ -393,11 +565,18 @@ class NotificationHelper {
     bool data,
     FlutterLocalNotificationsPlugin fln, {
     bool fromBackgroundHandler = false,
+    bool forceLocalBanner = false,
   }) async {
     final title = message.data['title'] ?? message.notification?.title;
     final body = message.data['body'] ?? message.notification?.body ?? '';
     final playLoad = jsonEncode(message.data);
     if (title == null || title.isEmpty) return;
+
+    // iOS foreground: APNS banner is shown via setForegroundNotificationPresentationOptions.
+    // A local notification here would duplicate it. Android uses data-only FCM + local banner.
+    if (GetPlatform.isIOS && !fromBackgroundHandler && !forceLocalBanner) {
+      return;
+    }
 
     final notificationType = message.data['type']?.toString();
     final notificationId = _notificationIdForMessage(message);
@@ -410,13 +589,20 @@ class NotificationHelper {
         withSound: soundEnabled,
       );
       final platformChannelSpecifics = NotificationDetails(iOS: darwinDetails);
-      await fln.show(
-        id: notificationId,
-        title: title,
-        body: body,
-        notificationDetails: platformChannelSpecifics,
-        payload: playLoad,
-      );
+      try {
+        await fln.show(
+          id: notificationId,
+          title: title,
+          body: body,
+          notificationDetails: platformChannelSpecifics,
+          payload: playLoad,
+        );
+        if (kDebugMode) {
+          print('NotificationHelper: iOS local banner shown for $notificationType');
+        }
+      } catch (e, stack) {
+        ErrorLogger.record(e, stack, reason: 'NotificationHelper.showNotification.iOS');
+      }
       return;
     }
 
@@ -518,19 +704,34 @@ class NotificationHelper {
     return true;
   }
 
-  static Future<void> _playAndroidForegroundSound(
+  static Future<void> _playForegroundNotificationSound(
     String? type,
-    Map<String, dynamic> data,
-  ) async {
-    if (!GetPlatform.isAndroid || !_notificationSoundEnabled()) return;
+    Map<String, dynamic> data, {
+    bool inChatThread = false,
+  }) async {
+    if (!_notificationSoundEnabled()) return;
 
     try {
-      final resolvedType = type ?? data['type']?.toString();
       final player = AudioPlayer();
+      if (inChatThread) {
+        await player.setVolume(0.85);
+        await player.play(AssetSource(NotificationSoundUtil.assetSoundForInChatMessage()));
+        return;
+      }
+
+      final resolvedType = type ?? data['type']?.toString();
       await player.play(
         AssetSource(NotificationSoundUtil.assetSoundForType(resolvedType)),
       );
     } catch (_) {}
+  }
+
+  static Future<void> _playAndroidForegroundSound(
+    String? type,
+    Map<String, dynamic> data,
+  ) async {
+    if (!GetPlatform.isAndroid) return;
+    await _playForegroundNotificationSound(type, data);
   }
 
   static bool _isInAppCallEvent(String? type) {
@@ -550,6 +751,12 @@ Future<dynamic> myBackgroundMessageHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   if (kDebugMode) {
     print("onBackground: ${message.notification?.title}/${message.notification?.body}/${message.notification?.titleLocKey}");
+  }
+
+  // iOS already displays the APNS alert from the backend payload; showing a
+  // local notification here would duplicate the banner.
+  if (GetPlatform.isIOS) {
+    return;
   }
 
   final fln = FlutterLocalNotificationsPlugin();
