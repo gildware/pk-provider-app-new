@@ -1,15 +1,16 @@
 import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:demandium_provider/feature/in_app_call/helper/call_mic_permission_util.dart';
 import 'package:demandium_provider/feature/in_app_call/helper/call_sound_util.dart';
 import 'package:demandium_provider/feature/in_app_call/model/in_app_call_model.dart';
 import 'package:demandium_provider/feature/in_app_call/repo/in_app_call_repo.dart';
+import 'package:demandium_provider/feature/in_app_call/service/in_app_call_realtime_service.dart';
 import 'package:demandium_provider/feature/in_app_call/service/web_rtc_call_session.dart';
 import 'package:demandium_provider/feature/in_app_call/view/in_app_call_screen.dart';
 import 'package:demandium_provider/util/core_export.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 enum InAppCallPhase { idle, calling, ringing, incoming, connecting, inCall, ended }
 
@@ -22,6 +23,15 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
     enabled: true,
     iceServers: [{'urls': 'stun:stun.l.google.com:19302'}],
     ringTimeoutSeconds: 60,
+    websocket: InAppCallWebSocketConfig(
+      enabled: false,
+      key: '',
+      cluster: 'mt1',
+      host: '',
+      port: 6001,
+      scheme: 'http',
+      authEndpoint: '/broadcasting/auth',
+    ),
   );
   InAppCallConfig get config => _config;
 
@@ -34,6 +44,7 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
   bool _busy = false;
   bool get busy => _busy;
 
+  final InAppCallRealtimeService _realtime = InAppCallRealtimeService();
   WebRtcCallSession? _webRtc;
   final AudioPlayer _ringPlayer = AudioPlayer();
   Timer? _pollTimer;
@@ -47,6 +58,8 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
   Timer? _incomingPollTimer;
   String? _lastEndedCallId;
   DateTime? _suppressPendingUntil;
+  bool _handlingRemoteAccept = false;
+  bool _pollingCallStatus = false;
 
   bool get isMuted => _webRtc?.isMuted ?? false;
   bool get isOnHold => _webRtc?.isOnHold ?? false;
@@ -66,7 +79,15 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
   bool _callHistoryLoading = false;
   bool get callHistoryLoading => _callHistoryLoading;
 
-  bool get isEnabled => _config.enabled;
+  static bool isFeatureEnabledFromConfig() {
+    if (!Get.isRegistered<SplashController>()) return false;
+    return Get.find<SplashController>().configModel.content?.inAppCallStatus == 1;
+  }
+
+  bool get isEnabled {
+    if (!isFeatureEnabledFromConfig()) return false;
+    return _config.enabled;
+  }
 
   List<Map<String, dynamic>> get _iceServers {
     if (_activeCall != null && _activeCall!.iceServers.isNotEmpty) {
@@ -79,7 +100,8 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
   void onInit() {
     super.onInit();
     WidgetsBinding.instance.addObserver(this);
-    _incomingPollTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+    if (!isFeatureEnabledFromConfig()) return;
+    _incomingPollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       unawaited(checkPendingIncomingCall());
     });
     unawaited(loadConfig());
@@ -88,6 +110,7 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      unawaited(_connectRealtimeIfNeeded());
       unawaited(checkPendingIncomingCall());
     }
   }
@@ -102,11 +125,13 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
     _ringTimeoutTimer?.cancel();
     _durationTimer?.cancel();
     _disposeWebRtc();
+    unawaited(_realtime.disconnect());
     _ringPlayer.dispose();
     super.onClose();
   }
 
   Future<void> loadConfig() async {
+    if (!isFeatureEnabledFromConfig()) return;
     final response = await inAppCallRepo.getConfig();
     if (response.statusCode == 200 && response.body['content'] != null) {
       _config = InAppCallConfig.fromJson(
@@ -114,10 +139,40 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
       );
       update();
     }
+    await _connectRealtimeIfNeeded();
     await checkPendingIncomingCall();
   }
 
+  Future<void> _connectRealtimeIfNeeded() async {
+    if (!_config.websocket.enabled) return;
+
+    final userId = _currentUserId();
+    final token = Get.find<ApiClient>().token;
+    if (userId == null || userId.isEmpty || token == null || token.isEmpty) return;
+
+    await _realtime.connect(
+      config: _config.websocket,
+      authToken: token,
+      apiBaseUrl: AppConstants.baseUrl,
+      userId: userId,
+      onStatus: (payload) => unawaited(handlePushData(payload)),
+    );
+  }
+
+  String? _currentUserId() {
+    if (!Get.isRegistered<UserProfileController>()) return null;
+    return Get.find<UserProfileController>().providerModel?.content?.providerInfo?.userId;
+  }
+
+  Future<void> _subscribeRealtimeCall(String callId) async {
+    if (!_realtime.isConnected || callId.isEmpty) return;
+    await _realtime.subscribeCall(callId, (signal) {
+      unawaited(_webRtc?.handleRemoteSignal(signal));
+    });
+  }
+
   Future<void> checkPendingIncomingCall() async {
+    if (!isEnabled) return;
     if (_phase != InAppCallPhase.idle) return;
     if (_suppressPendingUntil != null && DateTime.now().isBefore(_suppressPendingUntil!)) {
       return;
@@ -165,6 +220,7 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
   }
 
   Future<void> getCallHistory(int offset, {bool reload = false}) async {
+    if (!isEnabled) return;
     if (_callHistoryLoading) return;
     _callHistoryLoading = true;
     if (reload) {
@@ -233,10 +289,52 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
       _phase == InAppCallPhase.calling || _phase == InAppCallPhase.ringing;
 
   bool shouldShowCallButton(String? channelId, String? userType) {
-    if (channelId == null || channelId.isEmpty) return false;
+    if (!isEnabled) return false;
+    if (channelId == null || channelId.trim().isEmpty) return false;
     if (_busy || _phase != InAppCallPhase.idle) return false;
     if (userType == null || userType.isEmpty) return true;
     return canCallPeer(userType);
+  }
+
+  Future<bool> _ensureMicrophonePermission({bool showErrors = true}) async {
+    final granted = await CallMicPermissionUtil.ensureGranted();
+    if (granted) return true;
+
+    if (showErrors) {
+      showCustomSnackBar('microphone_permission_denied'.tr);
+      await CallMicPermissionUtil.openSettingsIfNeeded();
+    }
+    return false;
+  }
+
+  String? _extractApiErrorMessage(Response response) {
+    final body = response.body;
+    if (body is! Map) return null;
+
+    final errors = body['errors'];
+    if (errors is List && errors.isNotEmpty) {
+      final first = errors.first;
+      if (first is Map && first['message'] != null) {
+        return first['message']?.toString();
+      }
+    }
+
+    final message = body['message']?.toString();
+    if (message != null &&
+        message.isNotEmpty &&
+        message.toLowerCase() != 'invalid or missing information') {
+      return message;
+    }
+    return null;
+  }
+
+  void _showCallApiError(Response response) {
+    final message = _extractApiErrorMessage(response);
+    if (message != null && message.isNotEmpty) {
+      showCustomSnackBar(trLabel(message));
+      return;
+    }
+    ApiChecker.checkApi(response);
   }
 
   Future<void> startCall(
@@ -247,10 +345,19 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
     String? peerUserType,
   }) async {
     if (_busy) return;
+
+    final normalizedChannelId = channelId.trim();
+    if (normalizedChannelId.isEmpty) {
+      showCustomSnackBar('try_again'.tr);
+      return;
+    }
+
+    if (!await _ensureMicrophonePermission()) return;
+
     _busy = true;
     _activeCall = InAppCallModel(
       callId: '',
-      channelId: channelId,
+      channelId: normalizedChannelId,
       status: 'calling',
       isCaller: true,
       iceServers: _config.iceServers,
@@ -266,15 +373,7 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
     _openCallScreen();
     await _startDialTone();
 
-    final mic = await Permission.microphone.request();
-    if (!mic.isGranted) {
-      showCustomSnackBar('microphone_permission_denied'.tr);
-      _busy = false;
-      await _closeCallFlow(showEnded: false);
-      return;
-    }
-
-    final response = await inAppCallRepo.initiate(channelId);
+    final response = await inAppCallRepo.initiate(normalizedChannelId);
     _busy = false;
 
     if (response.statusCode == 200 && response.body['content'] != null) {
@@ -286,21 +385,15 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
       unawaited(_startRingbackTone());
       _startRingTimeout();
       _startCallStatusPoll();
-      try {
-        await _connectWebRtc(asCaller: true);
-      } catch (_) {
-        await inAppCallRepo.cancel(_activeCall!.callId);
-        await _closeCallFlow(showEnded: false);
-        showCustomSnackBar('try_again'.tr);
-        return;
-      }
+      await _subscribeRealtimeCall(_activeCall!.callId);
     } else {
-      ApiChecker.checkApi(response);
+      _showCallApiError(response);
       await _closeCallFlow(showEnded: false);
     }
   }
 
   Future<void> handlePushData(Map<String, dynamic> data) async {
+    if (!isEnabled) return;
     final type = data['type']?.toString() ?? '';
     final callId = data['call_id']?.toString() ?? '';
     if (callId.isEmpty) return;
@@ -328,6 +421,7 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
       unawaited(_startIncomingRingtone());
       _startRingTimeout();
       _startCallStatusPoll();
+      unawaited(_subscribeRealtimeCall(callId));
       unawaited(_hydrateIncomingCall(callId));
       return;
     }
@@ -351,8 +445,7 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
   Future<void> acceptIncoming() async {
     if (_activeCall == null) return;
 
-    final mic = await Permission.microphone.request();
-    if (!mic.isGranted) {
+    if (!await _ensureMicrophonePermission()) {
       await declineIncoming();
       return;
     }
@@ -367,15 +460,22 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
       _activeCall = InAppCallModel.fromJson(
         Map<String, dynamic>.from(response.body['content'] as Map),
       );
-      await _connectWebRtc(asCaller: false);
+      try {
+        await _connectWebRtc(asCaller: false);
+      } catch (_) {
+        await inAppCallRepo.end(_activeCall!.callId);
+        await _closeCallFlow(showEnded: false);
+        showCustomSnackBar('try_again'.tr);
+        return;
+      }
       _phase = InAppCallPhase.inCall;
       _connectedAt = DateTime.now();
-      _startCallStatusPoll();
+      _startInCallStatusPoll();
       await _playConnectedFeedback();
       _startDurationTimer();
       update();
     } else {
-      ApiChecker.checkApi(response);
+      _showCallApiError(response);
       await _closeCallFlow(showEnded: false);
     }
   }
@@ -431,40 +531,51 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
 
   Future<void> _onRemoteAccepted() async {
     if (_activeCall == null || !_activeCall!.isCaller) return;
+    if (_handlingRemoteAccept || _phase == InAppCallPhase.inCall) return;
+
+    _handlingRemoteAccept = true;
     _stopRingtone();
-    _pollTimer?.cancel();
     _ringTimeoutTimer?.cancel();
 
-    final response = await inAppCallRepo.show(_activeCall!.callId);
-    if (response.statusCode == 200 && response.body['content'] != null) {
-      _activeCall = InAppCallModel.fromJson(
-        Map<String, dynamic>.from(response.body['content'] as Map),
-      );
-      if (_activeCall!.isAccepted) {
-        _phase = InAppCallPhase.connecting;
-        update();
-        if (_webRtc == null) {
-          await _connectWebRtc(asCaller: true);
-        } else {
-          _startSignalPolling();
+    try {
+      final response = await inAppCallRepo.show(_activeCall!.callId);
+      if (response.statusCode == 200 && response.body['content'] != null) {
+        _activeCall = InAppCallModel.fromJson(
+          Map<String, dynamic>.from(response.body['content'] as Map),
+        );
+        if (_activeCall!.isAccepted) {
+          _phase = InAppCallPhase.connecting;
+          update();
+          try {
+            await _connectWebRtc(asCaller: true);
+          } catch (_) {
+            await inAppCallRepo.end(_activeCall!.callId);
+            await _closeCallFlow(showEnded: false);
+            showCustomSnackBar('try_again'.tr);
+            return;
+          }
+          _phase = InAppCallPhase.inCall;
+          _connectedAt = DateTime.now();
+          _startInCallStatusPoll();
+          await _playConnectedFeedback();
+          _startDurationTimer();
+          update();
         }
-        _phase = InAppCallPhase.inCall;
-        _connectedAt = DateTime.now();
-        _startCallStatusPoll();
-        await _playConnectedFeedback();
-        _startDurationTimer();
-        update();
       }
+    } finally {
+      _handlingRemoteAccept = false;
     }
   }
 
   Future<void> _connectWebRtc({required bool asCaller}) async {
     await _disposeWebRtc();
-    _webRtc = WebRtcCallSession(repo: inAppCallRepo, callId: _activeCall!.callId);
+    final callId = _activeCall!.callId;
+    _webRtc = WebRtcCallSession(repo: inAppCallRepo, callId: callId);
+    await _subscribeRealtimeCall(callId);
     if (asCaller) {
-      await _webRtc!.startAsCaller(_iceServers);
+      await _webRtc!.startAsCaller(_iceServers).timeout(const Duration(seconds: 45));
     } else {
-      await _webRtc!.startAsCallee(_iceServers);
+      await _webRtc!.startAsCallee(_iceServers).timeout(const Duration(seconds: 45));
     }
     _startSignalPolling();
   }
@@ -488,42 +599,55 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
 
   void _startCallStatusPoll() {
     _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
+    _pollTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+      unawaited(_pollCallStatus());
+    });
+  }
+
+  void _startInCallStatusPoll() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       unawaited(_pollCallStatus());
     });
   }
 
   Future<void> _pollCallStatus() async {
+    if (_pollingCallStatus) return;
     if (_activeCall == null) return;
     final callId = _activeCall!.callId;
     if (callId.isEmpty) return;
     if (_phase == InAppCallPhase.idle || _phase == InAppCallPhase.ended) return;
 
-    final response = await inAppCallRepo.show(callId);
-    if (response.statusCode != 200 || response.body['content'] == null) return;
-    if (_activeCall?.callId != callId) return;
+    _pollingCallStatus = true;
+    try {
+      final response = await inAppCallRepo.show(callId);
+      if (response.statusCode != 200 || response.body['content'] == null) return;
+      if (_activeCall?.callId != callId) return;
 
-    final call = InAppCallModel.fromJson(
-      Map<String, dynamic>.from(response.body['content'] as Map),
-    );
+      final call = InAppCallModel.fromJson(
+        Map<String, dynamic>.from(response.body['content'] as Map),
+      );
 
-    if (call.isTerminal) {
-      if (_phase != InAppCallPhase.ended) {
-        await _finishCallLocally(endReason: call.status);
+      if (call.isTerminal) {
+        if (_phase != InAppCallPhase.ended) {
+          await _finishCallLocally(endReason: call.status);
+        }
+        return;
       }
-      return;
-    }
 
-    if (isCallerRingingPhase) {
-      if (call.isRinging && _phase == InAppCallPhase.calling) {
-        _activeCall = call;
-        _phase = InAppCallPhase.ringing;
-        update();
-        unawaited(_startRingbackTone());
-      } else if (call.isAccepted) {
-        _activeCall = call;
-        await _onRemoteAccepted();
+      if (isCallerRingingPhase) {
+        if (call.isRinging && _phase == InAppCallPhase.calling) {
+          _activeCall = call;
+          _phase = InAppCallPhase.ringing;
+          update();
+          unawaited(_startRingbackTone());
+        } else if (call.isAccepted) {
+          _activeCall = call;
+          await _onRemoteAccepted();
+        }
       }
+    } finally {
+      _pollingCallStatus = false;
     }
   }
 
@@ -531,8 +655,14 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
 
   void _startSignalPolling() {
     _signalPollTimer?.cancel();
-    _signalPollTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
-      await _webRtc?.pollPeerSignals();
+    _signalPollTimer = Timer.periodic(const Duration(milliseconds: 800), (_) {
+      final session = _webRtc;
+      if (session == null || !session.needsSignalPolling) {
+        _signalPollTimer?.cancel();
+        _signalPollTimer = null;
+        return;
+      }
+      unawaited(session.pollPeerSignals());
     });
   }
 
@@ -628,6 +758,7 @@ class InAppCallController extends GetxController with WidgetsBindingObserver imp
       await _stopRingtone();
     }
     await _disposeWebRtc();
+    await _realtime.unsubscribeCall();
     if (showEnded && _phase != InAppCallPhase.ended) {
       await _playDisconnectedFeedback();
       _phase = InAppCallPhase.ended;

@@ -183,11 +183,36 @@ class AuthRepo {
     }
   }
 
+  String _pushPlatform() {
+    if (GetPlatform.isWeb) return 'web';
+    if (GetPlatform.isIOS) return 'ios';
+    return 'android';
+  }
+
+  Future<Response?> _sendFcmTokenPayload({
+    required String? fcmToken,
+    bool unregister = false,
+  }) async {
+    final deviceId = await DeviceIdStorage.getOrCreate(sharedPreferences);
+    final deviceMeta = unregister ? <String, String?>{} : await PushDeviceInfo.collect();
+
+    return await apiClient.postData(AppConstants.tokenUrl, {
+      "_method": "put",
+      "fcm_token": fcmToken,
+      "device_id": deviceId,
+      "platform": deviceMeta['platform'] ?? _pushPlatform(),
+      if (!unregister && deviceMeta['device_model'] != null) "device_model": deviceMeta['device_model'],
+      if (!unregister && deviceMeta['device_manufacturer'] != null) "device_manufacturer": deviceMeta['device_manufacturer'],
+      if (!unregister && deviceMeta['os_version'] != null) "os_version": deviceMeta['os_version'],
+      if (unregister) "unregister": true,
+    });
+  }
+
   Future<Response?> updateToken() async {
 
     String? deviceToken;
     if (GetPlatform.isIOS) {
-      FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(alert: false, badge: true, sound: false);
+      await NotificationHelper.setIosForegroundBannerEnabled(true);
       NotificationSettings settings = await FirebaseMessaging.instance.requestPermission(
         alert: true, announcement: false, badge: true, carPlay: false,
         criticalAlert: false, provisional: false, sound: true,
@@ -202,7 +227,7 @@ class AuthRepo {
     if (!GetPlatform.isWeb) {
       _subscribeProviderTopics();
     }
-    return await apiClient.postData(AppConstants.tokenUrl, {"_method": "put", "fcm_token": deviceToken});
+    return await _sendFcmTokenPayload(fcmToken: deviceToken);
   }
 
   Future<String?> _saveDeviceToken() async {
@@ -225,13 +250,10 @@ class AuthRepo {
   }
 
   Future<void> unsubscribeToken() async {
-    if(GetPlatform.isAndroid) {
-      final zoneId = _providerZoneId();
-      if (zoneId != null) {
-        FirebaseMessaging.instance.unsubscribeFromTopic('${AppConstants.topic}-$zoneId');
-      }
-      apiClient.postData(AppConstants.tokenUrl, {"_method": "put", "fcm_token": "@"});
+    if (!GetPlatform.isWeb) {
+      _unsubscribeProviderTopics();
     }
+    await _sendFcmTokenPayload(fcmToken: '@', unregister: true);
   }
 
 
@@ -250,10 +272,11 @@ class AuthRepo {
     return SecureTokenStorage.cachedToken().isNotEmpty;
   }
 
-  bool clearSharedData() {
-    if(GetPlatform.isAndroid) {
+  Future<bool> clearSharedData({bool skipFcmUnregister = false}) async {
+    if (!skipFcmUnregister && isLoggedIn()) {
+      await unsubscribeToken();
+    } else if (!skipFcmUnregister && !GetPlatform.isWeb) {
       _unsubscribeProviderTopics();
-      apiClient.postData(AppConstants.tokenUrl, {"_method": "put", "fcm_token": "@"});
     }
     SecureTokenStorage.evictToken();
     sharedPreferences.remove(AppConstants.token);

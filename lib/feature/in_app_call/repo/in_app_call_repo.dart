@@ -62,7 +62,7 @@ class InAppCallRepo {
   Future<Response> listSignals(String callId, {String? after}) async {
     var url = '${AppConstants.inAppCallBase}/$callId/signals';
     if (after != null && after.isNotEmpty) {
-      url = '$url?after=$after';
+      url = '$url?after=${Uri.encodeComponent(after)}';
     }
     return apiClient.getData(url);
   }

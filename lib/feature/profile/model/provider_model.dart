@@ -163,6 +163,18 @@ class ProviderInfo {
     return null;
   }
 
+  /// Profile avatar on My Profile: company logo when set, otherwise contact person photo.
+  String? get displayProfileImageUrl {
+    final logo = displayLogoUrl;
+    if (logo != null && logo.isNotEmpty) return logo;
+
+    final photo = contactPersonPhotoFullPath?.trim();
+    if (photo != null && photo.isNotEmpty) {
+      return MobileAppIconHelper.resolveMediaUrl(photo) ?? photo;
+    }
+    return null;
+  }
+
   String? get displayCoverUrl {
     final fromApi = coverFullPath?.trim();
     if (fromApi != null && fromApi.isNotEmpty) {

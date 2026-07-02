@@ -5,52 +5,51 @@ import 'package:demandium_provider/util/core_export.dart';
 class _AppBarHeaderIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onPressed;
-  final int? badgeCount;
+  final int badgeCount;
 
   const _AppBarHeaderIconButton({
     required this.icon,
     required this.onPressed,
-    this.badgeCount,
+    this.badgeCount = 0,
   });
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: onPressed,
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-      splashRadius: 22,
-      icon: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Icon(icon, size: 22, color: context.adaptiveIconColor),
-          if (badgeCount != null && badgeCount! > 0)
-            Positioned(
-              right: -2,
-              top: -2,
-              child: IgnorePointer(
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(22),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Icon(icon, size: 25, color: context.adaptiveIconColor),
+            if (badgeCount > 0)
+              Positioned(
+                right: -4,
+                top: -4,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
+                  padding: const EdgeInsets.all(2),
                   height: 18,
                   width: 18,
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: context.adaptivePrimaryColor,
+                    color: Colors.red,
                   ),
                   child: FittedBox(
                     child: Text(
-                      badgeCount! > 99 ? '99+' : badgeCount.toString(),
+                      badgeCount > 99 ? '99+' : badgeCount.toString(),
                       style: robotoRegular.copyWith(
-                        color: light.cardColor,
                         fontSize: 10,
+                        color: Colors.white,
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -72,6 +71,9 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
 
     return GetBuilder<NotificationController>(builder: (notificationController){
+      return GetBuilder<ConversationController>(
+        id: ConversationController.chatBadgeUpdateId,
+        builder: (conversationController){
       return GetBuilder<SplashController>(builder: (splashController){
 
         List<String> bookingFilterList = ['all_booking', "regular_booking", "repeat_booking"];
@@ -127,6 +129,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             _AppBarHeaderIconButton(
               icon: Icons.chat_bubble_outline_rounded,
+              badgeCount: conversationController.unreadChatCount,
               onPressed: () => Get.toNamed(RouteHelper.getInboxScreenRoute()),
             ),
             _AppBarHeaderIconButton(
@@ -234,6 +237,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
             )
           ],
         );
+      });
       });
     });
   }

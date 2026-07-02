@@ -1,3 +1,5 @@
+import com.android.build.gradle.LibraryExtension
+
 allprojects {
     repositories {
         google()
@@ -11,6 +13,18 @@ rootProject.layout.buildDirectory.value(newBuildDir)
 subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
+}
+subprojects {
+    afterEvaluate {
+        extensions.findByType(LibraryExtension::class.java)?.let { android ->
+            if (android.namespace.isNullOrBlank()) {
+                val group = project.group.toString()
+                if (group.isNotBlank() && group != "unspecified") {
+                    android.namespace = group
+                }
+            }
+        }
+    }
 }
 subprojects {
     project.evaluationDependsOn(":app")

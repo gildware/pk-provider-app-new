@@ -90,6 +90,9 @@ class NotificationSoundUtil {
 
   static String assetSoundForType(String? type) => '${rawSoundForType(type)}.wav';
 
+  /// Short soft pop played while viewing a chat thread (no banner).
+  static String assetSoundForInChatMessage() => 'message_pop.wav';
+
   static String iosSoundForType(String? type) => '${rawSoundForType(type)}.wav';
 
   static String? typeFromPayload(String payload) {

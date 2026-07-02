@@ -36,7 +36,9 @@ class BusinessReportController extends GetxController implements GetxService{
   bool _reportLoadFinished = false;
   bool get reportLoadFinished => _reportLoadFinished;
 
-  bool get hasEarningData => _businessReportEarningModel != null;
+  bool get hasEarningData => _businessReportEarningModel?.content != null;
+
+  int _requestSeq = 0;
 
   /// Bookings with provider earning greater than zero (hide zero-amount rows in list).
   List<BusinessReportEarningFilterData> get earningBookingsWithAmount {
@@ -132,6 +134,7 @@ class BusinessReportController extends GetxController implements GetxService{
   Set<String> _allowedCategoryIds = {};
   bool _isFilterOptionsLoading = false;
   bool get isFilterOptionsLoading => _isFilterOptionsLoading;
+  bool _filterOptionsPrepared = false;
 
   ScrollController scrollController = ScrollController();
 
@@ -235,9 +238,7 @@ class BusinessReportController extends GetxController implements GetxService{
 
   Future<void> prepareEarningReportFilterOptions() async {
     if (_isFilterOptionsLoading) return;
-    if (_zoneNameList.isNotEmpty &&
-        _categoryNameList.isNotEmpty &&
-        _subscribedEarningFilterSource.isNotEmpty) {
+    if (_filterOptionsPrepared) {
       _rebuildSubcategoryFilterOptions();
       _sanitizeFilterSelections();
       update();
@@ -265,8 +266,15 @@ class BusinessReportController extends GetxController implements GetxService{
       _allowedCategoryIds = ReportFilterHelper.subscribedCategoryIds(
         _subscribedEarningFilterSource,
       );
+      if (_allowedCategoryIds.isEmpty) {
+        _allowedCategoryIds = _categoriesList
+            .map((c) => ReportFilterHelper.normalizeId(c.id))
+            .where((id) => id.isNotEmpty)
+            .toSet();
+      }
       _rebuildSubcategoryFilterOptions();
       _sanitizeFilterSelections();
+      _filterOptionsPrepared = _zoneNameList.isNotEmpty;
     } finally {
       _isFilterOptionsLoading = false;
       update();
@@ -377,6 +385,7 @@ class BusinessReportController extends GetxController implements GetxService{
   }
 
   Future<void> getBusinessReportEarningData(int offset,{bool reload = false}) async {
+    final requestSeq = ++_requestSeq;
     _offset = offset;
 
     if (offset == 1) {
@@ -437,10 +446,15 @@ class BusinessReportController extends GetxController implements GetxService{
       earningExpenseChart =[];
     }
     } finally {
-    _loading= false;
-    _isLoading = false;
-    _reportLoadFinished = true;
-    update();
+    if (requestSeq == _requestSeq) {
+      _loading= false;
+      _isLoading = false;
+      _reportLoadFinished = true;
+      update();
+    } else {
+      _loading = false;
+      _isLoading = false;
+    }
     }
   }
 
@@ -584,7 +598,14 @@ class BusinessReportController extends GetxController implements GetxService{
   }
 
   void resetValue(){
+    _requestSeq++;
+    _filterOptionsPrepared = false;
     _reportLoadFinished = false;
+    _businessReportEarningModel = null;
+    _businessReportFilterEarningData = [];
+    earningNetProfitChart = [];
+    earningTotalEarningChart = [];
+    earningExpenseChart = [];
     _toDate= null;
     _fromDate= null;
     _startDate= null;

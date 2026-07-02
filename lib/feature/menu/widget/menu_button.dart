@@ -25,8 +25,8 @@ class MenuButton extends StatelessWidget {
               onNoPressed: () {
                 Get.back();
               },
-              onYesPressed: () {
-                Get.find<AuthController>().clearSharedData();
+              onYesPressed: () async {
+                await Get.find<AuthController>().clearSharedData();
                 Get.find<UserProfileController>().clearUserProfileData();
                 Get.offAllNamed(RouteHelper.getSignInRoute(RouteHelper.splash));
               }, description: '',),barrierDismissible: true, useSafeArea: true,

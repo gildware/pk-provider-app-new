@@ -26,8 +26,11 @@ class BusinessReportEarningListView extends StatelessWidget {
               )
             : SizedBox(
                 height: Get.height * 0.33,
-                child: const Center(
-                  child: NoDataScreen(text: "", type: NoDataType.others),
+                child: Center(
+                  child: NoDataScreen(
+                    text: 'no_data_found'.tr,
+                    type: NoDataType.others,
+                  ),
                 ),
               ),
         if (Get.find<BusinessReportController>().loading)

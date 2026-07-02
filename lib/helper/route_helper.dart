@@ -206,6 +206,7 @@ class RouteHelper {
     ),
 
     GetPage( name: chatScreen, page: () => getRoute(ConversationDetailsScreen(
+      key: ValueKey(Get.parameters['channelID']),
       channelID: Get.parameters['channelID']!,
       name: Get.parameters['name']!,
       phone: Get.parameters['phone']!,
@@ -296,7 +297,14 @@ class RouteHelper {
 
   ];
   static Widget getRoute(Widget navigateTo) {
-    return  navigateTo;
+    return CustomPopScopeWidget(
+      onPopInvoked: () {
+        if (!canPopRoute()) {
+          Get.offAllNamed(RouteHelper.getInitialRoute());
+        }
+      },
+      child: navigateTo,
+    );
   }
 }
 

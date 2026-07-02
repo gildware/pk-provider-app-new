@@ -9,7 +9,20 @@ class BusinessReportEarningModel {
       { this.content});
 
   BusinessReportEarningModel.fromJson(Map<String, dynamic> json) {
-    content = json['content'] != null ? Content.fromJson(json['content']) : null;
+    final rawContent = json['content'];
+    if (rawContent is Map<String, dynamic>) {
+      try {
+        content = Content.fromJson(rawContent);
+      } catch (_) {
+        content = null;
+      }
+    } else if (rawContent is Map) {
+      try {
+        content = Content.fromJson(Map<String, dynamic>.from(rawContent));
+      } catch (_) {
+        content = null;
+      }
+    }
   }
 
   Map<String, dynamic> toJson() {

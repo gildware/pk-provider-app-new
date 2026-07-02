@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 import '../helper/auth_session_helper.dart';
 import '../util/core_export.dart';
@@ -20,20 +22,21 @@ class ApiChecker {
       return;
     }
 
-    if (response.statusCode == 500) {
-      showCustomSnackBar(trLabel('internal_server_error'));
+    if (response.statusCode == 429) {
+      showCustomSnackBar(trLabel('too_many_request', fallback: 'Too many requests. Please try again later.'));
       return;
     }
 
-    _showFallbackMessage(response);
+    if (response.statusCode != null && response.statusCode! >= 400) {
+      _showErrorMessage(response);
+    }
   }
 
   static void _executeUnAuthorized(Response response, [String? errorMessage]) {
     final isLoggedIn = Get.find<AuthController>().isLoggedIn();
 
     if (isLoggedIn) {
-      Get.find<AuthController>().clearSharedData();
-      Get.find<UserProfileController>().clearUserProfileData();
+      unawaited(_handleUnauthorizedLogout());
     } else if (!AuthSessionHelper.isProtectedRoute()) {
       return;
     }
@@ -52,18 +55,20 @@ class ApiChecker {
     }
   }
 
-  static void _showFallbackMessage(Response response) {
-    final body = response.body;
-    if (body is Map && body['message'] != null) {
-      showCustomSnackBar('${body['message']}');
+  static Future<void> _handleUnauthorizedLogout() async {
+    await Get.find<AuthController>().clearSharedData();
+    Get.find<UserProfileController>().clearUserProfileData();
+  }
+
+  static void _showErrorMessage(Response response) {
+    final extracted = ApiErrorHelper.extractMessage(response);
+    if (extracted != null && extracted.isNotEmpty) {
+      showCustomSnackBar(trLabel(extracted, fallback: extracted));
       return;
     }
 
-    final statusText = response.statusText;
-    if (statusText != null &&
-        statusText.isNotEmpty &&
-        statusText.toLowerCase() != 'internal server error') {
-      showCustomSnackBar(statusText);
+    if (response.statusCode == 500) {
+      showCustomSnackBar(trLabel('internal_server_error'));
       return;
     }
 

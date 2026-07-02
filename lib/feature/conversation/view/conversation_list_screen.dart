@@ -10,19 +10,32 @@ class ConversationListScreen extends StatefulWidget {
 }
 
 class _ConversationListScreenState extends State<ConversationListScreen> with TickerProviderStateMixin {
-  late final TabController _inboxTabController;
+  TabController? _inboxTabController;
+
+  bool get _isCallingEnabled => InAppCallController.isFeatureEnabledFromConfig();
 
   @override
   void initState() {
     super.initState();
-    _inboxTabController = TabController(length: 2, vsync: this);
-    _inboxTabController.addListener(_onInboxTabChanged);
+    _syncInboxTabController();
     Get.find<ConversationController>().clearSearchController(shouldUpdate: false);
     _loadData();
   }
 
+  void _syncInboxTabController() {
+    if (_isCallingEnabled && _inboxTabController == null) {
+      _inboxTabController = TabController(length: 2, vsync: this);
+      _inboxTabController!.addListener(_onInboxTabChanged);
+    } else if (!_isCallingEnabled && _inboxTabController != null) {
+      _inboxTabController!.removeListener(_onInboxTabChanged);
+      _inboxTabController!.dispose();
+      _inboxTabController = null;
+    }
+  }
+
   void _onInboxTabChanged() {
-    if (_inboxTabController.index == 1 && !_inboxTabController.indexIsChanging) {
+    if (_inboxTabController == null) return;
+    if (_inboxTabController!.index == 1 && !_inboxTabController!.indexIsChanging) {
       Get.find<InAppCallController>().getCallHistory(1, reload: true);
     }
   }
@@ -36,58 +49,81 @@ class _ConversationListScreenState extends State<ConversationListScreen> with Ti
 
   @override
   void dispose() {
-    _inboxTabController.removeListener(_onInboxTabChanged);
-    _inboxTabController.dispose();
+    _inboxTabController?.removeListener(_onInboxTabChanged);
+    _inboxTabController?.dispose();
     super.dispose();
+  }
+
+  void _handleBackNavigation() {
+    if (widget.fromNotification == 'fromNotification') {
+      Get.offNamed(RouteHelper.getInitialRoute());
+      return;
+    }
+    final conversationController = Get.find<ConversationController>();
+    if (conversationController.isActiveSuffixIcon && conversationController.isSearchComplete) {
+      conversationController.clearSearchController();
+      return;
+    }
+    popRouteOrGoHome(context: context);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: CustomAppBar(
-        title: 'inbox'.tr,
-        onBackPressed: () {
-          if (widget.fromNotification == "fromNotification") {
-            Get.offNamed(RouteHelper.getInitialRoute());
-          } else {
-            if (Get.find<ConversationController>().isActiveSuffixIcon &&
-                Get.find<ConversationController>().isSearchComplete) {
-              Get.find<ConversationController>().clearSearchController();
-            } else {
-              Get.back();
-            }
+    return GetBuilder<SplashController>(builder: (_) {
+      final isCallingEnabled = _isCallingEnabled;
+      final showCallingTabs = isCallingEnabled && _inboxTabController != null;
+      if (isCallingEnabled != (_inboxTabController != null)) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          setState(_syncInboxTabController);
+        });
+      }
+
+      return CustomPopScopeWidget(
+        onPopInvoked: () {
+          if (widget.fromNotification == 'fromNotification' || !Navigator.canPop(context)) {
+            _handleBackNavigation();
           }
         },
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-            child: TabBar(
-              controller: _inboxTabController,
-              unselectedLabelColor: Colors.grey,
-              indicatorColor: context.tabIndicatorColor,
-              labelColor: context.tabSelectedColor,
-              labelStyle: robotoMedium,
-              tabs: [
-                Tab(text: 'chat'.tr),
-                Tab(text: 'calls'.tr),
-              ],
-            ),
+        child: Scaffold(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          appBar: CustomAppBar(
+            title: 'inbox'.tr,
+            onBackPressed: _handleBackNavigation,
           ),
-          Expanded(
-            child: TabBarView(
-              controller: _inboxTabController,
-              children: [
-                _buildChatTab(),
-                const CallHistoryListView(),
-              ],
-            ),
+          body: Column(
+            children: [
+              if (showCallingTabs)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
+                  child: TabBar(
+                    controller: _inboxTabController,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorColor: context.tabIndicatorColor,
+                    labelColor: context.tabSelectedColor,
+                    labelStyle: robotoMedium,
+                    tabs: [
+                      Tab(text: 'chat'.tr),
+                      Tab(text: 'calls'.tr),
+                    ],
+                  ),
+                ),
+              Expanded(
+                child: showCallingTabs
+                    ? TabBarView(
+                        controller: _inboxTabController,
+                        children: [
+                          _buildChatTab(),
+                          const CallHistoryListView(),
+                        ],
+                      )
+                    : _buildChatTab(),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+        ),
+      );
+    });
   }
 
   Widget _buildChatTab() {
@@ -96,6 +132,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> with Ti
       backgroundColor: Theme.of(context).cardColor,
       onRefresh: () async => Get.find<ConversationController>().getChannelList(1, reload: true),
       child: GetBuilder<ConversationController>(
+        id: ConversationController.channelListUpdateId,
         builder: (conversationController) {
           if (conversationController.customerChannelList != null) {
             return Column(

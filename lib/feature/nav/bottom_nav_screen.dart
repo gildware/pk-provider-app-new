@@ -20,6 +20,7 @@ class BottomNavScreen extends StatefulWidget {
       Get.find<ServiceCategoryController>().getCategoryList(shouldUpdate: true, reloadSubcategory: true);
       Get.find<LocalizationController>().filterLanguage(shouldUpdate: false);
       Get.find<ConversationController>().getChannelList(1, type: "customer");
+      Get.find<ConversationController>().getUnreadChatCount();
       // SERVICEMAN_DISABLED
       if (AppFeatureFlags.servicemanEnabled) {
         Get.find<ConversationController>().getChannelList(1, type: "serviceman");
@@ -33,7 +34,8 @@ class BottomNavScreen extends StatefulWidget {
         Get.find<UserProfileController>().trialWidgetShow(route: "");
       });
       await Get.find<AuthController>().updateToken();
-      if (Get.isRegistered<InAppCallController>()) {
+      if (Get.isRegistered<InAppCallController>() &&
+          InAppCallController.isFeatureEnabledFromConfig()) {
         await Get.find<InAppCallController>().loadConfig();
       }
       Get.find<PaymentInfoController>().getPaymentMethods(isUpdate: false, isReload: false);

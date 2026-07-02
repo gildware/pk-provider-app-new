@@ -81,6 +81,8 @@ class AppConstants {
   static const String searchChannelListUrl = '/api/v1/provider/chat/channel-list-search';
   static const String getConversationUrl = '/api/v1/provider/chat/conversation';
   static const String sendMessageUrl = '/api/v1/provider/chat/send-message';
+  static const String unreadConversationCountUrl = '/api/v1/chat/unread-conversation';
+  static const int chatMessagePageSize = 30;
   static const String inAppCallConfig = '/api/v1/provider/in-app-call/config';
   static const String inAppCallPending = '/api/v1/provider/in-app-call/pending';
   static const String inAppCallInitiate = '/api/v1/provider/in-app-call/initiate';

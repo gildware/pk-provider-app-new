@@ -66,7 +66,7 @@ class ProfileHeader extends StatelessWidget {
                   child: CustomImage(
                     width: 100,
                     height: 100,
-                    image: providerInfo?.displayLogoUrl ?? '',
+                    image: providerInfo?.displayProfileImageUrl ?? '',
                     placeholder: Images.userPlaceHolder,
                   ),
                 ),

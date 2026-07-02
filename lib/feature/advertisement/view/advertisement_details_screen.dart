@@ -22,23 +22,29 @@ class _AdvertisementDetailsScreenState extends State<AdvertisementDetailsScreen>
   }
 
 
+  void _handleBackNavigation() {
+    handleNotificationBack(
+      fromNotification: widget.fromNotification == 'fromNotification',
+      whenFromNotification: () => Get.offAllNamed(RouteHelper.getInitialRoute()),
+      context: context,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<AdvertisementController>(
+    return CustomPopScopeWidget(
+      onPopInvoked: () {
+        if (widget.fromNotification == 'fromNotification' || !Navigator.canPop(context)) {
+          _handleBackNavigation();
+        }
+      },
+      child: GetBuilder<AdvertisementController>(
       builder: (advertisementController) {
         return SafeArea(
           child: Scaffold(
             appBar: CustomAppBar(
               title: "ad_details".tr,
-              onBackPressed: (){
-                if(widget.fromNotification == "fromNotification"){
-                  Get.offAllNamed(RouteHelper.getInitialRoute());
-                }else{
-                  if(Navigator.canPop(context)){
-                    Get.back();
-                  }
-                }
-              },
+              onBackPressed: _handleBackNavigation,
             ),
             body: advertisementController.advertisementDetailsModel == null && advertisementController.advertisementDetailsModel?.advertisementData == null ?
             const Center(child: CircularProgressIndicator()) :
@@ -379,7 +385,8 @@ class _AdvertisementDetailsScreenState extends State<AdvertisementDetailsScreen>
             ): const SizedBox(),
           ),
         );
-      }
+      },
+    ),
     );
   }
 }

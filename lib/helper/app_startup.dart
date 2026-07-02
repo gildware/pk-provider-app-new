@@ -73,11 +73,7 @@ class AppStartup {
 
   static Future<void> _requestNotificationPermission() async {
     if (GetPlatform.isIOS) {
-      await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-        alert: false,
-        badge: true,
-        sound: false,
-      );
+      await NotificationHelper.setIosForegroundBannerEnabled(true);
     } else if (GetPlatform.isAndroid) {
       await Permission.notification.request();
     }

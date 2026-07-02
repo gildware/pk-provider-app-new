@@ -32,7 +32,14 @@ class ConversationRepo {
 
 
   Future<Response> getConversation(String channelID, int offset) async {
-    return await apiClient.getData('${AppConstants.getConversationUrl}?channel_id=$channelID&offset=$offset');
+    return await apiClient.getData(
+      '${AppConstants.getConversationUrl}?channel_id=$channelID&offset=$offset&limit=${AppConstants.chatMessagePageSize}',
+    );
+  }
+
+
+  Future<Response> getUnreadConversationCount() async {
+    return await apiClient.getData(AppConstants.unreadConversationCountUrl);
   }
 
 

@@ -1,80 +1,91 @@
 import 'package:demandium_provider/util/core_export.dart';
 import 'package:get/get.dart';
-import 'package:graphic/graphic.dart';
-
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 class BookingReportBarChart extends StatelessWidget {
   const BookingReportBarChart({super.key});
 
+  List<_BookingChartPoint> _chartPoints(BookingReportController controller) {
+    if (controller.barChartData.isEmpty) {
+      return const [
+        _BookingChartPoint('0', 0),
+        _BookingChartPoint('1', 0),
+        _BookingChartPoint('2', 0),
+      ];
+    }
+
+    return controller.barChartData.map((item) {
+      final amount = item['Amount'];
+      final parsedAmount = amount is num
+          ? amount.toDouble()
+          : double.tryParse(amount?.toString() ?? '') ?? 0;
+      return _BookingChartPoint(
+        item['timeline']?.toString() ?? '',
+        parsedAmount,
+      );
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return  Column(
-      children: [
-        Container(
+    return GetBuilder<BookingReportController>(
+      builder: (controller) {
+        final points = _chartPoints(controller);
+
+        return Container(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           height: 250,
           color: Theme.of(context).cardColor,
           child: Column(
             children: [
-              const SizedBox(height: Dimensions.paddingSizeSmall,),
+              const SizedBox(height: Dimensions.paddingSizeSmall),
               Row(
                 children: [
-                  Image.asset(Images.dashboardEarning,height: 15,width:15),
-                  const SizedBox(width: Dimensions.paddingSizeSmall,),
-                  Text("booking_statistics".tr,
-                    style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault,
-                        color: Theme.of(context).textTheme.bodyLarge!.color!.withValues(alpha:0.8)),
+                  Image.asset(Images.dashboardEarning, height: 15, width: 15),
+                  const SizedBox(width: Dimensions.paddingSizeSmall),
+                  Text(
+                    'booking_statistics'.tr,
+                    style: robotoMedium.copyWith(
+                      fontSize: Dimensions.fontSizeDefault,
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodyLarge
+                          ?.color
+                          ?.withValues(alpha: 0.8),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: Dimensions.paddingSizeDefault,),
+              const SizedBox(height: Dimensions.paddingSizeSmall),
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
-                  child: Chart(
-                    data: Get.find<BookingReportController>().barChartData.isNotEmpty
-                        ? Get.find<BookingReportController>().barChartData
-                        : basicData,
-                    variables: {
-                      'Timeline': Variable(
-                        accessor: (Map map) => map['timeline'] as String,
+                child: SfCartesianChart(
+                  primaryXAxis: const CategoryAxis(),
+                  tooltipBehavior: TooltipBehavior(enable: true),
+                  series: <CartesianSeries<_BookingChartPoint, String>>[
+                    ColumnSeries<_BookingChartPoint, String>(
+                      dataSource: points,
+                      xValueMapper: (point, _) => point.label,
+                      yValueMapper: (point, _) => point.amount,
+                      color: context.adaptivePrimaryColor,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(4),
                       ),
-                      'Amount': Variable(
-                        accessor: (Map map) => map['Amount'] as num,
-                      ),
-                      'Tax amount': Variable(
-                        accessor: (Map map) => map['tax'] as String,
-                      ),
-                      'Admin commission': Variable(
-                        accessor: (Map map) => map['commission'] as String,
-                      ),
-                    },
-                    marks: [IntervalMark()],
-
-                    axes: [
-                      Defaults.horizontalAxis,
-                      Defaults.verticalAxis,
-                    ],
-                    selections: {'tap': PointSelection(dim: Dim.x)},
-                    tooltip: TooltipGuide(
-                      backgroundColor: Theme.of(context).cardColor,
                     ),
-                  ),
+                  ],
                 ),
               ),
-              const SizedBox(height: Dimensions.paddingSizeSmall,),
+              const SizedBox(height: Dimensions.paddingSizeSmall),
             ],
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
 
-const basicData = [
-  {'timeline': '2022', 'Amount': 0,'tax':'0','commission':"0"},
-  {'timeline': '2024', 'Amount': 0,'tax':'0','commission':"0"},
-  {'timeline': '2026', 'Amount': 0,'tax':'0','commission':"0"},
-  {'timeline': '2028', 'Amount': 0,'tax':'0','commission':"0"},
-  {'timeline': '2030', 'Amount': 0,'tax':'0','commission':"0"},
-];
+class _BookingChartPoint {
+  final String label;
+  final double amount;
+
+  const _BookingChartPoint(this.label, this.amount);
+}

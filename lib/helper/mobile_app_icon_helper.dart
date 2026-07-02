@@ -10,6 +10,7 @@ class MobileAppIconHelper {
   static const String loginLogoKey = 'provider_app_login_logo';
   static const String homeLogoKey = 'provider_app_home_logo';
   static const String legacyLogoKey = 'provider_app_logo';
+  static const String customerAppLogoKey = 'customer_app_logo';
 
   static const String heroTag = 'app_logo';
 
@@ -114,6 +115,17 @@ class MobileAppIconHelper {
 
   static String? logoUrlForKey(String primaryKey) {
     final custom = remoteUrl(primaryKey) ?? remoteUrl(legacyLogoKey);
+    if (custom != null && custom.isNotEmpty) {
+      return custom;
+    }
+    return resolveMediaUrl(
+      Get.find<SplashController>().configModel.content?.logoFullPath,
+    );
+  }
+
+  /// Customer app logo used for admin support chat branding in the provider app.
+  static String? customerAppLogoUrl() {
+    final custom = remoteUrl(customerAppLogoKey);
     if (custom != null && custom.isNotEmpty) {
       return custom;
     }

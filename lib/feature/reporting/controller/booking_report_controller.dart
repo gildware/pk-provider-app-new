@@ -27,6 +27,13 @@ class BookingReportController extends GetxController implements GetxService {
   bool _reportLoadFinished = false;
   bool get reportLoadFinished => _reportLoadFinished;
 
+  bool get hasBookingData => _bookingReportModel?.content != null;
+
+  String? _loadError;
+  String? get loadError => _loadError;
+
+  int _requestSeq = 0;
+
   String? _dateRange;
   String? get dateRange => _dateRange;
 
@@ -80,6 +87,7 @@ class BookingReportController extends GetxController implements GetxService {
   Set<String> _allowedCategoryIds = {};
   bool _isFilterOptionsLoading = false;
   bool get isFilterOptionsLoading => _isFilterOptionsLoading;
+  bool _filterOptionsPrepared = false;
 
   ScrollController scrollController = ScrollController();
 
@@ -104,11 +112,11 @@ class BookingReportController extends GetxController implements GetxService {
     super.onInit();
 
     scrollController.addListener(() {
-      if(scrollController.position.maxScrollExtent == scrollController.position.pixels) {
-        if(_offset < _pageSize! ) {
-          getBookingReportData(
-              offset+1,reload: true
-          );
+      if (!scrollController.hasClients) return;
+      if (scrollController.position.maxScrollExtent ==
+          scrollController.position.pixels) {
+        if (!_isLoading && _pageSize != null && _offset < _pageSize!) {
+          getBookingReportData(_offset + 1, reload: true);
         }
       }
     });
@@ -117,9 +125,7 @@ class BookingReportController extends GetxController implements GetxService {
 
   Future<void> prepareBookingReportFilterOptions() async {
     if (_isFilterOptionsLoading) return;
-    if (_zoneNameList.isNotEmpty &&
-        _categoryNameList.isNotEmpty &&
-        _subscribedBookingFilterSource.isNotEmpty) {
+    if (_filterOptionsPrepared) {
       _rebuildSubcategoryFilterOptions();
       _sanitizeFilterSelections();
       update();
@@ -147,8 +153,15 @@ class BookingReportController extends GetxController implements GetxService {
       _allowedCategoryIds = ReportFilterHelper.subscribedCategoryIds(
         _subscribedBookingFilterSource,
       );
+      if (_allowedCategoryIds.isEmpty) {
+        _allowedCategoryIds = _categoriesList
+            .map((c) => ReportFilterHelper.normalizeId(c.id))
+            .where((id) => id.isNotEmpty)
+            .toSet();
+      }
       _rebuildSubcategoryFilterOptions();
       _sanitizeFilterSelections();
+      _filterOptionsPrepared = _zoneNameList.isNotEmpty;
     } finally {
       _isFilterOptionsLoading = false;
       update();
@@ -277,10 +290,14 @@ class BookingReportController extends GetxController implements GetxService {
   }
 
   Future<void> getBookingReportData(int offset,{bool reload =false}) async {
+    final requestSeq = ++_requestSeq;
     _offset = offset;
     if(reload || offset == 1){
       if (offset == 1) {
-        _reportLoadFinished = false;
+        if (_bookingReportModel == null) {
+          _reportLoadFinished = false;
+        }
+        _loadError = null;
       }
       _isLoading = true;
       update();
@@ -297,54 +314,78 @@ class BookingReportController extends GetxController implements GetxService {
       bookingStatus: _selectedBookingStatus ?? 'all',
     );
 
-    Response response = await reportRepo.getBookingReportData(
-        offset,data
-    );
-    if(ReportApiHelper.isSuccess(response)){
-      _bookingReportModel = BookingReportModel.fromJson(response.body);
-      final content = _bookingReportModel?.content;
-      if(content != null){
-        _pageSize = content.filterData?.lastPage ?? 1;
-        if(offset == 1){
-          _mergeApiFilterOptionsFromResponse(content);
-          _bookingReportFilterData = List.from(content.filterData?.data ?? []);
-        } else {
-          _bookingReportFilterData.addAll(content.filterData?.data ?? []);
-        }
-
-        barChartData = [];
-        final chartData = content.chartData;
-        final timeline = chartData?.timeline;
-        if (chartData != null && timeline != null && timeline.isNotEmpty) {
-          for (int i = 0; i < timeline.length; i++) {
-            final bookingAmount = (i < (chartData.bookingAmount?.length ?? 0))
-                ? chartData.bookingAmount![i]
-                : 0.0;
-            if (bookingAmount > 0) {
-              final taxAmount = (i < (chartData.taxAmount?.length ?? 0))
-                  ? chartData.taxAmount![i].toString()
-                  : '0';
-              final adminCommission = (i < (chartData.adminCommission?.length ?? 0))
-                  ? chartData.adminCommission![i].toString()
-                  : '0';
-              barChartData.add({
-                'timeline': timeline[i].toString(),
-                'Amount': bookingAmount,
-                'tax': PriceConverter.convertPrice(double.tryParse(taxAmount)),
-                'commission': PriceConverter.convertPrice(double.tryParse(adminCommission)),
-              });
+    try {
+      Response response = await reportRepo.getBookingReportData(
+          offset,data
+      );
+      if(ReportApiHelper.isSuccess(response)){
+        _loadError = null;
+        _bookingReportModel = BookingReportModel.fromJson(response.body);
+        final content = _bookingReportModel?.content;
+        if(content != null){
+          _pageSize = content.filterData?.lastPage ?? 1;
+          if(offset == 1){
+            try {
+              _mergeApiFilterOptionsFromResponse(content);
+            } catch (_) {
+              // Filter merge must not block report rendering.
             }
+            _bookingReportFilterData = List.from(content.filterData?.data ?? []);
+          } else {
+            _bookingReportFilterData.addAll(content.filterData?.data ?? []);
           }
+
+          barChartData = [];
+          try {
+            final chartData = content.chartData;
+            final timeline = chartData?.timeline;
+            if (chartData != null && timeline != null && timeline.isNotEmpty) {
+              for (int i = 0; i < timeline.length; i++) {
+                final bookingAmount = (i < (chartData.bookingAmount?.length ?? 0))
+                    ? chartData.bookingAmount![i]
+                    : 0.0;
+                final taxAmount = (i < (chartData.taxAmount?.length ?? 0))
+                    ? chartData.taxAmount![i].toString()
+                    : '0';
+                final adminCommission = (i < (chartData.adminCommission?.length ?? 0))
+                    ? chartData.adminCommission![i].toString()
+                    : '0';
+                barChartData.add({
+                  'timeline': timeline[i].toString(),
+                  'Amount': bookingAmount,
+                  'tax': PriceConverter.convertPrice(double.tryParse(taxAmount)),
+                  'commission': PriceConverter.convertPrice(double.tryParse(adminCommission)),
+                });
+              }
+            }
+          } catch (_) {
+            barChartData = [];
+          }
+        } else {
+          _loadError = 'no_data_found';
         }
+      }else{
+        _bookingReportModel = null;
+        _bookingReportFilterData = [];
+        barChartData = [];
+        _loadError = response.statusText?.isNotEmpty == true
+            ? response.statusText
+            : 'no_data_found';
       }
-    }else{
-      _bookingReportModel = null;
-      _bookingReportFilterData = [];
-      barChartData = [];
+    } catch (_) {
+      if (offset == 1) {
+        _bookingReportModel = null;
+        _bookingReportFilterData = [];
+        barChartData = [];
+        _loadError = 'no_data_found';
+      }
+    } finally {
+      _isLoading = false;
+      if (requestSeq == _requestSeq) {
+        _reportLoadFinished = true;
+        update();
+      }
     }
-    _isLoading = false;
-    _reportLoadFinished = true;
-    update();
   }
 
   void selectDate(String type, BuildContext context){
@@ -402,7 +443,9 @@ class BookingReportController extends GetxController implements GetxService {
     }else if(type=='date_range'){
       _dateRange = dropdownValue;
     }
-    update();
+    if (type != 'booking_status') {
+      update();
+    }
   }
 
   void resetDropDownValue(){
@@ -412,7 +455,15 @@ class BookingReportController extends GetxController implements GetxService {
   }
 
   void resetValue(){
+    _requestSeq++;
+    _filterOptionsPrepared = false;
     _reportLoadFinished = false;
+    _loadError = null;
+    _pageSize = null;
+    _offset = 1;
+    _bookingReportModel = null;
+    _bookingReportFilterData = [];
+    barChartData = [];
     _toDate= null;
     _fromDate= null;
     _startDate= null;

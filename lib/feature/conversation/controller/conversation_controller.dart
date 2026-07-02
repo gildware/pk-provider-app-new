@@ -1,9 +1,26 @@
+import 'dart:async';
 import 'package:file_picker/file_picker.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
 
+class _ConversationChannelCache {
+  const _ConversationChannelCache({
+    required this.messages,
+    required this.loadedPage,
+    required this.lastPage,
+  });
+
+  final List<ConversationData> messages;
+  final int loadedPage;
+  final int lastPage;
+}
 
 class ConversationController extends GetxController with GetSingleTickerProviderStateMixin implements GetxService   {
+  static const String chatMessagesUpdateId = 'chat_messages';
+  static const String chatSendUpdateId = 'chat_send';
+  static const String chatBadgeUpdateId = 'chat_badge';
+  static const String channelListUpdateId = 'channel_list';
+
   final ConversationRepo conversationRepo;
   ConversationController({required this.conversationRepo});
 
@@ -58,6 +75,9 @@ class ConversationController extends GetxController with GetSingleTickerProvider
   bool _pickedFIleCrossMaxLength = false;
   bool get pickedFIleCrossMaxLength => _pickedFIleCrossMaxLength;
 
+  int _unreadChatCount = 0;
+  int get unreadChatCount => _unreadChatCount;
+
   String _onMessageTimeShowID = '';
   String get onMessageTimeShowID => _onMessageTimeShowID;
 
@@ -87,6 +107,17 @@ class ConversationController extends GetxController with GetSingleTickerProvider
   List<ConversationData>? _conversationList;
   List<ConversationData>? get conversationList => _conversationList;
 
+  final Map<String, _ConversationChannelCache> _conversationCache = {};
+  int _conversationFetchGeneration = 0;
+  bool _isLoadingOlderMessages = false;
+  bool get isLoadingOlderMessages => _isLoadingOlderMessages;
+  Future<void>? _pendingConversationFetch;
+  String _pendingConversationChannelId = '';
+  String _displayedConversationChannelId = '';
+  String get displayedConversationChannelId => _displayedConversationChannelId;
+
+  ConversationUser? _activeChannelPeerUser;
+
   ChannelData? _adminConversation;
   ChannelData? get adminConversationModel => _adminConversation;
 
@@ -105,9 +136,180 @@ class ConversationController extends GetxController with GetSingleTickerProvider
 
 
   void setChannelId(String channelId){
-    _channelId = channelId;
+    final normalized = normalizeChannelId(channelId);
+    if (_channelId != normalized) {
+      _displayedConversationChannelId = '';
+      _pendingConversationFetch = null;
+      _pendingConversationChannelId = '';
+      _cancelInFlightConversationFetch();
+    }
+    _channelId = normalized;
     conversationController.text = "";
+  }
 
+  void setActiveChannelPeer({
+    required String userType,
+    required String name,
+    String? image,
+    String? phone,
+  }) {
+    final trimmedName = name.trim();
+    final nameParts = trimmedName.split(RegExp(r'\s+'));
+    _activeChannelPeerUser = ConversationUser(
+      userType: userType,
+      firstName: nameParts.isNotEmpty ? nameParts.first : trimmedName,
+      lastName: nameParts.length > 1 ? nameParts.sublist(1).join(' ') : null,
+      profileImage: image,
+      profileImageFullPath: image,
+      phone: phone,
+    );
+  }
+
+  void clearActiveChannel() {
+    _channelId = '';
+    _displayedConversationChannelId = '';
+    _activeChannelPeerUser = null;
+  }
+
+  String get _currentUserDisplayName {
+    final owner = Get.find<UserProfileController>().providerModel?.content?.providerInfo?.owner;
+    return '${owner?.firstName ?? ''} ${owner?.lastName ?? ''}'.trim();
+  }
+
+  String _channelListTypeForPeer(String? peerUserType) {
+    if (peerUserType == 'provider-serviceman') {
+      return 'serviceman';
+    }
+    return 'customer';
+  }
+
+  void refreshActiveChannelListPreview() {
+    final channelListType = _channelListTypeForPeer(_activeChannelPeerUser?.userType);
+    unawaited(getChannelList(1, type: channelListType, silent: true));
+  }
+
+  void _updateChannelListPreviewAfterSend({
+    required String channelId,
+    required String? messageText,
+    required String senderDisplayName,
+    String? attachmentType,
+    int? fileCount,
+  }) {
+    final normalizedId = normalizeChannelId(channelId);
+    final now = DateTime.now().toUtc().toIso8601String();
+    var updated = false;
+
+    void applyToList(List<ChannelData>? list) {
+      if (list == null) {
+        return;
+      }
+      final index = list.indexWhere(
+        (channel) => normalizeChannelId(channel.id) == normalizedId,
+      );
+      if (index == -1) {
+        return;
+      }
+
+      final channel = list.removeAt(index);
+      final trimmedMessage = messageText?.trim();
+      channel.lastSentMessage = trimmedMessage?.isNotEmpty == true ? trimmedMessage : null;
+      channel.lastMessageSentUser = senderDisplayName;
+      channel.lastSentAttachmentType =
+          trimmedMessage?.isNotEmpty == true ? null : attachmentType;
+      channel.lastSentFileCount = fileCount;
+      channel.lastMessageStatus = 'sent';
+      channel.lastSentAt = now;
+      for (final channelUser in channel.channelUsers ?? <ConversationUserModel>[]) {
+        channelUser.updatedAt = now;
+      }
+      list.insert(0, channel);
+      updated = true;
+    }
+
+    applyToList(_customerChannelList);
+    applyToList(_servicemanChannelList);
+    applyToList(_searchedCustomerChannelList);
+    applyToList(_searchedServicemanChannelList);
+
+    if (updated) {
+      update([channelListUpdateId]);
+    }
+  }
+
+  bool isViewingChannel(String channelId) {
+    if (!Get.currentRoute.contains(RouteHelper.chatScreen)) {
+      return false;
+    }
+
+    final normalized = normalizeChannelId(channelId);
+    final openChannelId = normalizeChannelId(Get.parameters['channelID']);
+    if (openChannelId.isNotEmpty) {
+      return openChannelId == normalized;
+    }
+
+    if (_displayedConversationChannelId.isNotEmpty) {
+      return _displayedConversationChannelId == normalized;
+    }
+
+    return normalizeChannelId(_channelId) == normalized;
+  }
+
+  ConversationUser _userFromPushPayload(Map<String, dynamic> data) {
+    final senderUserId = data['sender_user_id']?.toString();
+    for (final message in _conversationList ?? const <ConversationData>[]) {
+      if (message.userId == senderUserId && message.user != null) {
+        return message.user!;
+      }
+    }
+
+    if (_activeChannelPeerUser != null) {
+      return ConversationUser(
+        id: senderUserId ?? _activeChannelPeerUser!.id,
+        userType: data['user_type']?.toString() ?? _activeChannelPeerUser!.userType,
+        firstName: _activeChannelPeerUser!.firstName,
+        lastName: _activeChannelPeerUser!.lastName,
+        profileImage: data['user_image']?.toString().isNotEmpty == true
+            ? data['user_image']?.toString()
+            : _activeChannelPeerUser!.profileImage,
+        profileImageFullPath: data['user_image']?.toString().isNotEmpty == true
+            ? data['user_image']?.toString()
+            : _activeChannelPeerUser!.profileImageFullPath,
+        phone: data['user_phone']?.toString() ?? _activeChannelPeerUser!.phone,
+      );
+    }
+
+    final senderName = data['user_name']?.toString().trim() ?? '';
+    final nameParts = senderName.split(RegExp(r'\s+'));
+    return ConversationUser(
+      id: senderUserId,
+      userType: data['user_type']?.toString() ?? 'customer',
+      firstName: nameParts.isNotEmpty ? nameParts.first : senderName,
+      lastName: nameParts.length > 1 ? nameParts.sublist(1).join(' ') : null,
+      profileImage: data['user_image']?.toString(),
+      profileImageFullPath: data['user_image']?.toString(),
+      phone: data['user_phone']?.toString(),
+    );
+  }
+
+  static String normalizeChannelId(String? channelId) {
+    return channelId?.trim() ?? '';
+  }
+
+  void _cacheConversation(String channelId) {
+    final normalizedChannelId = normalizeChannelId(channelId);
+    if (_conversationList == null || _conversationList!.isEmpty) {
+      return;
+    }
+
+    _conversationCache[normalizedChannelId] = _ConversationChannelCache(
+      messages: List<ConversationData>.from(_conversationList!),
+      loadedPage: _messageOffset ?? 1,
+      lastPage: _messagePageSize ?? 1,
+    );
+  }
+
+  _ConversationChannelCache? _cachedConversation(String channelId) {
+    return _conversationCache[normalizeChannelId(channelId)];
   }
 
   @override
@@ -119,6 +321,10 @@ class ConversationController extends GetxController with GetSingleTickerProvider
       vsync: this,
       length: AppFeatureFlags.servicemanEnabled ? 2 : 1,
     );
+
+    if (Get.find<AuthController>().isLoggedIn()) {
+      getUnreadChatCount();
+    }
 
     conversationController.text = '';
     channelScrollController1.addListener(() {
@@ -137,11 +343,60 @@ class ConversationController extends GetxController with GetSingleTickerProvider
       }
     });
 
-    messageScrollController.addListener(() {
-      if (messageScrollController.position.pixels == messageScrollController.position.maxScrollExtent) {
-        if (_messageOffset! < _messagePageSize!) {
-          getConversation(_channelId,_messageOffset!+1, isFromPagination: true);
-        }
+    messageScrollController.addListener(_loadOlderMessagesIfNeeded);
+  }
+
+  int _parseLastPage(dynamic value) {
+    return int.tryParse(value?.toString() ?? '') ?? 1;
+  }
+
+  bool get _hasMoreOlderMessages {
+    return (_messagePageSize ?? 1) > (_messageOffset ?? 1);
+  }
+
+  void _loadOlderMessagesIfNeeded() {
+    if (!_hasMoreOlderMessages || _isLoadingOlderMessages || _channelId.isEmpty) {
+      return;
+    }
+
+    if (!messageScrollController.hasClients) {
+      return;
+    }
+
+    final position = messageScrollController.position;
+    if (!position.hasPixels) {
+      return;
+    }
+
+    if (position.pixels < position.maxScrollExtent - 120) {
+      return;
+    }
+
+    unawaited(getConversation(
+      _channelId,
+      (_messageOffset ?? 1) + 1,
+      isFromPagination: true,
+    ));
+  }
+
+  void _scheduleAutoLoadOlderMessages() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_hasMoreOlderMessages || _isLoadingOlderMessages) {
+        return;
+      }
+
+      if (!messageScrollController.hasClients) {
+        return;
+      }
+
+      final position = messageScrollController.position;
+      if (!position.hasPixels) {
+        return;
+      }
+
+      if (position.maxScrollExtent <= 120 ||
+          position.pixels >= position.maxScrollExtent - 120) {
+        _loadOlderMessagesIfNeeded();
       }
     });
   }
@@ -261,12 +516,12 @@ class ConversationController extends GetxController with GetSingleTickerProvider
      update();
   }
 
-  Future<void> getChannelList(int offset, {bool isFromPagination = false,bool reload = false, bool isFirst = false, String type = "customer"}) async{
+  Future<void> getChannelList(int offset, {bool isFromPagination = false,bool reload = false, bool isFirst = false, String type = "customer", bool silent = false}) async{
     _channelOffset = offset;
 
-    if(reload){
+    if(reload && !silent){
       if(!isFirst){
-        update();
+        update([channelListUpdateId]);
       }
     }
 
@@ -310,7 +565,7 @@ class ConversationController extends GetxController with GetSingleTickerProvider
 
     _paginationLoading = false;
     _isLoading = false;
-    update();
+    update([channelListUpdateId]);
   }
 
   Future<void> createChannel({String? userID,String? referenceID,String? name,String? image,String? phone,String userType=''}) async{
@@ -328,39 +583,399 @@ class ConversationController extends GetxController with GetSingleTickerProvider
      update();
   }
 
-  Future<void> getConversation(String channelID, int offset, {bool isConversation = true, bool isFromPagination = false}) async{
-    _messageOffset = offset;
-    if(isConversation){
-      _isFirst = true;
+  List<ConversationData> _mergeConversationFirstPage(
+    List<ConversationData> current,
+    List<ConversationData> serverPage,
+  ) {
+    final serverIds = serverPage.map((message) => message.id).whereType<String>().toSet();
+    final optimistic = current
+        .where((message) => message.id != null && !serverIds.contains(message.id))
+        .toList();
+    return [...optimistic, ...serverPage];
+  }
+
+  void _refreshConversationInBackground(
+    String normalizedChannelId,
+    int offset, {
+    bool refreshChannelList = false,
+  }) {
+    if ((_messageOffset ?? 1) > 1) {
+      unawaited(appendIncomingMessages(normalizedChannelId));
+      return;
     }
 
-   Response response = await conversationRepo.getConversation(channelID, offset);
-    if(response.statusCode == 200){
-      getChannelList(1, reload: true);
+    unawaited(_fetchConversationPage(
+      normalizedChannelId,
+      offset,
+      isFromPagination: false,
+      refreshChannelList: refreshChannelList,
+      showLoader: false,
+    ));
+  }
 
-      if(!isFromPagination){
-        _conversationList = [];
+  /// Start loading messages before navigation so the chat screen opens instantly.
+  void prefetchConversation(String channelID) {
+    final normalizedChannelId = normalizeChannelId(channelID);
+    if (normalizedChannelId.isEmpty) {
+      return;
+    }
+
+    final cached = _cachedConversation(normalizedChannelId);
+    if (cached != null && cached.messages.isNotEmpty) {
+      return;
+    }
+
+    if (_pendingConversationChannelId == normalizedChannelId &&
+        _pendingConversationFetch != null) {
+      return;
+    }
+
+    _channelId = normalizedChannelId;
+    _pendingConversationChannelId = normalizedChannelId;
+    _pendingConversationFetch = _fetchConversationPage(
+      normalizedChannelId,
+      1,
+      isFromPagination: false,
+      refreshChannelList: false,
+      showLoader: false,
+    ).whenComplete(() {
+      if (_pendingConversationChannelId == normalizedChannelId) {
+        _pendingConversationFetch = null;
+        _pendingConversationChannelId = '';
       }
-      response.body['content']['data'].forEach((conversation){_conversationList!.add(ConversationData.fromJson(conversation));
-      _messagePageSize =  response.body['content']['last_page'];
-      _channelId = _conversationList![0].channelId!;
-      });
+    });
+    unawaited(_pendingConversationFetch);
+  }
 
-    }else{
+  Future<void> getConversation(
+    String channelID,
+    int offset, {
+    bool isConversation = true,
+    bool isFromPagination = false,
+    bool refreshChannelList = false,
+  }) async {
+    final normalizedChannelId = normalizeChannelId(channelID);
 
-      ApiChecker.checkApi(response);
+    if (isFromPagination) {
+      if (_isLoadingOlderMessages || !_hasMoreOlderMessages) {
+        return;
+      }
+
+      await _fetchConversationPage(
+        normalizedChannelId,
+        (_messageOffset ?? 1) + 1,
+        isFromPagination: true,
+        refreshChannelList: false,
+        showLoader: false,
+      );
+      return;
     }
 
+    _messageOffset = offset;
+    _channelId = normalizedChannelId;
+
+    if (isConversation) {
+      if (_pendingConversationChannelId == normalizedChannelId &&
+          _pendingConversationFetch != null) {
+        await _pendingConversationFetch;
+      }
+
+      if (_displayedConversationChannelId == normalizedChannelId &&
+          _conversationList != null &&
+          _conversationList!.isNotEmpty) {
+        _isFirst = false;
+        update([chatMessagesUpdateId]);
+        _scheduleAutoLoadOlderMessages();
+        _refreshConversationInBackground(
+          normalizedChannelId,
+          1,
+          refreshChannelList: refreshChannelList,
+        );
+        return;
+      }
+
+      final cached = _cachedConversation(normalizedChannelId);
+      if (cached != null && cached.messages.isNotEmpty) {
+        _conversationList = List<ConversationData>.from(cached.messages);
+        _messageOffset = cached.loadedPage;
+        _messagePageSize = cached.lastPage;
+        _displayedConversationChannelId = normalizedChannelId;
+        _isFirst = false;
+        update([chatMessagesUpdateId]);
+        _scheduleAutoLoadOlderMessages();
+        _refreshConversationInBackground(
+          normalizedChannelId,
+          1,
+          refreshChannelList: refreshChannelList,
+        );
+        return;
+      }
+
+      if (_displayedConversationChannelId != normalizedChannelId) {
+        _conversationList = null;
+        _messageOffset = 1;
+        _messagePageSize = null;
+        _isFirst = true;
+        update([chatMessagesUpdateId]);
+      } else if (_conversationList == null || _conversationList!.isEmpty) {
+        _messageOffset = 1;
+        _messagePageSize = null;
+        _isFirst = true;
+        update([chatMessagesUpdateId]);
+      }
+    }
+
+    await _fetchConversationPage(
+      normalizedChannelId,
+      offset,
+      isFromPagination: isFromPagination,
+      refreshChannelList: refreshChannelList,
+      showLoader: isConversation && !isFromPagination,
+    );
+  }
+
+  void _cancelInFlightConversationFetch() {
+    _conversationFetchGeneration++;
+  }
+
+  Future<void> _fetchConversationPage(
+    String normalizedChannelId,
+    int offset, {
+    required bool isFromPagination,
+    required bool refreshChannelList,
+    required bool showLoader,
+  }) async {
+    if (isFromPagination) {
+      _isLoadingOlderMessages = true;
+      update([chatMessagesUpdateId]);
+    }
+
+    final generationAtStart = _conversationFetchGeneration;
+    final channelIdAtStart = normalizedChannelId;
+
+    try {
+      final response = await conversationRepo.getConversation(normalizedChannelId, offset);
+      if (generationAtStart != _conversationFetchGeneration ||
+          channelIdAtStart != _channelId) {
+        return;
+      }
+
+      if (response.statusCode == 200) {
+        if (refreshChannelList) {
+          unawaited(getChannelList(1, silent: true));
+        }
+
+        final rawMessages = response.body['content']['data'] as List;
+        final pageMessages = rawMessages
+            .map((conversation) => ConversationData.fromJson(conversation))
+            .toList(growable: true);
+
+        if (isFromPagination) {
+          _conversationList ??= [];
+          final existingIds = _conversationList!
+              .map((message) => message.id)
+              .whereType<String>()
+              .toSet();
+          for (final message in pageMessages) {
+            final messageId = message.id;
+            if (messageId != null && !existingIds.contains(messageId)) {
+              _conversationList!.add(message);
+              existingIds.add(messageId);
+            }
+          }
+          _messageOffset = offset;
+        } else if (!showLoader &&
+            _conversationList != null &&
+            _conversationList!.isNotEmpty &&
+            (_messageOffset ?? 1) == 1) {
+          _conversationList = _mergeConversationFirstPage(_conversationList!, pageMessages);
+          _messageOffset = offset;
+        } else {
+          _conversationList = pageMessages;
+          _messageOffset = offset;
+        }
+
+        _messagePageSize = _parseLastPage(response.body['content']['last_page']);
+        _cacheConversation(normalizedChannelId);
+        if (!isFromPagination) {
+          _displayedConversationChannelId = normalizedChannelId;
+        }
+
+        if (!isFromPagination) {
+          unawaited(getUnreadChatCount());
+        }
+
+        _scheduleAutoLoadOlderMessages();
+      } else {
+        if (showLoader) {
+          ApiChecker.checkApi(response);
+        }
+      }
+
+      if (showLoader) {
+        _isFirst = false;
+      }
+    } finally {
+      if (isFromPagination) {
+        _isLoadingOlderMessages = false;
+      }
+      update([chatMessagesUpdateId]);
+    }
+  }
+
+  /// Apply a push payload directly when possible; otherwise fetch only new rows.
+  Future<void> appendIncomingMessageFromPush(Map<String, dynamic> data) async {
+    final channelId = normalizeChannelId(data['channel_id']?.toString());
+    if (!isViewingChannel(channelId)) {
+      return;
+    }
+
+    _cancelInFlightConversationFetch();
+    _conversationList ??= [];
     _isFirst = false;
-    update();
+
+    final conversationId = data['conversation_id']?.toString().trim() ?? '';
+    final messageText = data['message']?.toString();
+    if (conversationId.isNotEmpty && messageText != null && messageText.isNotEmpty) {
+      final alreadyShown = _conversationList!.any((item) => item.id == conversationId);
+      if (!alreadyShown) {
+        _conversationList!.insert(0, ConversationData(
+          id: conversationId,
+          channelId: channelId,
+          message: messageText,
+          userId: data['sender_user_id']?.toString(),
+          createdAt: data['created_at']?.toString() ?? DateTime.now().toUtc().toIso8601String(),
+          user: _userFromPushPayload(data),
+          conversationFile: const [],
+        ));
+        _cacheConversation(channelId);
+        update([chatMessagesUpdateId]);
+        return;
+      }
+    }
+
+    await appendIncomingMessages(channelId);
+  }
+
+  /// Fetches the latest page and appends only messages not already shown.
+  Future<void> appendIncomingMessages(String channelID) async {
+    final normalizedChannelId = normalizeChannelId(channelID);
+    if (!isViewingChannel(normalizedChannelId)) {
+      return;
+    }
+
+    _conversationList ??= [];
+    _isFirst = false;
+
+    final response = await conversationRepo.getConversation(normalizedChannelId, 1);
+    if (response.statusCode != 200) {
+      return;
+    }
+
+    final existingIds = _conversationList!
+        .map((message) => message.id)
+        .whereType<String>()
+        .toSet();
+
+    final newMessages = <ConversationData>[];
+    for (final conversation in response.body['content']['data'] as List) {
+      final message = ConversationData.fromJson(conversation);
+      if (message.id != null && !existingIds.contains(message.id)) {
+        newMessages.add(message);
+      }
+    }
+
+    if (newMessages.isEmpty) {
+      return;
+    }
+
+    _conversationList!.insertAll(0, newMessages);
+    _messagePageSize = _parseLastPage(response.body['content']['last_page']);
+    _cacheConversation(normalizedChannelId);
+    update([chatMessagesUpdateId]);
+  }
+
+  /// Append a single sent message locally without refetching the whole thread.
+  void appendSentMessage({
+    required String channelId,
+    required String message,
+    required String senderUserId,
+    String? conversationId,
+  }) {
+    if (!isViewingChannel(channelId)) {
+      return;
+    }
+
+    _conversationList ??= [];
+    _isFirst = false;
+    final resolvedId = conversationId ?? DateTime.now().microsecondsSinceEpoch.toString();
+    if (_conversationList!.any((item) => item.id == resolvedId)) {
+      return;
+    }
+
+    _conversationList!.insert(0, ConversationData(
+      id: resolvedId,
+      channelId: normalizeChannelId(channelId),
+      message: message,
+      userId: senderUserId,
+      createdAt: DateTime.now().toUtc().toIso8601String(),
+      user: ConversationUser(
+        id: senderUserId,
+        userType: 'provider-admin',
+        firstName: 'you'.tr,
+      ),
+      conversationFile: const [],
+    ));
+    _cacheConversation(channelId);
+    update([chatMessagesUpdateId]);
+  }
+
+  Future<void> getUnreadChatCount() async {
+    if (!Get.find<AuthController>().isLoggedIn()) {
+      return;
+    }
+    final response = await conversationRepo.getUnreadConversationCount();
+    if (response.statusCode == 200) {
+      final count = response.body['content']?['unread_conversation'];
+      _unreadChatCount = count is int ? count : int.tryParse('$count') ?? 0;
+      update([chatBadgeUpdateId]);
+    }
   }
 
   Future<void> sendMessage(String channelID) async{
     _isLoading = true;
-    update();
-    Response response = await conversationRepo.sendMessage(conversationController.value.text,channelID ,_selectedImageList, objFile);
+    update([chatSendUpdateId]);
+    final sentText = conversationController.value.text;
+    Response response = await conversationRepo.sendMessage(sentText,channelID ,_selectedImageList, objFile);
     if(response.statusCode == 200){
-      getConversation(channelID,1,isConversation: false);
+      _cancelInFlightConversationFetch();
+      final senderUserId = Get.find<UserProfileController>().providerModel?.content?.providerInfo?.userId;
+      final senderDisplayName = _currentUserDisplayName;
+      final channelListType = _channelListTypeForPeer(_activeChannelPeerUser?.userType);
+      if (sentText.trim().isNotEmpty && senderUserId != null) {
+        appendSentMessage(
+          channelId: channelID,
+          message: sentText,
+          senderUserId: senderUserId,
+        );
+        _updateChannelListPreviewAfterSend(
+          channelId: channelID,
+          messageText: sentText,
+          senderDisplayName: senderDisplayName,
+        );
+      } else {
+        await appendIncomingMessages(channelID);
+        _updateChannelListPreviewAfterSend(
+          channelId: channelID,
+          messageText: null,
+          senderDisplayName: senderDisplayName,
+          attachmentType: _selectedImageList.isNotEmpty ? 'jpg' : null,
+          fileCount: _selectedImageList.isNotEmpty
+              ? _selectedImageList.length
+              : objFile?.length,
+        );
+      }
+      unawaited(getChannelList(1, type: channelListType, silent: true));
       conversationController.text='';
       _pickedImageFiles = [];
       _selectedImageList = [];
@@ -392,7 +1007,34 @@ class ConversationController extends GetxController with GetSingleTickerProvider
       ApiChecker.checkApi(response);
     }
     _isLoading = false;
-    update();
+    update([chatMessagesUpdateId, chatSendUpdateId]);
+  }
+
+  void resetOnAuthChange() {
+    _cancelInFlightConversationFetch();
+    _conversationCache.clear();
+    _conversationList = null;
+    _adminConversation = null;
+    _customerChannelList = null;
+    _servicemanChannelList = null;
+    _searchedChannelList = [];
+    _searchedCustomerChannelList = [];
+    _searchedServicemanChannelList = [];
+    _channelId = '';
+    _displayedConversationChannelId = '';
+    _pendingConversationChannelId = '';
+    _pendingConversationFetch = null;
+    _activeChannelPeerUser = null;
+    _unreadChatCount = 0;
+    _messageOffset = 1;
+    _messagePageSize = null;
+    _isFirst = false;
+    _channelOffset = 1;
+    _channelPageSize = null;
+    _paginationLoading = false;
+    _isLoading = false;
+    clearSearchController(shouldUpdate: false);
+    update([chatMessagesUpdateId, chatSendUpdateId, chatBadgeUpdateId, channelListUpdateId]);
   }
 
   void resetControllerValue({bool shouldUpdate = true}){
@@ -403,7 +1045,7 @@ class ConversationController extends GetxController with GetSingleTickerProvider
     _file=null;
 
     if(shouldUpdate){
-      update();
+      update([chatSendUpdateId]);
     }
   }
 

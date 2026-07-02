@@ -104,6 +104,8 @@ class ChannelData {
   String? lastSentAttachmentType;
   String? lastMessageSentUser;
   int? lastSentFileCount;
+  String? lastMessageStatus;
+  String? lastSentAt;
   List<ConversationUserModel>? channelUsers;
 
   ChannelData(
@@ -119,6 +121,8 @@ class ChannelData {
         this.lastSentAttachmentType,
         this.lastSentFileCount,
         this.lastMessageSentUser
+        ,this.lastMessageStatus,
+        this.lastSentAt,
       });
 
   ChannelData.fromJson(Map<String, dynamic> json) {
@@ -130,6 +134,8 @@ class ChannelData {
     lastSentMessage = json['last_sent_message'];
     lastSentAttachmentType = json['last_sent_attachment_type'];
     lastMessageSentUser = json['last_message_sent_user'];
+    lastMessageStatus = json['last_message_status'];
+    lastSentAt = json['last_sent_at'];
     channelUsersCount =int.tryParse( json['channel_users_count'].toString());
     lastSentFileCount =int.tryParse( json['last_sent_files_count'].toString());
     if (json['channel_users'] != null) {

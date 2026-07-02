@@ -41,7 +41,10 @@ class ProviderShowcaseItem {
     }
     final file = fileName?.trim();
     if (file != null && file.isNotEmpty) {
-      return MobileAppIconHelper.resolveMediaUrl('/storage/provider/showcase/$file');
+      final storagePath = file.contains('/')
+          ? '/storage/$file'
+          : '/storage/provider/showcase/$file';
+      return MobileAppIconHelper.resolveMediaUrl(storagePath);
     }
     return null;
   }

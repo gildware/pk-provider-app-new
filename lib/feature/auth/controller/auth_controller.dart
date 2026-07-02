@@ -119,13 +119,10 @@ class AuthController extends GetxController implements GetxService {
       _isLoading = false;
       update();
 
-      String responseText = "";
-      if(response.statusCode == 500){
-        responseText = "Internal Server Error";
-      }else{
-       responseText = response.body["message"] ?? response.statusText ;
-      }
-      return ResponseModel(false, responseText);
+      return ResponseModel(
+        false,
+        ApiErrorHelper.extractMessage(response) ?? 'connection_to_api_server_failed'.tr,
+      );
     }
   }
 
@@ -144,13 +141,10 @@ class AuthController extends GetxController implements GetxService {
       _isLoading = false;
       update();
 
-      String responseText = "";
-      if(response.statusCode == 500){
-        responseText = "Internal Server Error";
-      }else{
-        responseText = response.body["message"] ?? response.statusText ;
-      }
-      return ResponseModel(false, responseText);
+      return ResponseModel(
+        false,
+        ApiErrorHelper.extractMessage(response) ?? 'connection_to_api_server_failed'.tr,
+      );
     }
   }
 
@@ -233,9 +227,8 @@ class AuthController extends GetxController implements GetxService {
       } else {
         final responseCode = body is Map ? body['response_code']?.toString() : null;
         final message = body is Map ? body['message']?.toString() : null;
-        final responseText = response.statusCode == 500
-            ? trLabel('internal_server_error', fallback: 'Internal Server Error')
-            : trLabel(responseCode, fallback: message ?? response.statusText);
+        final responseText = ApiErrorHelper.extractMessage(response) ??
+            trLabel(responseCode, fallback: message ?? response.statusText);
         responseModel = ResponseModel(false, responseText);
       }
     } catch (e, stack) {
@@ -339,7 +332,7 @@ class AuthController extends GetxController implements GetxService {
     _isLoading = false;
     if(response.statusCode == 200){
       showCustomSnackBar('your_account_remove_successfully'.tr,  type: ToasterMessageType.success);
-      Get.find<AuthController>().clearSharedData();
+      await clearSharedData();
       Get.offAllNamed(RouteHelper.getSignInRoute(RouteHelper.splash));
     }else{
       Get.back();
@@ -363,13 +356,10 @@ class AuthController extends GetxController implements GetxService {
     if (verificationCode.length == 6 && response.statusCode == 403){
       _isWrongOtpSubmitted = true;
     }
-    String responseText = "";
-    if(response.statusCode == 500){
-      responseText = "Internal Server Error";
-    }else{
-      responseText = response.body["message"] ?? "verification_failed".tr ;
-    }
-    return ResponseModel(false, responseText);
+    return ResponseModel(
+      false,
+      ApiErrorHelper.extractMessage(response) ?? 'verification_failed'.tr,
+    );
   }
 
 
@@ -402,9 +392,9 @@ class AuthController extends GetxController implements GetxService {
     return authRepo.isLoggedIn();
   }
 
-  bool clearSharedData() {
-    _resetProviderSessionState();
-    return authRepo.clearSharedData();
+  Future<bool> clearSharedData({bool skipFcmUnregister = false}) async {
+    await _resetProviderSessionState();
+    return authRepo.clearSharedData(skipFcmUnregister: skipFcmUnregister);
   }
 
   Future<void> _resetProviderSessionState() async {
@@ -415,6 +405,9 @@ class AuthController extends GetxController implements GetxService {
     }
     if (Get.isRegistered<BookingRequestController>()) {
       Get.find<BookingRequestController>().resetOnAuthChange();
+    }
+    if (Get.isRegistered<ConversationController>()) {
+      Get.find<ConversationController>().resetOnAuthChange();
     }
   }
 

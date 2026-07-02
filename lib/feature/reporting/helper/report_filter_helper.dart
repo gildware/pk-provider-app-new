@@ -139,6 +139,16 @@ class ReportFilterHelper {
       categoryNames.add(name);
     }
 
+    if (categories.isEmpty) {
+      for (final c in categoryController.serviceCategoryList ?? []) {
+        final id = normalizeId(c.id);
+        final name = c.name?.trim() ?? '';
+        if (id.isEmpty || name.isEmpty) continue;
+        categories.add(Categories(id: id, name: name));
+        categoryNames.add(name);
+      }
+    }
+
     return ReportFilterZoneCategoryData(
       zones: zones,
       zoneNames: zoneNames,

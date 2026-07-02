@@ -126,9 +126,7 @@ class NotificationHelper {
             Get.offAllNamed(RouteHelper.getInitialRoute());
           }
           else if(notificationBody.notificationType == 'logout'){
-            Get.find<AuthController>().clearSharedData();
-            Get.find<UserProfileController>().clearUserProfileData();
-            Get.offAllNamed(RouteHelper.getInitialRoute());
+            unawaited(_handleForcedLogout());
           }
 
           else if(notificationBody.notificationType == 'advertisement'){
@@ -193,10 +191,9 @@ class NotificationHelper {
       }
       else if(message.data['type'] == 'logout'){
         NotificationHelper.showNotification(message, false,flutterLocalNotificationsPlugin);
-        Get.find<AuthController>().clearSharedData();
-        Get.find<UserProfileController>().clearUserProfileData();
-        Get.offAllNamed(RouteHelper.getInitialRoute());
-        showCustomSnackBar(message.data['title'], duration: 4);
+        unawaited(_handleForcedLogout(
+          snackBarTitle: message.data['title']?.toString(),
+        ));
       }
       else if(message.data['type'] == 'maintenance'){
         Get.find<SplashController>().getConfigData();
@@ -280,9 +277,7 @@ class NotificationHelper {
             Get.toNamed(RouteHelper.getSplashRoute());
           }
           else if(message.data['type'] == 'logout'){
-            Get.find<AuthController>().clearSharedData();
-            Get.find<UserProfileController>().clearUserProfileData();
-            Get.offAllNamed(RouteHelper.getInitialRoute());
+            unawaited(_handleForcedLogout());
           }
           else if(message.data['type'] == 'advertisement'){
             Get.toNamed(RouteHelper.getAdvertisementDetailsScreen(advertisementId: notificationBody.advertisementId, fromNotification: "fromNotification"));
@@ -303,6 +298,15 @@ class NotificationHelper {
   }
 
 
+
+  static Future<void> _handleForcedLogout({String? snackBarTitle}) async {
+    await Get.find<AuthController>().clearSharedData();
+    Get.find<UserProfileController>().clearUserProfileData();
+    Get.offAllNamed(RouteHelper.getInitialRoute());
+    if (snackBarTitle != null && snackBarTitle.isNotEmpty) {
+      showCustomSnackBar(snackBarTitle, duration: 4);
+    }
+  }
 
   static void _refreshInAppNotificationList() {
     if (Get.isRegistered<NotificationController>()) {

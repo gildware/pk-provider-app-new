@@ -23,18 +23,14 @@ class _HtmlViewerScreenState extends State<HtmlViewerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final double weight = MediaQuery.of(context).size.width;
     final pageKey = widget.pageKey ?? widget.type?.value ?? '';
     String? data;
-    String? image;
     return GetBuilder<HtmlViewController>(
         initState: (state){
           Get.find<HtmlViewController>().getPagesContent(pageKey);
         },
         builder: (htmlViewController){
           data = htmlViewController.pageDetailsModel?.content?.replaceAll('href=', 'target="_blank" href=');
-
-          image = htmlViewController.pageDetailsModel?.image;
           final appBarTitle = (htmlViewController.pageDetailsModel?.title?.isNotEmpty ?? false)
               ? htmlViewController.pageDetailsModel!.title!
               : _fallbackTitle(pageKey);
@@ -54,18 +50,6 @@ class _HtmlViewerScreenState extends State<HtmlViewerScreen> {
                   physics: const BouncingScrollPhysics(),
                   child: Column(
                     children: [
-
-                      SizedBox(height: Dimensions.paddingSizeSmall),
-
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                        child: CustomImage(
-                          height: weight / 7, width: weight,
-                          fit: BoxFit.cover,
-                          image: image ?? "",
-                          placeholder: Images.businessPagePlaceholder,
-                        ),
-                      ),
 
                       (data?.isNotEmpty ?? false || htmlViewController.pageDetailsModel == null) ?  Container(
                         padding:  const EdgeInsets.all(Dimensions.paddingSizeDefault),

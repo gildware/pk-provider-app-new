@@ -16,11 +16,14 @@ class _CustomPopScopeWidgetState extends State<CustomPopScopeWidget> {
     return PopScope(
       canPop: ResponsiveHelper.isWeb() ? true : Navigator.canPop(context),
       onPopInvokedWithResult: (didPop, result) {
-        if(widget.onPopInvoked != null) {
-          widget.onPopInvoked!();
-        }else{
+        if (didPop) {
           return;
         }
+        if (widget.onPopInvoked != null) {
+          widget.onPopInvoked!();
+          return;
+        }
+        popRouteOrGoHome(context: context);
       },
       child: widget.child,
     );

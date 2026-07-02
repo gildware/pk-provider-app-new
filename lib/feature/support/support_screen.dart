@@ -11,257 +11,190 @@ import 'package:url_launcher/url_launcher.dart';
 class SupportScreen extends StatelessWidget {
   const SupportScreen({super.key});
 
-  String get _supportPhone =>
-      Get.find<SplashController>().configModel.content?.businessPhone?.trim() ?? '';
-
-  String get _supportEmail =>
-      Get.find<SplashController>().configModel.content?.businessEmail?.trim() ?? '';
-
   @override
   Widget build(BuildContext context) {
+    final String phone =
+        Get.find<SplashController>().configModel.content?.businessPhone?.trim() ?? '';
+    final String emailAddress =
+        Get.find<SplashController>().configModel.content?.businessEmail?.trim() ?? '';
+
     return Scaffold(
-      backgroundColor: Theme.of(context).cardColor,
       appBar: CustomAppBar(title: 'help_&_support'.tr),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              Dimensions.paddingSizeDefault,
-              Dimensions.paddingSizeSmall,
-              Dimensions.paddingSizeDefault,
-              Dimensions.paddingSizeSmall,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(Images.helpSupportImage, width: 140, height: 56),
-                const SizedBox(height: Dimensions.paddingSizeSmall),
-                Text(
-                  'contact_for_support'.tr,
-                  style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(
+            vertical: Dimensions.paddingSizeLarge,
+            horizontal: Dimensions.paddingSizeExtraLarge,
+          ),
+          child: Column(
+            children: [
+              Image.asset(Images.helpSupportImage, width: 160, height: 140),
+              const SizedBox(height: Dimensions.paddingSizeExtraLarge),
+              Text(
+                'contact_for_support'.tr,
+                style: robotoBold.copyWith(fontSize: Dimensions.fontSizeOverLarge),
+              ),
+              const SizedBox(height: Dimensions.paddingSizeSmall),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeLarge),
+                child: Text(
+                  'we_are_here_to_help_contact_our_support'.tr,
                   textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: Dimensions.paddingSizeExtraSmall),
-                Text(
-                  'were_here_to_help'.tr,
                   style: robotoRegular.copyWith(
                     fontSize: Dimensions.fontSizeSmall,
-                    color: Theme.of(context).hintColor,
-                    height: 1.25,
+                    color: Theme.of(context).textTheme.bodyLarge!.color!.withValues(alpha: .5),
                   ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Get.isDarkMode
-                    ? Colors.grey.withValues(alpha: 0.2)
-                    : Theme.of(context).primaryColor.withValues(alpha: 0.05),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24),
                 ),
               ),
-              child: ListView(
-                padding: const EdgeInsets.only(
-                  top: Dimensions.paddingSizeSmall,
-                  bottom: Dimensions.paddingSizeDefault,
-                ),
-                children: [
-                  ContactWithEmailOrPhone(
-                    title: 'call_our_customer'.tr,
-                    subTitle: 'talk_with_our_customer'.tr,
-                    message: _supportPhone,
-                    contactType: SupportContactType.phone,
-                  ),
-                  ContactWithEmailOrPhone(
-                    title: 'whatsapp_us'.tr,
-                    subTitle: 'whatsapp_support_subtitle'.tr,
-                    message: _supportPhone,
-                    contactType: SupportContactType.whatsapp,
-                  ),
-                  ContactWithEmailOrPhone(
-                    title: 'send_us_email_through'.tr,
-                    subTitle: 'typically_the_support'.tr,
-                    message: _supportEmail,
-                    contactType: SupportContactType.email,
-                  ),
-                ],
+              const SizedBox(height: Dimensions.paddingSizeLarge),
+              SupportContactCard(
+                title: 'call_our_customer_support'.tr,
+                subtitle: 'contact_us_through_our_customer_care_number'.tr,
+                contactInfo: phone,
+                icon: Icons.phone,
+                onTap: phone.isNotEmpty
+                    ? () async => await launchUrl(Uri(scheme: 'tel', path: phone))
+                    : null,
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-enum SupportContactType { phone, email, whatsapp }
-
-class ContactWithEmailOrPhone extends StatelessWidget {
-  final String title;
-  final String subTitle;
-  final String message;
-  final SupportContactType contactType;
-
-  const ContactWithEmailOrPhone({
-    super.key,
-    required this.title,
-    required this.subTitle,
-    required this.message,
-    required this.contactType,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bool hasMessage = message.isNotEmpty;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: Dimensions.paddingSizeDefault,
-        vertical: Dimensions.paddingSizeSmall,
-      ),
-      margin: const EdgeInsets.symmetric(
-        horizontal: Dimensions.paddingSizeDefault,
-        vertical: Dimensions.paddingSizeExtraSmall,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
-        color: Theme.of(context).cardColor,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          _LeadingIcon(contactType: contactType),
-          const SizedBox(width: Dimensions.paddingSizeSmall),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: robotoMedium.copyWith(
-                    fontSize: Dimensions.fontSizeDefault,
-                    color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.75),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subTitle,
-                  style: robotoRegular.copyWith(
-                    fontSize: Dimensions.fontSizeSmall,
-                    color: Theme.of(context).hintColor,
-                    height: 1.2,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (hasMessage) ...[
-                  const SizedBox(height: Dimensions.paddingSizeExtraSmall),
-                  Text(
-                    message,
-                    style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-          InkWell(
-            onTap: hasMessage ? () => _openContact(message) : null,
-            borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(Dimensions.radiusExtraLarge),
-                color: contactType == SupportContactType.whatsapp
-                    ? const Color(0xFF25D366)
-                    : Theme.of(context).primaryColor,
+              const SizedBox(height: Dimensions.paddingSizeLarge),
+              SupportContactCard(
+                title: 'whatsapp_us'.tr,
+                subtitle: 'whatsapp_support_subtitle'.tr,
+                contactInfo: phone,
+                icon: Icons.chat_rounded,
+                accentColor: const Color(0xFF25D366),
+                onTap: phone.isNotEmpty ? () => _openWhatsApp(phone) : null,
               ),
-              child: _ActionIcon(contactType: contactType),
-            ),
+              const SizedBox(height: Dimensions.paddingSizeLarge),
+              SupportContactCard(
+                title: 'send_us_email_through'.tr,
+                subtitle: 'typically_the_support_team_send_you_any_feedback'.tr,
+                contactInfo: emailAddress,
+                icon: Icons.email_outlined,
+                onTap: emailAddress.isNotEmpty
+                    ? () async => await launchUrl(Uri(scheme: 'mailto', path: emailAddress))
+                    : null,
+              ),
+              const SizedBox(height: Dimensions.paddingSizeExtraLarge),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Future<void> _openContact(String value) async {
-    final Uri uri;
-    switch (contactType) {
-      case SupportContactType.phone:
-        uri = Uri(scheme: 'tel', path: value);
-        break;
-      case SupportContactType.email:
-        uri = Uri(scheme: 'mailto', path: value);
-        break;
-      case SupportContactType.whatsapp:
-        final digits = value.replaceAll(RegExp(r'[^\d]'), '');
-        if (digits.isEmpty) return;
-        uri = Uri.parse('https://wa.me/$digits');
-        break;
-    }
+  Future<void> _openWhatsApp(String value) async {
+    final digits = value.replaceAll(RegExp(r'[^\d]'), '');
+    if (digits.isEmpty) return;
+    final uri = Uri.parse('https://wa.me/$digits');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
 }
 
-class _LeadingIcon extends StatelessWidget {
-  final SupportContactType contactType;
+class SupportContactCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String contactInfo;
+  final IconData icon;
+  final Color? accentColor;
+  final VoidCallback? onTap;
 
-  const _LeadingIcon({required this.contactType});
+  const SupportContactCard({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.contactInfo,
+    required this.icon,
+    this.accentColor,
+    this.onTap,
+  });
+
+  Color _accentColor(BuildContext context) => accentColor ?? context.adaptivePrimaryColor;
 
   @override
   Widget build(BuildContext context) {
-    final Color bg = Get.isDarkMode
-        ? Colors.grey.withValues(alpha: 0.2)
-        : Theme.of(context).primaryColor.withValues(alpha: 0.05);
-
+    final Color accent = _accentColor(context);
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-        color: contactType == SupportContactType.whatsapp
-            ? const Color(0xFF25D366).withValues(alpha: 0.12)
-            : bg,
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
+        border: Border.all(
+          color: Theme.of(context).hintColor.withValues(alpha: .08),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: accent.withValues(alpha: .04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: contactType == SupportContactType.whatsapp
-          ? const Icon(Icons.chat_rounded, size: 16, color: Color(0xFF25D366))
-          : Image.asset(
-              contactType == SupportContactType.phone
-                  ? Images.phoneIconBlue
-                  : Images.mailIconBlue,
-              height: 16,
-              width: 16,
-              color: context.adaptiveIconColor,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: .08),
+              shape: BoxShape.circle,
             ),
-    );
-  }
-}
-
-class _ActionIcon extends StatelessWidget {
-  final SupportContactType contactType;
-
-  const _ActionIcon({required this.contactType});
-
-  @override
-  Widget build(BuildContext context) {
-    if (contactType == SupportContactType.whatsapp) {
-      return const Icon(Icons.chat_rounded, size: 15, color: Colors.white);
-    }
-    return Image.asset(
-      contactType == SupportContactType.phone ? Images.phoneIconWhite : Images.mailIconWhite,
-      height: 15,
-      width: 15,
-      color: context.adaptiveIconColor,
+            child: Icon(icon, color: accent, size: 20),
+          ),
+          const SizedBox(width: Dimensions.paddingSizeSmall),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault),
+                ),
+                const SizedBox(height: Dimensions.paddingSizeTini),
+                Text(
+                  subtitle,
+                  style: robotoRegular.copyWith(
+                    fontSize: Dimensions.fontSizeExtraSmall,
+                    color: Theme.of(context).textTheme.bodyLarge!.color!.withValues(alpha: .5),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: Dimensions.paddingSizeExtraSmall),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        contactInfo,
+                        style: robotoMedium.copyWith(
+                          fontSize: Dimensions.fontSizeDefault,
+                          color: Theme.of(context).textTheme.bodyLarge!.color,
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: onTap,
+                      borderRadius: BorderRadius.circular(50),
+                      child: Container(
+                        width: 25,
+                        height: 25,
+                        decoration: BoxDecoration(
+                          color: accent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(icon, color: Theme.of(context).cardColor, size: 14),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

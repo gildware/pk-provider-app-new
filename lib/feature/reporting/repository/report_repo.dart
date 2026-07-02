@@ -30,8 +30,11 @@ class ReportRepo{
 
   Future<Response> getBookingReportData(int offset, Map<String,dynamic> body
       ) async {
+    final requestBody = Map<String, dynamic>.from(body)
+      ..['limit'] = 10
+      ..['offset'] = offset;
     return await apiClient.postData(
-        "${AppConstants.getBookingReportList}?limit=10&offset=$offset",body
+        "${AppConstants.getBookingReportList}?limit=10&offset=$offset", requestBody
     );
   }
 }

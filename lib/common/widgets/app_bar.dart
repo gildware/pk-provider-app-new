@@ -44,10 +44,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
         ],
       ),
       leading: IconButton(
-        onPressed: onBackPressed ?? (){
-          Get.back();
-        },
-          icon: const Icon(Icons.arrow_back_ios, size: 20),
+        onPressed: onBackPressed ?? () => popRouteOrGoHome(context: context),
+        icon: const Icon(Icons.arrow_back_ios, size: 20),
       ),
       actions: actionWidget!=null?[actionWidget!]:null,
     );

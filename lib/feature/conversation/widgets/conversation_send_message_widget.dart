@@ -8,7 +8,9 @@ class ConversationSendMessageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<ConversationController>(builder: (conversationController){
+    return GetBuilder<ConversationController>(
+      id: ConversationController.chatSendUpdateId,
+      builder: (conversationController){
       return Container(
         color: conversationController.isLoading == false && ( conversationController.pickedImageFile!=null && conversationController.pickedImageFile!.isNotEmpty
             || (conversationController.objFile!=null && conversationController.objFile!.isNotEmpty)) ?

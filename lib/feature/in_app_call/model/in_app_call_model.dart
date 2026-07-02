@@ -145,15 +145,63 @@ class InAppCallModel {
   }
 }
 
+class InAppCallWebSocketConfig {
+  final bool enabled;
+  final String key;
+  final String cluster;
+  final String host;
+  final int port;
+  final String scheme;
+  final String authEndpoint;
+
+  const InAppCallWebSocketConfig({
+    required this.enabled,
+    required this.key,
+    required this.cluster,
+    required this.host,
+    required this.port,
+    required this.scheme,
+    required this.authEndpoint,
+  });
+
+  bool get isSecure => scheme == 'https' || scheme == 'wss';
+
+  factory InAppCallWebSocketConfig.fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      return const InAppCallWebSocketConfig(
+        enabled: false,
+        key: '',
+        cluster: 'mt1',
+        host: '',
+        port: 6001,
+        scheme: 'http',
+        authEndpoint: '/broadcasting/auth',
+      );
+    }
+
+    return InAppCallWebSocketConfig(
+      enabled: json['enabled'] == true,
+      key: json['key']?.toString() ?? '',
+      cluster: json['cluster']?.toString() ?? 'mt1',
+      host: json['host']?.toString() ?? '',
+      port: int.tryParse(json['port']?.toString() ?? '') ?? 6001,
+      scheme: json['scheme']?.toString() ?? 'http',
+      authEndpoint: json['auth_endpoint']?.toString() ?? '/broadcasting/auth',
+    );
+  }
+}
+
 class InAppCallConfig {
   final bool enabled;
   final List<Map<String, dynamic>> iceServers;
   final int ringTimeoutSeconds;
+  final InAppCallWebSocketConfig websocket;
 
   const InAppCallConfig({
     required this.enabled,
     required this.iceServers,
     required this.ringTimeoutSeconds,
+    required this.websocket,
   });
 
   factory InAppCallConfig.fromJson(Map<String, dynamic> json) {
@@ -175,6 +223,9 @@ class InAppCallConfig {
               {'urls': 'stun:stun.l.google.com:19302'},
             ],
       ringTimeoutSeconds: int.tryParse(json['ring_timeout_seconds']?.toString() ?? '') ?? 60,
+      websocket: InAppCallWebSocketConfig.fromJson(
+        json['websocket'] is Map ? Map<String, dynamic>.from(json['websocket'] as Map) : null,
+      ),
     );
   }
 }

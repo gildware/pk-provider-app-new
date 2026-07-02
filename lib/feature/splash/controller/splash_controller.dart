@@ -35,6 +35,9 @@ class SplashController extends GetxController implements GetxService {
         _configModel = ConfigModel.fromJson(body);
         isSuccess = _handleConfigSideEffects();
         update();
+        if (Get.isRegistered<InAppCallController>()) {
+          Get.find<InAppCallController>().update();
+        }
         if (source == DataSourceEnum.client) {
           MobileAppIconHelper.invalidateCache();
           final context = Get.context;

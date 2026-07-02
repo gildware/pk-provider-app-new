@@ -8,7 +8,20 @@ class BookingReportModel {
   BookingReportModel({this.content});
 
   BookingReportModel.fromJson(Map<String, dynamic> json) {
-    content = json['content'] != null ? BookingReportContent.fromJson(json['content']) : null;
+    final rawContent = json['content'];
+    if (rawContent is Map<String, dynamic>) {
+      try {
+        content = BookingReportContent.fromJson(rawContent);
+      } catch (_) {
+        content = null;
+      }
+    } else if (rawContent is Map) {
+      try {
+        content = BookingReportContent.fromJson(Map<String, dynamic>.from(rawContent));
+      } catch (_) {
+        content = null;
+      }
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -40,38 +53,52 @@ class BookingReportContent {
       });
 
   BookingReportContent.fromJson(Map<String, dynamic> json) {
-    if (json['zones'] != null) {
-      zones = <ZonesList>[];
-      json['zones'].forEach((v) {
-        zones!.add(ZonesList.fromJson(v));
-      });
+    try {
+      if (json['zones'] != null) {
+        zones = <ZonesList>[];
+        for (final v in json['zones']) {
+          if (v is Map) {
+            zones!.add(ZonesList.fromJson(Map<String, dynamic>.from(v)));
+          }
+        }
+      }
+      if (json['categories'] != null) {
+        categories = <Categories>[];
+        for (final v in json['categories']) {
+          if (v is Map) {
+            categories!.add(Categories.fromJson(Map<String, dynamic>.from(v)));
+          }
+        }
+      }
+      if (json['sub_categories'] != null) {
+        subCategories = <SubCategories>[];
+        for (final v in json['sub_categories']) {
+          if (v is Map) {
+            subCategories!.add(SubCategories.fromJson(Map<String, dynamic>.from(v)));
+          }
+        }
+      }
+      bookingsCount = json['bookings_count'] is Map
+          ? BookingsCount.fromJson(Map<String, dynamic>.from(json['bookings_count']))
+          : null;
+      bookingAmount = json['booking_amount'] is Map
+          ? BookingAmount.fromJson(Map<String, dynamic>.from(json['booking_amount']))
+          : null;
+      chartData = json['chart_data'] is Map
+          ? BookingReportChartData.fromJson(Map<String, dynamic>.from(json['chart_data']))
+          : null;
+      filterData = json['filtered_bookings'] is Map
+          ? FilterData.fromJson(Map<String, dynamic>.from(json['filtered_bookings']))
+          : null;
+    } catch (_) {
+      zones = null;
+      categories = null;
+      subCategories = null;
+      bookingsCount = null;
+      bookingAmount = null;
+      chartData = null;
+      filterData = null;
     }
-    if (json['categories'] != null) {
-      categories = <Categories>[];
-      json['categories'].forEach((v) {
-        categories!.add(Categories.fromJson(v));
-      });
-    }
-    if (json['sub_categories'] != null) {
-      subCategories = <SubCategories>[];
-      json['sub_categories'].forEach((v) {
-        subCategories!.add(SubCategories.fromJson(v));
-      });
-    }
-    bookingsCount = json['bookings_count'] != null
-        ? BookingsCount.fromJson(json['bookings_count'])
-        : null;
-    bookingAmount = json['booking_amount'] != null
-        ? BookingAmount.fromJson(json['booking_amount'])
-        : null;
-
-    chartData = json['chart_data'] != null
-        ? BookingReportChartData.fromJson(json['chart_data'])
-        : null;
-
-    filterData = json['filtered_bookings'] != null
-        ? FilterData.fromJson(json['filtered_bookings'])
-        : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -245,19 +272,19 @@ class BookingReportChartData {
     if (json['booking_amount'] != null) {
       bookingAmount = [];
       json['booking_amount'].forEach((v){
-        bookingAmount?.add(double.parse(v.toString()));
+        bookingAmount?.add(double.tryParse(v.toString()) ?? 0);
       });
     }
     if (json['tax_amount'] != null) {
       taxAmount = [];
       json['tax_amount'].forEach((v){
-        taxAmount?.add(double.parse(v.toString()));
+        taxAmount?.add(double.tryParse(v.toString()) ?? 0);
       });
     }
     if (json['admin_commission'] != null) {
       adminCommission = [];
       json['admin_commission'].forEach((v){
-        adminCommission?.add(double.parse(v.toString()));
+        adminCommission?.add(double.tryParse(v.toString()) ?? 0);
       });
     }
     if (json['timeline'] != null) {
@@ -287,12 +314,17 @@ class FilterData {
   FilterData.fromJson(Map<String, dynamic> json) {
     if (json['data'] != null) {
       data = <BookingFilterData>[];
-      json['data'].forEach((v) {
-        data!.add(BookingFilterData.fromJson(v));
-      });
+      for (final v in json['data']) {
+        if (v is! Map) continue;
+        try {
+          data!.add(BookingFilterData.fromJson(Map<String, dynamic>.from(v)));
+        } catch (_) {
+          // Skip malformed booking rows instead of failing the whole report.
+        }
+      }
     }
-    lastPage = json['last_page'];
-    total = json['total'];
+    lastPage = int.tryParse(json['last_page']?.toString() ?? '') ?? 1;
+    total = int.tryParse(json['total']?.toString() ?? '') ?? 0;
   }
 
   Map<String, dynamic> toJson() {

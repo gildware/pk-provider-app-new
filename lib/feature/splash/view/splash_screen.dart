@@ -148,7 +148,18 @@ class SplashScreenState extends State<SplashScreen> {
       switch(notificationType) {
 
         case "chatting": {
-          Get.offNamed(RouteHelper.getInboxScreenRoute(fromNotification: "fromNotification"));
+          final channelId = notificationBody.channelId?.trim() ?? '';
+          if (channelId.isNotEmpty) {
+            Get.offNamed(RouteHelper.getInitialRoute());
+            Future.delayed(const Duration(milliseconds: 600), () {
+              NotificationHelper.openChatFromNotification(
+                notificationBody,
+                popExistingChatRoutes: false,
+              );
+            });
+          } else {
+            Get.offNamed(RouteHelper.getInboxScreenRoute(fromNotification: "fromNotification"));
+          }
         } break;
 
         case "booking": {

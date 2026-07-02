@@ -24,13 +24,13 @@ class _TransactionScreenState extends State<TransactionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: CustomAppBar(title: "withdraw_list".tr,onBackPressed: (){
-        if(widget.fromNotification == "fromNotification"){
-          Get.offAllNamed(RouteHelper.getInitialRoute());
-        }else{
-          Get.back();
-        }
-      },),
+      appBar: CustomAppBar(title: "withdraw_list".tr, onBackPressed: () {
+        handleNotificationBack(
+          fromNotification: widget.fromNotification == 'fromNotification',
+          whenFromNotification: () => Get.offAllNamed(RouteHelper.getInitialRoute()),
+          context: context,
+        );
+      }),
       body: GetBuilder<TransactionController>(
         builder: (transactionController){
         List<TransactionData>? transactionsList = transactionController.transactionsList;

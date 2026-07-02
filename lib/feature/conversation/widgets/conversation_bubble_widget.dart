@@ -1,4 +1,4 @@
-import 'dart:ui';
+import 'package:demandium_provider/feature/conversation/helper/conversation_download_port.dart';
 import 'package:get/get.dart';
 import 'package:demandium_provider/util/core_export.dart';
 
@@ -21,38 +21,47 @@ class ConversationBubbleWidget extends StatefulWidget {
 }
 
 class _ConversationBubbleWidgetState extends State<ConversationBubbleWidget> {
-  final ReceivePort _port = ReceivePort();
-
-
-  @override
-  void initState() {
-    super.initState();
-    IsolateNameServer.registerPortWithName(_port.sendPort, 'downloader_send_port');
-    _port.listen((dynamic data) {
-      setState((){ });
-    });
-  }
-
-  @override
-  void dispose() {
-    IsolateNameServer.removePortNameMapping('downloader_send_port');
-    super.dispose();
-  }
+  bool _showMessageTime = false;
+  bool _showImageOrFileTime = false;
 
   @pragma('vm:entry-point')
   static void downloadCallback(String id, DownloadTaskStatus status, int progress) {
-    final SendPort? send = IsolateNameServer.lookupPortByName('downloader_send_port');
-    send!.send([id, status, progress]);
+    ConversationDownloadPort.downloadCallback(id, status, progress);
+  }
+
+  String? _pressChatTimeText() {
+    if (!_showMessageTime && !_showImageOrFileTime) {
+      return null;
+    }
+
+    final currentDate = DateTime.now();
+    final todayConversationDateTime = DateConverter.isoUtcStringToLocalTimeOnly(
+      widget.conversationData.createdAt ?? '',
+    );
+
+    if (currentDate.weekday != todayConversationDateTime.weekday
+        && DateConverter.countDays(dateTime: todayConversationDateTime) <= 7) {
+      return DateConverter.convertStringTimeToDate(todayConversationDateTime);
+    }
+
+    if (currentDate.weekday == todayConversationDateTime.weekday
+        && DateConverter.countDays(dateTime: todayConversationDateTime) <= 7) {
+      return DateConverter.convert24HourTimeTo12HourTime(todayConversationDateTime);
+    }
+
+    return DateConverter.isoStringToLocalDateAndTime(widget.conversationData.createdAt!);
   }
 
   @override
   Widget build(BuildContext context) {
+    final conversationController = Get.find<ConversationController>();
 
     List<ConversationFile> imageList = [];
     List<ConversationFile> fileList = [];
+    final conversationFiles = widget.conversationData.conversationFile ?? const <ConversationFile>[];
 
-    if(widget.conversationData.conversationFile != null && widget.conversationData.conversationFile!.isNotEmpty){
-      for(ConversationFile conversationFile in widget.conversationData.conversationFile!){
+    if(conversationFiles.isNotEmpty){
+      for(ConversationFile conversationFile in conversationFiles){
         conversationFile.fileType == 'png' || conversationFile.fileType == 'jpg' ? imageList.add(conversationFile):
         fileList.add(conversationFile);
       }
@@ -65,20 +74,28 @@ class _ConversationBubbleWidgetState extends State<ConversationBubbleWidget> {
       imagePathList.add(element.storedFileNameFullPath ??"");
     }
 
-    String imageWithPath = '${widget.conversationData.user!.userType=="super-admin" ? "${Get.find<SplashController>().configModel.content?.faviconFullPath}" : widget.conversationData.user?.profileImageFullPath}';
+    final conversationUser = widget.conversationData.user;
+    final isSuperAdmin = AdminChatBrandingHelper.isSuperAdmin(conversationUser?.userType);
 
-    return GetBuilder<ConversationController>(
-        builder: (conversationController) {
+    String imageWithPath = isSuperAdmin
+        ? AdminChatBrandingHelper.logoImageUrl()
+        : (conversationUser?.profileImageFullPath ?? '');
 
+    bool isLTR = Get.find<LocalizationController>().isLtr;
+    String chatTime = widget.conversationData.createdAt != null
+        ? conversationController.getChatTime(
+            widget.conversationData.createdAt!,
+            widget.nextConversationData?.createdAt,
+          )
+        : '';
+    bool isSameUserWithPreviousMessage = conversationController.isSameUserWithPreviousMessage(widget.previousConversationData, widget.conversationData);
+    bool isSameUserWithNextMessage = conversationController.isSameUserWithNextMessage(widget.conversationData, widget.nextConversationData);
+    String previousMessageHasChatTime = widget.previousConversationData != null
+        ? conversationController.getChatTime(widget.previousConversationData!.createdAt!, widget.conversationData.createdAt)
+        : '';
+    final pressChatTime = _pressChatTimeText() ?? '';
 
-          bool isLTR = Get.find<LocalizationController>().isLtr;
-          String chatTime  = conversationController.getChatTime(widget.conversationData.createdAt!, widget.nextConversationData?.createdAt);
-
-          bool isSameUserWithPreviousMessage = conversationController.isSameUserWithPreviousMessage(widget.previousConversationData, widget.conversationData);
-          bool isSameUserWithNextMessage = conversationController.isSameUserWithNextMessage(widget.conversationData, widget.nextConversationData);
-          String previousMessageHasChatTime = widget.previousConversationData != null? conversationController.getChatTime(widget.previousConversationData!.createdAt!, widget.conversationData.createdAt) : "";
-
-          return Column(crossAxisAlignment: widget.isRightMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start, children: [
+    return Column(crossAxisAlignment: widget.isRightMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start, children: [
 
 
             if(chatTime != "")
@@ -107,7 +124,9 @@ class _ConversationBubbleWidgetState extends State<ConversationBubbleWidget> {
                     child: CustomImage(height: Dimensions.paddingSizeExtraLarge + 5,
                       width: Dimensions.paddingSizeExtraLarge + 5,
                       image: imageWithPath,
-                      placeholder:  widget.conversationData.user!.userType=="super-admin" ? Images.adminPlaceHolder : Images.userPlaceHolder,
+                      placeholder: isSuperAdmin
+                          ? AdminChatBrandingHelper.logoPlaceholder
+                          : Images.userPlaceHolder,
                     ),
                   ) : !widget.isRightMessage ? const SizedBox(width: Dimensions.paddingSizeExtraLarge + 5,) : const SizedBox(),
                   const SizedBox(width: Dimensions.paddingSizeSmall,),
@@ -115,9 +134,11 @@ class _ConversationBubbleWidgetState extends State<ConversationBubbleWidget> {
                   Flexible(child: Column(crossAxisAlignment: widget.isRightMessage? CrossAxisAlignment.end:CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
 
                     if(widget.conversationData.message != null) Flexible(child: InkWell(
-                      onTap: (){
-                        conversationController.toggleOnClickMessage(onMessageTimeShowID :
-                        widget.conversationData.id!);
+                      onTap: () {
+                        setState(() {
+                          _showImageOrFileTime = false;
+                          _showMessageTime = !_showMessageTime;
+                        });
                       },
                       child: Container(
                         decoration: BoxDecoration(
@@ -151,13 +172,13 @@ class _ConversationBubbleWidgetState extends State<ConversationBubbleWidget> {
                     AnimatedContainer(
                       curve: Curves.fastOutSlowIn,
                       duration: const Duration(milliseconds: 500),
-                      height: conversationController.onMessageTimeShowID == widget.conversationData.id ? 25.0 : 0.0,
+                      height: _showMessageTime ? 25.0 : 0.0,
                       child: Padding(
                         padding: EdgeInsets.only(
-                          top: conversationController.onMessageTimeShowID == widget.conversationData.id ?
+                          top: _showMessageTime ?
                           Dimensions.paddingSizeExtraSmall : 0.0,
                         ),
-                        child: Text(conversationController.getOnPressChatTime(widget.conversationData) ?? "", style: robotoRegular.copyWith(
+                        child: Text(pressChatTime, style: robotoRegular.copyWith(
                             fontSize: Dimensions.fontSizeSmall
                         ),),
                       ),
@@ -165,10 +186,10 @@ class _ConversationBubbleWidgetState extends State<ConversationBubbleWidget> {
 
 
 
-                    if(widget.conversationData.message != null && widget.conversationData.conversationFile!.isNotEmpty)
+                    if(widget.conversationData.message != null && conversationFiles.isNotEmpty)
                       const SizedBox(height: Dimensions.paddingSizeSmall),
 
-                    widget.conversationData.conversationFile!.isNotEmpty ?
+                    conversationFiles.isNotEmpty ?
                     Column(crossAxisAlignment: widget.isRightMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start, children: [
 
                       imageList.isNotEmpty ? Directionality(
@@ -205,14 +226,19 @@ class _ConversationBubbleWidgetState extends State<ConversationBubbleWidget> {
                                     imageList: imagePathList,
                                     index: index,
                                     appbarSubtitle:  DateConverter.dateMonthYearTime(DateConverter.isoUtcStringToLocalDate(widget.conversationData.createdAt!)),
-                                    appbarTitle: widget.conversationData.user!.userType=="super-admin" ? 'admin'.tr : widget.conversationData.user!.userType=="provider-admin"? "you".tr :
-                                    "${widget.conversationData.user?.firstName??""} ${widget.conversationData.user?.lastName??""}",
+                                    appbarTitle: isSuperAdmin
+                                        ? AdminChatBrandingHelper.displayName
+                                        : conversationUser?.userType == "provider-admin"
+                                            ? "you".tr
+                                            : "${conversationUser?.firstName ?? ""} ${conversationUser?.lastName ?? ""}",
                                   ),
                                   );
                                 },
-                                onLongPress: (){
-                                  conversationController.toggleOnClickImageAndFile(
-                                      onImageOrFileTimeShowID : widget.conversationData.id!);
+                                onLongPress: () {
+                                  setState(() {
+                                    _showMessageTime = false;
+                                    _showImageOrFileTime = !_showImageOrFileTime;
+                                  });
                                 },
                                 child: Hero(
                                   tag: imageList[index].storedFileName??"",
@@ -253,14 +279,19 @@ class _ConversationBubbleWidgetState extends State<ConversationBubbleWidget> {
                                       imageList: imagePathList,
                                       index: index,
                                       appbarSubtitle:  DateConverter.dateMonthYearTime(DateConverter.isoUtcStringToLocalDate(widget.conversationData.createdAt!)),
-                                      appbarTitle: widget.conversationData.user!.userType=="super-admin" ? 'admin'.tr : widget.conversationData.user!.userType=="provider-admin"? "you".tr :
-                                          "${widget.conversationData.user?.firstName??""} ${widget.conversationData.user?.lastName??""}",
+                                      appbarTitle: isSuperAdmin
+                                          ? AdminChatBrandingHelper.displayName
+                                          : conversationUser?.userType == "provider-admin"
+                                              ? "you".tr
+                                              : "${conversationUser?.firstName ?? ""} ${conversationUser?.lastName ?? ""}",
                                     ),
                                     );
                                   },
-                                  onLongPress: (){
-                                    conversationController.toggleOnClickImageAndFile(
-                                        onImageOrFileTimeShowID : widget.conversationData.id!);
+                                  onLongPress: () {
+                                    setState(() {
+                                      _showMessageTime = false;
+                                      _showImageOrFileTime = !_showImageOrFileTime;
+                                    });
                                   },
                                   child: Hero(
                                     tag: imageList[index].storedFileName??"",
@@ -317,9 +348,11 @@ class _ConversationBubbleWidgetState extends State<ConversationBubbleWidget> {
                                     await openAppSettings();
                                   }
                                 },
-                                onLongPress: (){
-                                  conversationController.toggleOnClickImageAndFile(
-                                      onImageOrFileTimeShowID : widget.conversationData.id!);
+                                onLongPress: () {
+                                  setState(() {
+                                    _showMessageTime = false;
+                                    _showImageOrFileTime = !_showImageOrFileTime;
+                                  });
                                 },
                                 child: Container(width: 200, height: 60,
                                     decoration: BoxDecoration(color: Theme.of(context).hintColor.withValues(alpha:0.2),
@@ -371,13 +404,13 @@ class _ConversationBubbleWidgetState extends State<ConversationBubbleWidget> {
                       AnimatedContainer(
                         curve: Curves.fastOutSlowIn,
                         duration: const Duration(milliseconds: 500),
-                        height: conversationController.onImageOrFileTimeShowID == widget.conversationData.id ? 25.0 : 0.0,
+                        height: _showImageOrFileTime ? 25.0 : 0.0,
                         child: Padding(
                           padding: EdgeInsets.only(
-                            top: conversationController.onImageOrFileTimeShowID == widget.conversationData.id ?
+                            top: _showImageOrFileTime ?
                             Dimensions.paddingSizeExtraSmall : 0.0,
                           ),
-                          child: Text(conversationController.getOnPressChatTime(widget.conversationData) ?? "", style: robotoRegular.copyWith(
+                          child: Text(pressChatTime, style: robotoRegular.copyWith(
                               fontSize: Dimensions.fontSizeSmall
                           ),),
                         ),
@@ -392,8 +425,6 @@ class _ConversationBubbleWidgetState extends State<ConversationBubbleWidget> {
 
 
           ]);
-        }
-    );
   }
 }
 

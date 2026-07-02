@@ -6,8 +6,9 @@ class BookingReportShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Shimmer(duration: const Duration(seconds: 2),
+    return Shimmer(
+      duration: const Duration(seconds: 2),
+      child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.only(
             top: Dimensions.paddingSizeSmall,
