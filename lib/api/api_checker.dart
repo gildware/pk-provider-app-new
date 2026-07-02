@@ -41,16 +41,21 @@ class ApiChecker {
       return;
     }
 
-    if (Get.currentRoute != RouteHelper.getSignInRoute('splash') &&
-        Get.currentRoute != RouteHelper.getSignInRoute('LogIn')) {
-      Get.offAllNamed(RouteHelper.getSignInRoute('splash'));
-      if (isLoggedIn) {
-        final message = errorMessage ??
-            response.statusText ??
-            'Session expired. Please sign in again.';
-        if (message.isNotEmpty) {
-          showCustomSnackBar(message);
-        }
+    final onSignInRoute = Get.currentRoute == RouteHelper.getSignInRoute('splash') ||
+        Get.currentRoute == RouteHelper.getSignInRoute('LogIn');
+
+    if (!onSignInRoute) {
+      Get.offAllNamed(RouteHelper.getSignInRoute('LogIn'));
+    }
+
+    // Only surface session-expired toasts when the user was actively in the app.
+    // Cold start / splash / login (e.g. stale token after reinstall) should sign in silently.
+    if (isLoggedIn && AuthSessionHelper.isProtectedRoute()) {
+      final message = errorMessage ??
+          response.statusText ??
+          'Session expired. Please sign in again.';
+      if (message.isNotEmpty) {
+        showCustomSnackBar(message);
       }
     }
   }

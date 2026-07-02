@@ -19,8 +19,8 @@ class BottomNavScreen extends StatefulWidget {
       Get.find<UserProfileController>().getProviderInfo(reload: true);
       Get.find<ServiceCategoryController>().getCategoryList(shouldUpdate: true, reloadSubcategory: true);
       Get.find<LocalizationController>().filterLanguage(shouldUpdate: false);
-      Get.find<ConversationController>().getChannelList(1, type: "customer");
-      Get.find<ConversationController>().getUnreadChatCount();
+      await Get.find<ConversationController>().getChannelList(1, type: "customer");
+      await Get.find<ConversationController>().getUnreadChatCount(prefetchChannels: false);
       // SERVICEMAN_DISABLED
       if (AppFeatureFlags.servicemanEnabled) {
         Get.find<ConversationController>().getChannelList(1, type: "serviceman");
@@ -59,8 +59,24 @@ class BottomNavScreenState extends State<BottomNavScreen> {
   bool get _isBiddingEnabled =>
       Get.find<SplashController>().configModel.content?.biddingStatus == 1;
 
+  bool get _isAdvertisementEnabled =>
+      Get.isRegistered<UserProfileController>() &&
+      Get.find<UserProfileController>().isAdvertisementFeatureVisible;
+
+  int get _biddingTabIndex => 2;
+
   int get _adsTabIndex => _isBiddingEnabled ? 3 : 2;
-  int get _moreTabIndex => _isBiddingEnabled ? 4 : 3;
+
+  int get _moreTabIndex {
+    int index = 2;
+    if (_isBiddingEnabled) {
+      index++;
+    }
+    if (_isAdvertisementEnabled) {
+      index++;
+    }
+    return index;
+  }
 
   @override
   void initState() {
@@ -114,10 +130,11 @@ class BottomNavScreenState extends State<BottomNavScreen> {
       const BookingRequestScreen(),
       // Post/bidding tab — hidden unless enabled via admin (Mobile App Management → App Features).
       if (_isBiddingEnabled) const CustomerRequestListScreen(embeddedInBottomNav: true),
-      AdvertisementListScreen(
-        embeddedInBottomNav: true,
-        isDataAvailable: advertisementCount != 0,
-      ),
+      if (_isAdvertisementEnabled)
+        AdvertisementListScreen(
+          embeddedInBottomNav: true,
+          isDataAvailable: advertisementCount != 0,
+        ),
       Text("more".tr),
     ];
 
@@ -164,18 +181,19 @@ class BottomNavScreenState extends State<BottomNavScreen> {
                   // Post/bidding tab — hidden unless enabled via admin (Mobile App Management → App Features).
                   if (_isBiddingEnabled)
                     _getBottomNavItem(
-                      2,
+                      _biddingTabIndex,
                       iconKey: 'post',
                       fallbackAsset: Images.customPostIcon,
                       title: 'post'.tr,
                       showBadge: showPostBadge,
                     ),
-                  _getBottomNavItem(
-                    _adsTabIndex,
-                    iconKey: 'bottom_advertisements',
-                    fallbackAsset: Images.menuAdvertisement,
-                    title: 'advertisements'.tr,
-                  ),
+                  if (_isAdvertisementEnabled)
+                    _getBottomNavItem(
+                      _adsTabIndex,
+                      iconKey: 'bottom_advertisements',
+                      fallbackAsset: Images.menuAdvertisement,
+                      title: 'advertisements'.tr,
+                    ),
                   _getBottomNavItem(_moreTabIndex, iconKey: 'bottom_more', fallbackAsset: Images.more, title: 'more'.tr),
                 ]),
               );
@@ -216,9 +234,9 @@ class BottomNavScreenState extends State<BottomNavScreen> {
       ).then((_){
         Get.find<UserProfileController>().trialWidgetShow(route: "");
       });
-    } else if (_isBiddingEnabled && pageIndex == 2) {
+    } else if (_isBiddingEnabled && pageIndex == _biddingTabIndex) {
       _openPostTab();
-    } else if (pageIndex == _adsTabIndex) {
+    } else if (_isAdvertisementEnabled && pageIndex == _adsTabIndex) {
       _openAdvertisementsTab();
     } else {
       setState(() {
@@ -229,6 +247,9 @@ class BottomNavScreenState extends State<BottomNavScreen> {
   }
 
   void _openAdvertisementsTab() {
+    if (!Get.find<UserProfileController>().isAdvertisementFeatureVisible) {
+      return;
+    }
     Get.find<BusinessSubscriptionController>().openTrialEndBottomSheet().then((isTrial) {
       if (!isTrial) {
         return;
@@ -263,8 +284,8 @@ class BottomNavScreenState extends State<BottomNavScreen> {
         return;
       }
       setState(() {
-        _pageController?.jumpToPage(2);
-        _pageIndex = 2;
+        _pageController?.jumpToPage(_biddingTabIndex);
+        _pageIndex = _biddingTabIndex;
       });
     });
   }

@@ -68,6 +68,8 @@ class ConfigContent {
   int? _showPhoneNumber;
   int? _bidOfferVisibilityForProvider;
   int? _biddingStatus;
+  int? _advertisementStatus;
+  int? _advertisementMinimumBookings;
   int? _inAppCallStatus;
   int? _emailVerification;
   int? _phoneVerification;
@@ -146,6 +148,8 @@ class ConfigContent {
     int? showPhoneNumber,
     int? bidOfferVisibilityForProvider,
     int? biddingStatus,
+    int? advertisementStatus,
+    int? advertisementMinimumBookings,
     int? inAppCallStatus,
     int? sendOtpTimer,
     int? bookingOtpVerification,
@@ -320,6 +324,12 @@ class ConfigContent {
     if (biddingStatus != null) {
       _biddingStatus = biddingStatus;
     }
+    if (advertisementStatus != null) {
+      _advertisementStatus = advertisementStatus;
+    }
+    if (advertisementMinimumBookings != null) {
+      _advertisementMinimumBookings = advertisementMinimumBookings;
+    }
     if (inAppCallStatus != null) {
       _inAppCallStatus = inAppCallStatus;
     }
@@ -448,6 +458,8 @@ class ConfigContent {
   int? get showPhoneNumber => _showPhoneNumber;
   int? get bidOfferVisibilityForProvider => _bidOfferVisibilityForProvider;
   int? get biddingStatus => _biddingStatus;
+  int? get advertisementStatus => _advertisementStatus;
+  int? get advertisementMinimumBookings => _advertisementMinimumBookings;
   int? get inAppCallStatus => _inAppCallStatus;
   int? get sendOtpTimer => _sendOtpTimer;
   ForgetPasswordVerificationMethod? get forgetPasswordVerificationMethod => _forgetPasswordVerificationMethod;
@@ -524,6 +536,8 @@ class ConfigContent {
     _showPhoneNumber = int.tryParse(json['phone_number_visibility_for_chatting'].toString());
     _bidOfferVisibilityForProvider = int.tryParse(json['bid_offers_visibility_for_providers'].toString());
     _biddingStatus = int.tryParse(json['bidding_status'].toString());
+    _advertisementStatus = int.tryParse(json['advertisement_status']?.toString() ?? '');
+    _advertisementMinimumBookings = int.tryParse(json['advertisement_minimum_bookings']?.toString() ?? '');
     _inAppCallStatus = int.tryParse(json['in_app_call_status']?.toString() ?? '');
     _sendOtpTimer = int.tryParse(json['otp_resend_time'].toString());
     _forgetPasswordVerificationMethod = json['forgot_password_verification_method'] != null
@@ -659,6 +673,8 @@ class ConfigContent {
     data['phone_number_visibility_for_chatting'] = _showPhoneNumber;
     data['bid_offers_visibility_for_providers'] = _bidOfferVisibilityForProvider;
     data['bidding_status'] = _biddingStatus;
+    data['advertisement_status'] = _advertisementStatus;
+    data['advertisement_minimum_bookings'] = _advertisementMinimumBookings;
     data['in_app_call_status'] = _inAppCallStatus;
     data['otp_resend_time'] = _sendOtpTimer;
     data['booking_otp_verification'] = _bookingOtpVerification;

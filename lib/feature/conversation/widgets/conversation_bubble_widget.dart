@@ -119,15 +119,18 @@ class _ConversationBubbleWidgetState extends State<ConversationBubbleWidget> {
                   (!widget.isRightMessage && !isSameUserWithPreviousMessage)
                       || ( (!widget.isRightMessage && isSameUserWithPreviousMessage) &&
                       conversationController.getChatTimeWithPrevious(widget.conversationData, widget.previousConversationData).isNotEmpty)
-                      ?  ClipRRect(
+                      ? ClipRRect(
                     borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraLarge * 2),
-                    child: CustomImage(height: Dimensions.paddingSizeExtraLarge + 5,
-                      width: Dimensions.paddingSizeExtraLarge + 5,
-                      image: imageWithPath,
-                      placeholder: isSuperAdmin
-                          ? AdminChatBrandingHelper.logoPlaceholder
-                          : Images.userPlaceHolder,
-                    ),
+                    child: isSuperAdmin
+                        ? AdminChatBrandingHelper.supportAvatar(
+                            size: Dimensions.paddingSizeExtraLarge + 5,
+                          )
+                        : CustomImage(
+                            height: Dimensions.paddingSizeExtraLarge + 5,
+                            width: Dimensions.paddingSizeExtraLarge + 5,
+                            image: imageWithPath,
+                            placeholder: Images.userPlaceHolder,
+                          ),
                   ) : !widget.isRightMessage ? const SizedBox(width: Dimensions.paddingSizeExtraLarge + 5,) : const SizedBox(),
                   const SizedBox(width: Dimensions.paddingSizeSmall,),
 

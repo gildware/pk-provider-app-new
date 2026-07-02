@@ -56,15 +56,16 @@ class RegistrationContactStep extends StatelessWidget {
         padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
         child: Column(
           children: [
-            Center(
-              child: _ProfilePhotoPicker(controller: controller),
-            ),
+            _ProfilePhotoPicker(controller: controller),
             const SizedBox(height: Dimensions.paddingSizeLarge),
             RegistrationIconField(
               icon: Icons.person_outline,
               titleKey: 'contact_person_name',
               hintKey: 'enter_contact_person_name',
               controller: controller.contactPersonNameController,
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
+              ],
               onValidate: (v) => (v == null || v.isEmpty) ? trLabel('enter_contact_person_name') : null,
             ),
             RegistrationIconField(
@@ -111,39 +112,71 @@ class _ProfilePhotoPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final file = controller.contactPersonPhotoFile;
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        ClipOval(
-          child: file != null
-              ? Image.file(File(file.path), width: 110, height: 110, fit: BoxFit.cover)
-              : (controller.draftContactPhotoUrl != null && controller.draftContactPhotoUrl!.isNotEmpty)
-                  ? CustomImage(
-                      image: controller.draftContactPhotoUrl!,
-                      height: 110,
-                      width: 110,
-                      fit: BoxFit.cover,
-                    )
-                  : Container(
-                  width: 110,
-                  height: 110,
-                  color: context.adaptiveIconColor.withValues(alpha: 0.15),
-                  child: Icon(Icons.person, size: 48, color: context.adaptiveIconColor),
+    final draftUrl = controller.draftContactPhotoUrl;
+    final hasFile = file != null || (draftUrl != null && draftUrl!.isNotEmpty);
+    final isValid = !controller.showRegistrationFieldErrors || controller.hasContactPhotoForSubmit;
+
+    return Center(
+      child: GestureDetector(
+        onTap: () => controller.pickContactPersonPhoto(false),
+        child: Column(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isValid
+                          ? Theme.of(context).hintColor.withValues(alpha: 0.35)
+                          : Theme.of(context).colorScheme.error,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: ClipOval(
+                    child: hasFile
+                        ? (file != null
+                            ? Image.file(File(file.path), width: 110, height: 110, fit: BoxFit.cover)
+                            : CustomImage(
+                                image: draftUrl!,
+                                height: 110,
+                                width: 110,
+                                fit: BoxFit.cover,
+                              ))
+                        : Container(
+                            width: 110,
+                            height: 110,
+                            color: context.adaptiveIconColor.withValues(alpha: 0.15),
+                            child: Icon(Icons.person, size: 48, color: context.adaptiveIconColor),
+                          ),
+                  ),
                 ),
-        ),
-        Positioned(
-          bottom: 0,
-          right: 0,
-          child: GestureDetector(
-            onTap: () => controller.pickContactPersonPhoto(false),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundColor: Theme.of(context).primaryColor,
-              child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: CircleAvatar(
+                    radius: 18,
+                    backgroundColor: Theme.of(context).primaryColor,
+                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                  ),
+                ),
+              ],
             ),
-          ),
+            const SizedBox(height: Dimensions.paddingSizeSmall),
+            Text(trLabel('upload_profile_photo'), style: robotoMedium),
+            const SizedBox(height: 4),
+            Text(
+              trLabel('upload_id_proof_hint'),
+              textAlign: TextAlign.center,
+              style: robotoRegular.copyWith(
+                color: context.adaptiveIconColor,
+                fontSize: Dimensions.fontSizeSmall,
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -212,10 +245,23 @@ class RegistrationIdentityStep extends StatelessWidget {
   Widget _identityDropdown(BuildContext context) {
     return DropdownButtonFormField<String>(
       value: controller.selectedIdentityType.isEmpty ? null : controller.selectedIdentityType,
+      hint: Text(
+        trLabel('select_identity_type'),
+        style: robotoRegular.copyWith(color: context.adaptiveIconColor.withValues(alpha: 0.5)),
+      ),
       decoration: InputDecoration(
-        prefixIcon: const Icon(Icons.credit_card_outlined),
-        labelText: trLabel('identity_type'),
+        prefixIcon: Icon(Icons.credit_card_outlined, color: context.adaptiveIconColor, size: 22),
+        filled: true,
+        fillColor: Theme.of(context).cardColor,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+          borderSide: BorderSide(color: context.adaptiveIconColor.withValues(alpha: 0.25)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+          borderSide: BorderSide(color: context.adaptivePrimaryColor),
+        ),
       ),
       items: AppConstants.contactIdentityTypeList
           .map((e) => DropdownMenuItem(
@@ -373,9 +419,22 @@ class RegistrationCompanyDocsStep extends StatelessWidget {
             const CompanyStepBadge(),
             DropdownButtonFormField<String>(
               value: controller.selectedCompanyIdentityType.isEmpty ? null : controller.selectedCompanyIdentityType,
+              hint: Text(
+                trLabel('select_identity_type'),
+                style: robotoRegular.copyWith(color: context.adaptiveIconColor.withValues(alpha: 0.5)),
+              ),
               decoration: InputDecoration(
-                labelText: trLabel('identity_type'),
+                filled: true,
+                fillColor: Theme.of(context).cardColor,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault)),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                  borderSide: BorderSide(color: context.adaptiveIconColor.withValues(alpha: 0.25)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                  borderSide: BorderSide(color: context.adaptivePrimaryColor),
+                ),
               ),
               items: AppConstants.companyIdentityTypeList
                   .map((e) => DropdownMenuItem(
@@ -606,9 +665,9 @@ class RegistrationAddressStep extends StatelessWidget {
     } else if (permission != LocationPermission.denied) {
       await Get.to(() => const PickMapScreen());
       final loc = Get.find<LocationController>();
-      final address = loc.pickAddress.address ?? '';
-      if (address.isNotEmpty) {
-        controller.syncAddressFromMap(address);
+      final pickAddress = loc.pickAddress;
+      if (pickAddress.address?.trim().isNotEmpty ?? false) {
+        controller.syncAddressFromPickAddress(pickAddress);
       }
     } else {
       showCustomSnackBar(trLabel('you_have_to_allow'), type: ToasterMessageType.info);

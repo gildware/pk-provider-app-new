@@ -137,6 +137,7 @@ class RegistrationIconField extends StatelessWidget {
   final bool isEnabled;
   final String? Function(String?)? onValidate;
   final VoidCallback? onChanged;
+  final List<TextInputFormatter>? inputFormatters;
 
   const RegistrationIconField({
     super.key,
@@ -149,6 +150,7 @@ class RegistrationIconField extends StatelessWidget {
     this.isEnabled = true,
     this.onValidate,
     this.onChanged,
+    this.inputFormatters,
   });
 
   @override
@@ -159,6 +161,7 @@ class RegistrationIconField extends StatelessWidget {
         controller: controller,
         enabled: isEnabled,
         keyboardType: inputType,
+        inputFormatters: inputFormatters,
         validator: onValidate,
         onChanged: (_) => onChanged?.call(),
         style: robotoRegular,
@@ -166,6 +169,13 @@ class RegistrationIconField extends StatelessWidget {
           prefixIcon: Icon(icon, color: context.adaptiveIconColor, size: 22),
           labelText: trLabel(titleKey),
           hintText: trLabel(hintKey),
+          floatingLabelBehavior: FloatingLabelBehavior.always,
+          labelStyle: robotoRegular.copyWith(
+            color: context.adaptiveIconColor.withValues(alpha: 0.7),
+          ),
+          hintStyle: robotoRegular.copyWith(
+            color: context.adaptiveIconColor.withValues(alpha: 0.5),
+          ),
           filled: true,
           fillColor: Theme.of(context).cardColor,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault)),

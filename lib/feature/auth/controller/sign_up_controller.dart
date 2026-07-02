@@ -390,10 +390,19 @@ class SignUpController extends GetxController {
   }
 
   void syncAddressFromMap(String address) {
-    companyAddressController.text = address;
-    if (streetController.text.isEmpty && address.isNotEmpty) {
-      streetController.text = address;
-    }
+    syncAddressFromPickAddress(ServiceAddress(address: address));
+  }
+
+  void syncAddressFromPickAddress(ServiceAddress address) {
+    AddressParseHelper.applyToFields(
+      address: address,
+      onApply: (town, city, pincode, formatted) {
+        if (formatted.isNotEmpty) companyAddressController.text = formatted;
+        if (town.isNotEmpty) streetController.text = town;
+        if (city.isNotEmpty) cityController.text = city;
+        if (pincode.isNotEmpty) pincodeController.text = pincode;
+      },
+    );
     update();
   }
 
@@ -1094,56 +1103,59 @@ class SignUpController extends GetxController {
     if (response!.statusCode == 200 && response.body['response_code'] == 'provider_store_200') {
       await authRepo.clearRegistrationSession();
       final phone = signUpBody.contactPersonPhone?.trim() ?? '';
-      resetAllValue(shouldUpdate: false);
       _isLoading = false;
-      update();
 
       if (phone.isNotEmpty) {
-        await Get.find<AuthController>().login(phone, phone, 'phone');
+        _isLoading = true;
+        update();
+        final loggedIn = await Get.find<AuthController>().login(phone, phone, 'phone');
+        if (loggedIn) {
+          resetAllValue(shouldUpdate: false);
+        } else {
+          _isLoading = false;
+          update();
+        }
         return;
       }
 
-      var config = Get.find<SplashController>().configModel.content;
-      if (_needsPostRegistrationVerification(config, signUpBody)) {
-        final phoneVerificationRequired = config?.phoneVerification == 1 && !phoneVerifiedForRegistration;
-        String identity = phoneVerificationRequired
-            ? signUpBody.contactPersonPhone!.trim()
-            : (signUpBody.contactPersonEmail ?? '').trim();
-        String identityType = phoneVerificationRequired ? 'phone' : 'email';
-        SendOtpType type = (phoneVerificationRequired && config?.firebaseOtpVerification == 1)
-            ? SendOtpType.firebase
-            : SendOtpType.verification;
+      final config = Get.find<SplashController>().configModel.content;
+      final needsVerification = _needsPostRegistrationVerification(config, signUpBody);
+      final phoneVerificationRequired = config?.phoneVerification == 1 && !phoneVerifiedForRegistration;
+      final identity = phoneVerificationRequired
+          ? signUpBody.contactPersonPhone!.trim()
+          : (signUpBody.contactPersonEmail ?? '').trim();
+      final identityType = phoneVerificationRequired ? 'phone' : 'email';
+      final sendOtpType = (phoneVerificationRequired && config?.firebaseOtpVerification == 1)
+          ? SendOtpType.firebase
+          : SendOtpType.verification;
 
+      resetAllValue(shouldUpdate: false);
+
+      if (needsVerification) {
         await Get.find<AuthController>().sendVerificationCode(
           identity: identity,
           identityType: identityType,
-          type: type,
+          type: sendOtpType,
           fromPage: 'verification',
         ).then((status) {
           if (status != null) {
             if (status.isSuccess!) {
-              Get.toNamed(RouteHelper.getVerificationRoute(
+              Get.offNamed(RouteHelper.getVerificationRoute(
                 identity: identity,
                 identityType: identityType,
                 fromPage: 'verification',
-                firebaseSession: type == SendOtpType.firebase ? status.message : null,
+                firebaseSession: sendOtpType == SendOtpType.firebase ? status.message : null,
                 showSignUpDialog: true,
               ));
             } else {
               Get.offNamed(RouteHelper.signIn);
               showCustomSnackBar(trLabel(status.message?.toString()));
             }
-            resetAllValue();
-            _isLoading = false;
-            update();
           }
         });
       } else {
-        resetAllValue();
         Get.offNamed(RouteHelper.signIn);
         showCustomBottomSheet(child: const WelcomeBottomSheet(fromSignup: true));
-        _isLoading = false;
-        update();
       }
     } else if (response.statusCode == 400 && response.body['response_code'] == 'default_400') {
       showCustomSnackBar(localizeMessage(response.body['errors'][0]['message']?.toString()));
@@ -1364,8 +1376,14 @@ class SignUpController extends GetxController {
   }
 
   void setAddressControllerText(String addressText) {
-    companyAddressController.text = addressText;
-    update();
+    if (Get.isRegistered<LocationController>()) {
+      final pickAddress = Get.find<LocationController>().pickAddress;
+      if (pickAddress.address?.trim().isNotEmpty ?? false) {
+        syncAddressFromPickAddress(pickAddress);
+        return;
+      }
+    }
+    syncAddressFromMap(addressText);
   }
 
   void checkOthersFieldValidity({

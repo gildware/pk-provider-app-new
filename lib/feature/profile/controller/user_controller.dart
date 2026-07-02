@@ -819,9 +819,18 @@ class UserProfileController extends GetxController implements GetxService{
   }
 
   void syncAddressFromMap(String address) {
-    if ((streetController?.text.trim().isEmpty ?? true) && address.isNotEmpty) {
-      streetController?.text = address;
-    }
+    syncAddressFromPickAddress(ServiceAddress(address: address));
+  }
+
+  void syncAddressFromPickAddress(ServiceAddress address) {
+    AddressParseHelper.applyToFields(
+      address: address,
+      onApply: (town, city, pincode, formatted) {
+        if (town.isNotEmpty) streetController!.text = town;
+        if (city.isNotEmpty) cityController!.text = city;
+        if (pincode.isNotEmpty) pincodeController!.text = pincode;
+      },
+    );
     _scheduleUpdate();
   }
 
@@ -1260,6 +1269,15 @@ class UserProfileController extends GetxController implements GetxService{
     }
     return status;
   }
+
+  bool get isAdvertisementGloballyEnabled =>
+      Get.find<SplashController>().configModel.content?.advertisementStatus == 1;
+
+  bool get canUseAdvertisement =>
+      _providerModel?.content?.canUseAdvertisement ?? false;
+
+  bool get isAdvertisementFeatureVisible =>
+      isAdvertisementGloballyEnabled && canUseAdvertisement;
 
 
 

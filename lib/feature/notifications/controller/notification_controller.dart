@@ -44,7 +44,9 @@ class NotificationController extends GetxController implements GetxService{
         }
       }
     });
-    getUnreadNotificationCount();
+    if (Get.find<AuthController>().isLoggedIn()) {
+      getUnreadNotificationCount();
+    }
   }
 
   Future<void> getUnreadNotificationCount() async {

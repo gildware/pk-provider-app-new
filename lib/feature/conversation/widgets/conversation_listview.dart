@@ -9,8 +9,10 @@ class ConversationListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ConversationController>(builder: (conversationController){
-      return channelList.isEmpty ?  EmptyConversationWidget(
-        fromSearch:  conversationController.isActiveSuffixIcon && conversationController.isSearchComplete,
+      return channelList.isEmpty ? Center(
+        child: EmptyConversationWidget(
+          fromSearch: conversationController.isActiveSuffixIcon && conversationController.isSearchComplete,
+        ),
       ) : RefreshIndicator(
         color: Theme.of(context).primaryColorLight,
         backgroundColor: Theme.of(context).cardColor,

@@ -29,6 +29,7 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
 
   String phone ='';
   Timer? _incomingCallPollTimer;
+  Timer? _messagePollTimer;
   late final VoidCallback _onDownloadUpdate;
 
   String? get _currentProviderUserId =>
@@ -68,6 +69,12 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
       _incomingCallPollTimer = Timer.periodic(const Duration(seconds: 1), (_) {
         Get.find<InAppCallController>().checkPendingIncomingCall();
       });
+      _messagePollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+        if (!mounted) {
+          return;
+        }
+        Get.find<ConversationController>().appendIncomingMessages(widget.channelID);
+      });
     });
 
     if(Get.find<SplashController>().configModel.content?.showPhoneNumber==0 && widget.userType.contains("customer")){
@@ -82,6 +89,7 @@ class _ConversationDetailsScreenState extends State<ConversationDetailsScreen> {
   @override
   void dispose() {
     _incomingCallPollTimer?.cancel();
+    _messagePollTimer?.cancel();
     ConversationDownloadPort.detach(_onDownloadUpdate);
     if (Get.isRegistered<ConversationController>()) {
       final conversationController = Get.find<ConversationController>();

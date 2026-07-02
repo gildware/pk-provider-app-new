@@ -136,10 +136,10 @@ class _ProfileAddressFormState extends State<ProfileAddressForm> {
           initialAddress:
               userProfileController.providerModel?.content?.providerInfo?.companyAddress,
         ));
-    final address = locationController.pickAddress.address ?? '';
-    if (address.isNotEmpty) {
-      userProfileController.syncAddressFromMap(address);
-      _mapSearchController.text = address;
+    final pickAddress = locationController.pickAddress;
+    if (pickAddress.address?.trim().isNotEmpty ?? false) {
+      userProfileController.syncAddressFromPickAddress(pickAddress);
+      _mapSearchController.text = pickAddress.address ?? '';
     }
   }
 }

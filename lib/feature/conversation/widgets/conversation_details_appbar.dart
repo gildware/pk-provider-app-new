@@ -33,13 +33,16 @@ class ConversationDetailsAppBar extends StatelessWidget implements PreferredSize
 
       title: Row( children: [
 
-        ClipRRect(borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraLarge * 2),
-          child: CustomImage(
-            image: image, height: 30, width: 30,
-            placeholder: AdminChatBrandingHelper.isSuperAdmin(userType)
-                ? AdminChatBrandingHelper.logoPlaceholder
-                : Images.userPlaceHolder,
-          ),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraLarge * 2),
+          child: AdminChatBrandingHelper.isSuperAdmin(userType)
+              ? AdminChatBrandingHelper.supportAvatar(size: 30)
+              : CustomImage(
+                  image: image,
+                  height: 30,
+                  width: 30,
+                  placeholder: Images.userPlaceHolder,
+                ),
         ),
         const SizedBox(width: Dimensions.paddingSizeSmall),
 

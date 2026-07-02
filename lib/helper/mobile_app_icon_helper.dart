@@ -36,6 +36,9 @@ class MobileAppIconHelper {
 
   static bool get _isDark => Get.isDarkMode;
 
+  /// Alias for parity with the customer app media URL resolver.
+  static String? normalizeMediaUrl(String? value) => resolveMediaUrl(value);
+
   /// Turns API paths (/storage/...) or remote URLs into a URL the app can load.
   static String? resolveMediaUrl(String? value) {
     if (value == null) {
@@ -129,9 +132,7 @@ class MobileAppIconHelper {
     if (custom != null && custom.isNotEmpty) {
       return custom;
     }
-    return resolveMediaUrl(
-      Get.find<SplashController>().configModel.content?.logoFullPath,
-    );
+    return null;
   }
 
   static Widget loginLogo({

@@ -6,6 +6,7 @@ class CustomImage extends StatelessWidget {
   final double? height;
   final double? width;
   final BoxFit? fit;
+  final BoxFit? placeHolderBoxFit;
   final String? placeholder;
   final Widget? errorWidget;
 
@@ -15,6 +16,7 @@ class CustomImage extends StatelessWidget {
     this.height,
     this.width,
     this.fit = BoxFit.cover,
+    this.placeHolderBoxFit,
     this.placeholder,
     this.errorWidget,
   });
@@ -26,16 +28,18 @@ class CustomImage extends StatelessWidget {
       _resolvePlaceholderAsset(),
       height: height,
       width: width,
-      fit: fit,
+      fit: placeHolderBoxFit ?? fit,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final url = image?.trim() ?? '';
-    if (url.isEmpty) {
+    final rawUrl = image?.trim() ?? '';
+    if (rawUrl.isEmpty) {
       return _placeholderWidget();
     }
+
+    final url = MobileAppIconHelper.normalizeMediaUrl(rawUrl) ?? rawUrl;
 
     return CachedNetworkImage(
       imageUrl: url,

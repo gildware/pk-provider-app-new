@@ -32,7 +32,7 @@ class AuthController extends GetxController implements GetxService {
 
   var countryDialCode= "+880";
 
-  Future<void> login(String emailOrPhone, String password, String type) async {
+  Future<bool> login(String emailOrPhone, String password, String type) async {
     _isLoading = true;
     update();
     Response? response = await authRepo.login(emailOrPassword: emailOrPhone, password: password, type: type);
@@ -46,7 +46,8 @@ class AuthController extends GetxController implements GetxService {
       _isLoading = false;
       update();
       Get.offAllNamed(RouteHelper.initial);
-      _completeProviderLogin();
+      await _completeProviderLogin();
+      return true;
     }
     else if((response.body['response_code']=='unverified_email_401' || response.body['response_code']=='unverified_phone_401') && response.statusCode==401){
 
@@ -93,6 +94,7 @@ class AuthController extends GetxController implements GetxService {
       update();
     }
 
+    return false;
   }
 
   Future<ResponseModel?> sendVerificationCode({required String identity, required String identityType,required  SendOtpType type, required String fromPage , bool resendOtp = false}) async {

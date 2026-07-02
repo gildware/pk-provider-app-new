@@ -1,6 +1,7 @@
 import 'dart:ui';
-import 'package:demandium_provider/feature/location/model/address_format.dart';
+import 'package:demandium_provider/helper/address_parse_helper.dart';
 import 'package:demandium_provider/util/core_export.dart';
+import 'package:demandium_provider/feature/location/model/address_format.dart';
 import 'package:demandium_provider/feature/location/model/place_details_model.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -114,7 +115,7 @@ class LocationController extends GetxController  implements GetxService{
       } else {
         _pickAddress = address;
         if (Get.isRegistered<SignUpController>()) {
-          Get.find<SignUpController>().setAddressControllerText(address.address ?? '');
+          _notifySignUpController(address);
         }
       }
     } finally {
@@ -158,7 +159,7 @@ class LocationController extends GetxController  implements GetxService{
       } else {
         _pickAddress = address;
         if (Get.isRegistered<SignUpController>()) {
-          Get.find<SignUpController>().setAddressControllerText(address.address ?? '');
+          _notifySignUpController(address);
         }
       }
     } catch (e) {
@@ -194,25 +195,14 @@ class LocationController extends GetxController  implements GetxService{
       addressModel.lat = latLng.latitude;
       addressModel.lon= latLng.longitude;
 
-      placeDetails.content?.addressComponents?.forEach((element) {
-        if(element.types !=null){
-          if(element.types!.contains("country")){
-            addressModel.country = element.longName ?? "";
-          }
-          if(element.types!.contains("locality") && element.types!.contains("political")){
-            addressModel.city = element.longName ?? "";
-          }
-          if(element.types!.contains("street_number")) {
-            addressModel.house = element.longName ?? "";
-          }
-          if(element.types!.contains("route")){
-            addressModel.street = element.longName ?? "";
-          }
-          if(element.types!.contains("postal_code")){
-            addressModel.zipCode = element.longName ?? "";
-          }
-        }
-      });
+      final components = placeDetails.content?.addressComponents
+          ?.map((component) => AddressComponents(
+                longName: component.longName,
+                shortName: component.shortName,
+                types: component.types,
+              ))
+          .toList();
+      AddressParseHelper.applyComponents(addressModel, components);
     }
 
     _pickPosition = Position(
@@ -222,6 +212,10 @@ class LocationController extends GetxController  implements GetxService{
     );
 
     _pickAddress = addressModel;
+
+    if (Get.isRegistered<SignUpController>()) {
+      _notifySignUpController(addressModel);
+    }
 
     if(mapController != null){
       mapController.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(target: latLng, zoom: 17)));
@@ -249,27 +243,7 @@ class LocationController extends GetxController  implements GetxService{
 
       addressFormat = AddressFormat.fromJson( response.body['content']['results'][0]);
 
-      addressFormat.addressComponents?.forEach((element) {
-
-        if(element.types !=null){
-          if(element.types!.contains("country")){
-            address.country = element.longName ?? "";
-          }
-          if(element.types!.contains("locality") && element.types!.contains("political")){
-            address.city = element.longName ?? "";
-          }
-          if(element.types!.contains("street_number")) {
-            address.house = element.longName ?? "";
-          }
-          if(element.types!.contains("route")){
-            address.street = element.longName ?? "";
-          }
-
-          if(element.types!.contains("postal_code")){
-            address.zipCode = element.longName ?? "";
-          }
-        }
-      });
+      AddressParseHelper.applyComponents(address, addressFormat.addressComponents);
       address.address = addressFormat.formattedAddress ?? "";
     }
     return address;
@@ -368,7 +342,7 @@ class LocationController extends GetxController  implements GetxService{
       final address = await getAddressFromGeocode(latLng);
       _pickAddress = address;
       if (Get.isRegistered<SignUpController>()) {
-        Get.find<SignUpController>().setAddressControllerText(address.address ?? '');
+        _notifySignUpController(address);
       }
     } catch (e) {
       if (kDebugMode) {
@@ -378,6 +352,10 @@ class LocationController extends GetxController  implements GetxService{
       _loading = false;
       refreshUi();
     }
+  }
+
+  void _notifySignUpController(ServiceAddress address) {
+    Get.find<SignUpController>().syncAddressFromPickAddress(address);
   }
 
   void setPickedLocation({ServiceAddress? address,bool shouldUpdate = true}){

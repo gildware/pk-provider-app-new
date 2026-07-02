@@ -97,8 +97,10 @@ class _DashBoardScreenState extends State<DashBoardScreen>{
                 const DashboardNetBalanceWidget(),
                 SizedBox(height: Dimensions.paddingSizeSmall),
 
-                const AdvertisementSection(),
-                SizedBox(height: Dimensions.paddingSizeSmall),
+                if (userProfileController.isAdvertisementFeatureVisible) ...[
+                  const AdvertisementSection(),
+                  SizedBox(height: Dimensions.paddingSizeSmall),
+                ],
 
                 const EarningStatisticsWidget(),
                 SizedBox(height: Dimensions.paddingSizeSmall),

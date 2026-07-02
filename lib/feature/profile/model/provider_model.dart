@@ -47,6 +47,7 @@ class Content {
   bool? hasPendingBrandingChanges;
   String? pendingBrandingLogoUrl;
   String? pendingBrandingCoverUrl;
+  bool? canUseAdvertisement;
 
   Content({
     this.providerInfo,
@@ -57,6 +58,7 @@ class Content {
     this.hasPendingBrandingChanges,
     this.pendingBrandingLogoUrl,
     this.pendingBrandingCoverUrl,
+    this.canUseAdvertisement,
   });
 
   Content.fromJson(Map<String, dynamic> json) {
@@ -86,6 +88,8 @@ class Content {
     subscriptionInfo  = json['subscription_info'] != null
         ? SubscriptionInfo.fromJson(json['subscription_info'])
         : null;
+    canUseAdvertisement = json['can_use_advertisement'] == true
+        || json['can_use_advertisement'] == 1;
   }
 
   Map<String, dynamic> toJson() {
@@ -104,6 +108,7 @@ class Content {
     if (subscriptionInfo != null) {
       data['subscription_info'] = subscriptionInfo!.toJson();
     }
+    data['can_use_advertisement'] = canUseAdvertisement;
     return data;
   }
 }

@@ -14,6 +14,7 @@ export 'package:demandium_provider/util/dimensions.dart';
 export 'package:demandium_provider/common/widgets/custom_snackbar.dart';
 export 'package:demandium_provider/common/widgets/provider_pending_approval_banner.dart';
 export 'package:demandium_provider/feature/auth/controller/auth_controller.dart';
+export 'package:demandium_provider/helper/address_parse_helper.dart';
 export 'package:demandium_provider/helper/api_url_helper.dart';
 export 'package:demandium_provider/helper/route_helper.dart';
 export 'package:demandium_provider/helper/navigation_helper.dart';

@@ -81,7 +81,12 @@ class SplashScreenState extends State<SplashScreen> {
         if (notificationBody != null) {
           _notificationRoute(notificationBody);
         } else if (Get.find<AuthController>().isLoggedIn()) {
-          await Get.find<UserProfileController>().getProviderInfo();
+          final hasProfile = await Get.find<UserProfileController>().getProviderInfo();
+          if (!mounted) return;
+          if (!hasProfile || !Get.find<AuthController>().isLoggedIn()) {
+            Get.offNamed(RouteHelper.getSignInRoute('LogIn'));
+            return;
+          }
           await Get.find<AuthController>().updateToken();
           if (!mounted) return;
           Get.offNamed(RouteHelper.getInitialRoute());

@@ -109,6 +109,7 @@ class ConversationController extends GetxController with GetSingleTickerProvider
 
   final Map<String, _ConversationChannelCache> _conversationCache = {};
   int _conversationFetchGeneration = 0;
+  bool _isAppendingIncomingMessages = false;
   bool _isLoadingOlderMessages = false;
   bool get isLoadingOlderMessages => _isLoadingOlderMessages;
   Future<void>? _pendingConversationFetch;
@@ -323,7 +324,7 @@ class ConversationController extends GetxController with GetSingleTickerProvider
     );
 
     if (Get.find<AuthController>().isLoggedIn()) {
-      getUnreadChatCount();
+      // Badge is loaded from BottomNavScreen.loadData after channel list is ready.
     }
 
     conversationController.text = '';
@@ -528,6 +529,7 @@ class ConversationController extends GetxController with GetSingleTickerProvider
     Response response = await conversationRepo.getChannelList(offset, type: type);
 
     if(response.statusCode == 200){
+      _ensureSupportChatBrandingIcons();
 
       if(_channelOffset==1){
         if(type == "customer"){
@@ -559,6 +561,10 @@ class ConversationController extends GetxController with GetSingleTickerProvider
         _adminConversation = ChannelData.fromJson( response.body['content']['adminChannel']);
       }
 
+      if (_channelOffset == 1 && type == 'customer') {
+        unawaited(getUnreadChatCount(prefetchChannels: false));
+      }
+
     }else{
       ApiChecker.checkApi(response);
     }
@@ -583,14 +589,37 @@ class ConversationController extends GetxController with GetSingleTickerProvider
      update();
   }
 
+  String _messageContentKey(ConversationData message) {
+    return '${message.userId ?? ''}|${message.message?.trim() ?? ''}';
+  }
+
+  bool _conversationListsEqual(
+    List<ConversationData> current,
+    List<ConversationData> next,
+  ) {
+    if (current.length != next.length) {
+      return false;
+    }
+    for (var index = 0; index < current.length; index++) {
+      if (current[index].id != next[index].id) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   List<ConversationData> _mergeConversationFirstPage(
     List<ConversationData> current,
     List<ConversationData> serverPage,
   ) {
     final serverIds = serverPage.map((message) => message.id).whereType<String>().toSet();
-    final optimistic = current
-        .where((message) => message.id != null && !serverIds.contains(message.id))
-        .toList();
+    final serverContentKeys = serverPage.map(_messageContentKey).toSet();
+    final optimistic = current.where((message) {
+      if (message.id != null && serverIds.contains(message.id)) {
+        return false;
+      }
+      return !serverContentKeys.contains(_messageContentKey(message));
+    }).toList();
     return [...optimistic, ...serverPage];
   }
 
@@ -860,39 +889,77 @@ class ConversationController extends GetxController with GetSingleTickerProvider
   /// Fetches the latest page and appends only messages not already shown.
   Future<void> appendIncomingMessages(String channelID) async {
     final normalizedChannelId = normalizeChannelId(channelID);
-    if (!isViewingChannel(normalizedChannelId)) {
+    if (!isViewingChannel(normalizedChannelId) || _isAppendingIncomingMessages) {
       return;
     }
 
-    _conversationList ??= [];
-    _isFirst = false;
+    _isAppendingIncomingMessages = true;
+    try {
+      _conversationList ??= [];
+      _isFirst = false;
 
-    final response = await conversationRepo.getConversation(normalizedChannelId, 1);
-    if (response.statusCode != 200) {
-      return;
-    }
-
-    final existingIds = _conversationList!
-        .map((message) => message.id)
-        .whereType<String>()
-        .toSet();
-
-    final newMessages = <ConversationData>[];
-    for (final conversation in response.body['content']['data'] as List) {
-      final message = ConversationData.fromJson(conversation);
-      if (message.id != null && !existingIds.contains(message.id)) {
-        newMessages.add(message);
+      final response = await conversationRepo.getConversation(normalizedChannelId, 1);
+      if (response.statusCode != 200) {
+        return;
       }
-    }
 
-    if (newMessages.isEmpty) {
-      return;
-    }
+      final pageMessages = (response.body['content']['data'] as List)
+          .map((conversation) => ConversationData.fromJson(conversation))
+          .toList(growable: true);
 
-    _conversationList!.insertAll(0, newMessages);
-    _messagePageSize = _parseLastPage(response.body['content']['last_page']);
-    _cacheConversation(normalizedChannelId);
-    update([chatMessagesUpdateId]);
+      if ((_messageOffset ?? 1) == 1) {
+        final merged = _mergeConversationFirstPage(_conversationList!, pageMessages);
+        if (_conversationListsEqual(_conversationList!, merged)) {
+          return;
+        }
+        _conversationList = merged;
+      } else {
+        final existingIds = _conversationList!
+            .map((message) => message.id)
+            .whereType<String>()
+            .toSet();
+        final existingContentKeys = _conversationList!.map(_messageContentKey).toSet();
+        final newMessages = <ConversationData>[];
+        var replacedOptimistic = false;
+
+        for (final message in pageMessages) {
+          final messageId = message.id;
+          if (messageId == null || existingIds.contains(messageId)) {
+            continue;
+          }
+
+          final contentKey = _messageContentKey(message);
+          final optimisticIndex = _conversationList!.indexWhere((item) =>
+              item.id != messageId && _messageContentKey(item) == contentKey);
+          if (optimisticIndex >= 0) {
+            _conversationList![optimisticIndex] = message;
+            existingIds.add(messageId);
+            replacedOptimistic = true;
+            continue;
+          }
+
+          if (!existingContentKeys.contains(contentKey)) {
+            newMessages.add(message);
+            existingIds.add(messageId);
+            existingContentKeys.add(contentKey);
+          }
+        }
+
+        if (newMessages.isEmpty && !replacedOptimistic) {
+          return;
+        }
+
+        if (newMessages.isNotEmpty) {
+          _conversationList!.insertAll(0, newMessages);
+        }
+      }
+
+      _messagePageSize = _parseLastPage(response.body['content']['last_page']);
+      _cacheConversation(normalizedChannelId);
+      update([chatMessagesUpdateId]);
+    } finally {
+      _isAppendingIncomingMessages = false;
+    }
   }
 
   /// Append a single sent message locally without refetching the whole thread.
@@ -930,16 +997,40 @@ class ConversationController extends GetxController with GetSingleTickerProvider
     update([chatMessagesUpdateId]);
   }
 
-  Future<void> getUnreadChatCount() async {
+  Future<void> getUnreadChatCount({bool prefetchChannels = true}) async {
     if (!Get.find<AuthController>().isLoggedIn()) {
       return;
     }
+
+    if (prefetchChannels && _adminConversation == null) {
+      await getChannelList(1, type: 'customer', silent: true);
+    }
+
     final response = await conversationRepo.getUnreadConversationCount();
     if (response.statusCode == 200) {
       final count = response.body['content']?['unread_conversation'];
-      _unreadChatCount = count is int ? count : int.tryParse('$count') ?? 0;
+      final apiCount = count is int ? count : int.tryParse('$count') ?? 0;
+      _unreadChatCount = _resolvedUnreadChatCount(apiCount);
       update([chatBadgeUpdateId]);
     }
+  }
+
+  bool _channelHasAnyMessages(ChannelData channel) {
+    return (channel.lastSentMessage?.trim().isNotEmpty ?? false) ||
+        (channel.lastSentFileCount ?? 0) > 0;
+  }
+
+  int _resolvedUnreadChatCount(int apiCount) {
+    if (apiCount <= 0) {
+      return 0;
+    }
+
+    final admin = _adminConversation;
+    if (admin != null && !_channelHasAnyMessages(admin)) {
+      return apiCount > 0 ? apiCount - 1 : 0;
+    }
+
+    return apiCount;
   }
 
   Future<void> sendMessage(String channelID) async{
@@ -1008,6 +1099,19 @@ class ConversationController extends GetxController with GetSingleTickerProvider
     }
     _isLoading = false;
     update([chatMessagesUpdateId, chatSendUpdateId]);
+  }
+
+  void _ensureSupportChatBrandingIcons() {
+    if (!Get.isRegistered<SplashController>()) {
+      return;
+    }
+
+    final icons = Get.find<SplashController>().configModel.content?.mobileAppIcons;
+    if (icons != null && icons.containsKey(MobileAppIconHelper.customerAppLogoKey)) {
+      return;
+    }
+
+    unawaited(Get.find<SplashController>().getConfigData());
   }
 
   void resetOnAuthChange() {

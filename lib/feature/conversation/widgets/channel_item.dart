@@ -110,13 +110,16 @@ class ChannelItem extends StatelessWidget {
 
         Padding(padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeEight),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            ClipRRect(borderRadius: BorderRadius.circular(50),
-              child: CustomImage(height: 42, width: 42,
-                image: imageWithPath,
-                placeholder: isAdminChat
-                    ? AdminChatBrandingHelper.logoPlaceholder
-                    : Images.userPlaceHolder,
-              ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(50),
+              child: isAdminChat
+                  ? AdminChatBrandingHelper.supportAvatar(size: 42)
+                  : CustomImage(
+                      height: 42,
+                      width: 42,
+                      image: imageWithPath,
+                      placeholder: Images.userPlaceHolder,
+                    ),
             ),
 
             const SizedBox(width: Dimensions.paddingSizeSmall),
